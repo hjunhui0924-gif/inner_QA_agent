@@ -130,17 +130,6 @@ DELETE /chat/session/{user_id}/{session_id}
 - `.py`
 - `.log`
 
-## GitHub 上传前建议
-
-上传到 GitHub 前，建议确认这些内容不要提交：
-
-- `.env`
-- `data/chroma_db/`
-- `data/uploads/`
-- `data/memory.db`
-
-这些已经在 `.gitignore` 里处理。
-
 ## 后续可扩展方向
 
 - 更强的 PDF 表格抽取
