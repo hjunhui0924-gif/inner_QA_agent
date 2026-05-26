@@ -106,23 +106,21 @@ def _send_message(message: str) -> None:
     url = f"{st.session_state.backend_url.rstrip('/')}/chat/stream"
 
     assistant_text = ""
-    status_placeholder = st.empty()
     with st.chat_message("assistant"):
         answer_placeholder = st.empty()
-        with requests.post(url, json=payload, stream=True, timeout=120) as response:
-            response.raise_for_status()
-            for event in _iter_sse_lines(response):
-                event_type = str(event.get("type", ""))
-                if event_type == "status":
-                    content = str(event.get("content", ""))
-                    status_placeholder.info(f"状态：{content}")
-                elif event_type == "token":
-                    assistant_text += str(event.get("content", ""))
-                    answer_placeholder.markdown(assistant_text)
-                elif event_type == "done":
-                    break
+        with st.spinner("正在思考并检索相关知识..."):
+            with requests.post(url, json=payload, stream=True, timeout=120) as response:
+                response.raise_for_status()
+                for event in _iter_sse_lines(response):
+                    event_type = str(event.get("type", ""))
+                    if event_type == "status":
+                        continue
+                    elif event_type == "token":
+                        assistant_text += str(event.get("content", ""))
+                        answer_placeholder.markdown(assistant_text)
+                    elif event_type == "done":
+                        break
 
-    status_placeholder.empty()
     if not assistant_text:
         assistant_text = "未返回有效内容。"
         with st.chat_message("assistant"):

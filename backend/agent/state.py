@@ -24,7 +24,6 @@ class AgentState(TypedDict, total=False):
     answer: str
     hallucination_pass: bool
     hallucination_retry_count: int
-    user_memory: str
     route: Literal["rag", "tool_call", "direct"]
     tool_output: str
     status_events: Annotated[list[str], operator.add]

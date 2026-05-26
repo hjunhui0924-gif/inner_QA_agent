@@ -20,9 +20,9 @@ def route_after_hallucination_check(state: AgentState) -> str:
     """Choose whether to accept, retry, or persist the current answer."""
 
     if state.get("hallucination_pass"):
-        return "update_memory"
+        return "__end__"
     if state.get("hallucination_retry_count", 0) >= settings.max_hallucination_retries:
-        return "update_memory"
+        return "__end__"
     return "generate"
 
 
@@ -34,4 +34,3 @@ def route_after_routing(state: AgentState) -> str:
         "tool_call": "tool_executor",
         "direct": "generate",
     }[state["route"]]
-

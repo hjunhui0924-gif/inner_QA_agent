@@ -15,12 +15,10 @@ from backend.agent.nodes import (
     fallback_answer,
     generate,
     grade_documents,
-    inject_memory,
     retrieve,
     route_query,
     rewrite_query,
     tool_executor,
-    update_memory,
 )
 from backend.agent.state import AgentState
 
@@ -29,7 +27,6 @@ def build_graph(checkpointer: AsyncSqliteSaver):
     """Compile the LangGraph workflow."""
 
     builder = StateGraph(AgentState)
-    builder.add_node("inject_memory", inject_memory)
     builder.add_node("route_query", route_query)
     builder.add_node("retrieve", retrieve)
     builder.add_node("grade_documents", grade_documents)
@@ -38,10 +35,8 @@ def build_graph(checkpointer: AsyncSqliteSaver):
     builder.add_node("tool_executor", tool_executor)
     builder.add_node("generate", generate)
     builder.add_node("check_hallucination", check_hallucination)
-    builder.add_node("update_memory", update_memory)
 
-    builder.add_edge(START, "inject_memory")
-    builder.add_edge("inject_memory", "route_query")
+    builder.add_edge(START, "route_query")
     builder.add_conditional_edges("route_query", route_after_routing)
     builder.add_edge("retrieve", "grade_documents")
     builder.add_conditional_edges("grade_documents", route_after_grading)
@@ -52,7 +47,6 @@ def build_graph(checkpointer: AsyncSqliteSaver):
         "check_hallucination",
         route_after_hallucination_check,
     )
-    builder.add_edge("fallback_answer", "update_memory")
-    builder.add_edge("update_memory", END)
+    builder.add_edge("fallback_answer", END)
 
     return builder.compile(checkpointer=checkpointer)

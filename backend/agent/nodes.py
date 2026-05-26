@@ -16,11 +16,7 @@ from backend.config import settings
 from backend.agent.memory import (
     keyword_overlap_score,
     latest_user_text,
-    load_user_preferences,
-    merge_preferences,
-    save_user_preferences,
     search_documents,
-    summarize_preferences,
 )
 from backend.agent.state import AgentState
 from backend.agent.tools import get_current_time, search_knowledge_base
@@ -93,13 +89,6 @@ def _format_documents(documents: Sequence[Document]) -> str:
     return "\n".join(lines)
 
 
-def _build_memory_prompt(preferences: dict[str, Any]) -> str:
-    """Convert stored preferences to a system prompt fragment."""
-
-    summary = summarize_preferences(preferences)
-    return f"用户偏好：{summary}"
-
-
 def _heuristic_route(query: str) -> Literal["rag", "tool_call", "direct"]:
     """Fallback router when the LLM is unavailable."""
 
@@ -138,22 +127,10 @@ def _heuristic_route(query: str) -> Literal["rag", "tool_call", "direct"]:
     return "direct"
 
 
-async def inject_memory(state: AgentState) -> dict[str, Any]:
-    """Load the user's personalized memory into the current state."""
-
-    user_id = state.get("user_id", "user_001")
-    preferences = await load_user_preferences(user_id)
-    return {
-        "user_memory": _build_memory_prompt(preferences),
-        "status_events": ["inject_memory"],
-    }
-
-
 async def route_query(state: AgentState) -> dict[str, Any]:
     """Use the LLM to select the execution route."""
 
     query = state.get("query") or latest_user_text(state.get("messages", []))
-    memory = state.get("user_memory", "")
     prompt = (
         "你是一个企业内部知识助手的路由器。请仅返回JSON对象，不要输出多余文字。\n"
         "可选路由：\n"
@@ -162,7 +139,6 @@ async def route_query(state: AgentState) -> dict[str, Any]:
         '3. "direct"：可以直接回答，不需要检索或工具。\n'
         "返回格式：{\"route\": \"rag|tool_call|direct\", \"reason\": \"简短原因\"}\n"
         f"用户问题：{query}\n"
-        f"{memory}"
     )
 
     route = _heuristic_route(query)
@@ -231,7 +207,6 @@ async def rewrite_query(state: AgentState) -> dict[str, Any]:
     """Rewrite the query to improve retrieval quality."""
 
     query = state.get("query", "")
-    user_memory = state.get("user_memory", "")
     retry_count = state.get("retrieval_retry_count", 0) + 1
     rewritten_query = query
 
@@ -239,7 +214,6 @@ async def rewrite_query(state: AgentState) -> dict[str, Any]:
         "请将用户问题改写成更适合企业内部知识库检索的短查询，仅返回JSON。\n"
         '返回格式：{"rewritten_query": "..." }\n'
         f"用户问题：{query}\n"
-        f"{user_memory}"
     )
     try:
         model = _build_model(temperature=0)
@@ -308,7 +282,6 @@ async def generate(state: AgentState) -> dict[str, Any]:
     """Generate the final answer using the current context."""
 
     query = state.get("query") or latest_user_text(state.get("messages", []))
-    user_memory = state.get("user_memory", "")
     docs = state.get("retrieved_docs", [])
     tool_output = state.get("tool_output", "")
     route = state.get("route", "direct")
@@ -316,14 +289,14 @@ async def generate(state: AgentState) -> dict[str, Any]:
     system_prompt = (
         "你是企业内部知识助手。你的职责是基于企业内部制度、流程、规范和文档回答问题。\n"
         "请用中文回答，语气自然、专业、简洁。\n"
-        "你面向的是企业内部员工，不是面向外部客户的售后客服。\n"
+        "你面向企业内部员工，主要支持制度查询、流程说明、审批规则、合同与法务、财务与人事等内部事务。\n"
+        "回答时聚焦企业内部知识，不要主动扩展到无关主题。\n"
         "如果知识依据不足，不要臆测，直接说明信息不足并指出建议补充的信息。\n"
         "优先遵守以下信息：\n"
-        f"{user_memory}\n"
         f"路由类型：{route}\n"
         f"工具结果：{tool_output or '无'}\n"
         f"检索到的知识：\n{_format_documents(docs)}\n"
-        "如果信息不足，请明确说明，并给出下一步建议。"
+        "如果用户只是打招呼或询问你能做什么，请简要介绍你支持的企业内部知识能力。"
     )
 
     prompt_messages: list[BaseMessage] = [SystemMessage(content=system_prompt)]
@@ -399,66 +372,4 @@ async def check_hallucination(state: AgentState) -> dict[str, Any]:
     return {
         "hallucination_pass": pass_check,
         "status_events": [f"check_hallucination:{pass_check}"],
-    }
-
-
-def _heuristic_memory_patch(query: str, answer: str) -> dict[str, Any]:
-    """Create a small preference patch without model access."""
-
-    patch: dict[str, Any] = {}
-    lowered = f"{query} {answer}".lower()
-
-    if "中文" in query:
-        patch["language"] = "中文"
-    if any(keyword in lowered for keyword in ["简洁", "简短", "精炼"]):
-        patch["tone_preference"] = "简洁"
-    if any(keyword in lowered for keyword in ["详细", "展开", "多说一点"]):
-        patch["tone_preference"] = "详细"
-    topics: list[str] = []
-    for keyword in ["报销", "请假", "审批", "采购", "财务", "合同", "制度"]:
-        if keyword in lowered:
-            topics.append(keyword)
-    if topics:
-        patch["frequent_topics"] = topics
-    for keyword in ["财务", "人事", "采购", "法务", "销售", "研发"]:
-        if keyword in lowered:
-            patch["product_focus"] = [keyword]
-            break
-    return patch
-
-
-async def update_memory(state: AgentState) -> dict[str, Any]:
-    """Extract and persist user preferences as JSON."""
-
-    user_id = state.get("user_id", "user_001")
-    query = state.get("query") or latest_user_text(state.get("messages", []))
-    answer = state.get("answer", "")
-    existing = await load_user_preferences(user_id)
-    patch = _heuristic_memory_patch(query, answer)
-
-    prompt = (
-        "请从下面对话中提取用户偏好，仅返回JSON对象，不要输出解释。\n"
-        "返回格式示例："
-        '{"product_focus":["财务"],"tone_preference":"简洁","language":"中文","frequent_topics":["报销"]}\n'
-        f"用户问题：{query}\n"
-        f"系统回答：{answer}"
-    )
-    try:
-        model = _build_model(temperature=0)
-        response = await model.ainvoke([SystemMessage(content=prompt)])
-        candidate_patch = _extract_json_object(_as_text(response))
-        if isinstance(candidate_patch, dict):
-            patch = merge_preferences(patch, candidate_patch)
-    except Exception:
-        pass
-
-    merged = merge_preferences(existing, patch)
-    try:
-        await save_user_preferences(user_id, merged)
-    except Exception:
-        pass
-
-    return {
-        "user_memory": _build_memory_prompt(merged),
-        "status_events": ["update_memory"],
     }

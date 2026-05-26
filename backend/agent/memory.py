@@ -189,15 +189,6 @@ async def ensure_user_memory_db(db_path: str | Path) -> None:
     async with aiosqlite.connect(path) as db:
         await db.execute(
             """
-            CREATE TABLE IF NOT EXISTS user_memory (
-                user_id TEXT PRIMARY KEY,
-                preferences TEXT NOT NULL DEFAULT '{}',
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-            """
-        )
-        await db.execute(
-            """
             CREATE TABLE IF NOT EXISTS chat_sessions (
                 user_id TEXT NOT NULL,
                 session_id TEXT NOT NULL,
@@ -219,45 +210,6 @@ async def ensure_user_memory_db(db_path: str | Path) -> None:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             """
-        )
-        await db.commit()
-
-
-async def load_user_preferences(user_id: str) -> dict[str, Any]:
-    """Load one user's stored preference JSON."""
-
-    async with aiosqlite.connect(settings.sqlite_db_path) as db:
-        cursor = await db.execute(
-            "SELECT preferences FROM user_memory WHERE user_id = ?",
-            (user_id,),
-        )
-        row = await cursor.fetchone()
-        await cursor.close()
-
-    if not row:
-        return {}
-
-    try:
-        data = json.loads(row[0])
-    except json.JSONDecodeError:
-        return {}
-    return data if isinstance(data, dict) else {}
-
-
-async def save_user_preferences(user_id: str, preferences: dict[str, Any]) -> None:
-    """Persist merged preference JSON."""
-
-    payload = json.dumps(preferences, ensure_ascii=False)
-    async with aiosqlite.connect(settings.sqlite_db_path) as db:
-        await db.execute(
-            """
-            INSERT INTO user_memory (user_id, preferences, updated_at)
-            VALUES (?, ?, CURRENT_TIMESTAMP)
-            ON CONFLICT(user_id) DO UPDATE SET
-                preferences = excluded.preferences,
-                updated_at = CURRENT_TIMESTAMP
-            """,
-            (user_id, payload),
         )
         await db.commit()
 
@@ -409,66 +361,6 @@ async def delete_chat_session(user_id: str, session_id: str) -> None:
             (user_id, session_id),
         )
         await db.commit()
-
-
-def merge_preferences(
-    existing: dict[str, Any],
-    patch: dict[str, Any],
-) -> dict[str, Any]:
-    """Merge two preference dictionaries with list de-duplication."""
-
-    merged = dict(existing)
-    for key, value in patch.items():
-        if value in (None, "", [], {}):
-            continue
-        if isinstance(value, dict):
-            current = merged.get(key, {})
-            if not isinstance(current, dict):
-                current = {}
-            merged[key] = merge_preferences(current, value)
-            continue
-        if isinstance(value, list):
-            current_list = merged.get(key, [])
-            if not isinstance(current_list, list):
-                current_list = []
-            items: list[Any] = []
-            seen: set[str] = set()
-            for item in [*current_list, *value]:
-                marker = json.dumps(item, ensure_ascii=False, sort_keys=True)
-                if marker in seen:
-                    continue
-                seen.add(marker)
-                items.append(item)
-            merged[key] = items
-            continue
-        merged[key] = value
-    return merged
-
-
-def summarize_preferences(preferences: dict[str, Any]) -> str:
-    """Render stored preferences as a short natural-language summary."""
-
-    if not preferences:
-        return "暂无已记录的个性化偏好。"
-
-    parts: list[str] = []
-    area_focus = preferences.get("product_focus")
-    if isinstance(area_focus, list) and area_focus:
-        parts.append(f"关注领域：{'、'.join(map(str, area_focus))}")
-
-    tone = preferences.get("tone_preference")
-    if isinstance(tone, str) and tone:
-        parts.append(f"偏好语气：{tone}")
-
-    language = preferences.get("language")
-    if isinstance(language, str) and language:
-        parts.append(f"偏好语言：{language}")
-
-    frequent_topics = preferences.get("frequent_topics")
-    if isinstance(frequent_topics, list) and frequent_topics:
-        parts.append(f"常聊主题：{'、'.join(map(str, frequent_topics))}")
-
-    return "；".join(parts) if parts else "暂无已记录的个性化偏好。"
 
 
 def _chunk_text(text: str, chunk_size: int = 500, chunk_overlap: int = 50) -> list[str]:
