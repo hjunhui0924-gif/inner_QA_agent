@@ -119,6 +119,72 @@ GET /chat/sessions/{user_id}
 DELETE /chat/session/{user_id}/{session_id}
 ```
 
+## RAG 评估
+
+项目内提供了一版最小可用的 RAG 评估脚本，当前针对“东山精密：2025年度股东会法律意见书”准备了标准评估样本，用于验证企业文档在检索层和最终回答层的表现。
+
+评估文件：
+
+- `data/evals/dongshan_legal_opinion_eval.json`
+
+运行方式：
+
+```bash
+python scripts/run_rag_eval.py
+```
+
+当前评估覆盖两层：
+
+1. 检索层评估
+
+- 检索是否命中目标文档
+- 检索上下文是否覆盖标准关键词
+
+2. 最终答案评估
+
+- 最终答案是否覆盖标准关键词
+- 最终答案是否包含标准答案或核心片段
+- 最终答案是否忠于检索上下文
+
+当前报告中的核心指标包括：
+
+- `hit_at_k_rate`
+- `average_keyword_match_ratio`
+- `average_answer_keyword_match_ratio`
+- `answer_contains_gold_rate`
+
+评估结果会输出到：
+
+- `data/eval_reports/dongshan_legal_opinion_eval_report.json`
+
+### 当前样本结果
+
+当前针对“东山精密：2025年度股东会法律意见书”的一版评估结果如下：
+
+- `question_count = 8`
+- `hit_at_k_rate = 1.0`
+- `average_keyword_match_ratio = 0.6875`
+- `average_answer_keyword_match_ratio = 0.7083`
+- `answer_contains_gold_rate = 0.375`
+
+### 结果解读
+
+从当前结果可以看出：
+
+- 检索层表现较好：目标文档能够稳定命中
+- 回答层仍有优化空间：模型在部分问题上会偏离原文，尤其是数字类和决议性质类问题
+
+当前暴露出的典型问题包括：
+
+- 对数字类问题，模型可能尝试自行推算，而不是直接复述原文
+- 对法律/制度类问题，模型可能会补充泛化解释，而不是严格依据检索内容作答
+
+这类评估结果可以直接用于后续优化：
+
+- 调整 `chunk_size`、`top_k` 和检索策略
+- 改进 PDF 文本抽取质量
+- 收紧生成提示词，减少超出证据范围的推断
+
 ## 支持上传的文件类型
 
 - `.txt`
