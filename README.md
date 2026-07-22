@@ -193,71 +193,28 @@ python -m unittest tests.test_live_contracts -v
 分数在可回答与无答案样本之间仍有重叠，因此项目没有根据这 34 条数据硬编码拒答阈值；
 无答案识别需要独立校准集和证据充分性判别，不能由 Top-K 命中率替代。
 
-## RAG 回答评估
+## RAG 回答、引用与失败评估
 
-项目内提供了一版最小可用的 RAG 评估脚本，当前针对“东山精密：2025年度股东会法律意见书”准备了标准评估样本，用于验证企业文档在检索层和最终回答层的表现。
+答案层开发基准复用上面的 4 份权威法规和 34 个问题，其中 30 个可回答、4 个无答案。它运行 BM25 + 向量检索 + RRF + Rerank 和一次 Qwen 生成，用来快速迭代生成与引用协议；不经过路由、查询改写、幻觉重试和安全 fallback，不能替代完整 Agent 的端到端验收。
 
-评估文件：
-
-- `data/evals/dongshan_legal_opinion_eval.json`
-
-运行方式：
+- Gold Evidence Phrase 是否近逐字出现在回答中；
+- 数字与日期是否匹配；
+- 引用摘录是否逐字来自对应 Chunk；
+- 回答中的事实句是否带有引用编号；
+- 回答与引文的抽取式重合率（非蕴含判断）；
+- 无答案问题是否出现明确拒答表达。
 
 ```bash
-python scripts/run_rag_eval.py
+python scripts/run_answer_benchmark.py --top-k 5
 ```
 
-当前评估覆盖两层：
+完整运行会把报告写入 `data/eval_reports/official_policy_answer_benchmark.json`。这 34 题参与过提示词与规则迭代，属于开发集而非独立留出测试集。报告中的 Gold Phrase、数字、引用出处、引用完整性和抽取重合均为确定性代理指标，不应表述为人工验证的“回答准确率”或“忠实度”。只有 `verification_status=provenance_only` 的引用出处可以被确定性验证；语义支持需要独立 Judge/NLI 或人工标注集。
 
-1. 检索层评估
+仓库不提交凭证配额耗尽、样本数不足或中途失败的答案报告。生成失败会记录为 `generation_error`，不会把安全拒答或回显的 Top-K 文档误算成正确答案。
 
-- 检索是否命中目标文档
-- 检索上下文是否覆盖标准关键词
+旧版东山精密 8 题脚本仍保留为单文档回归检查，可运行 `python scripts/run_rag_eval.py`。其字符串包含指标不再作为正式回答准确率依据。
 
-2. 最终答案评估
-
-- 最终答案是否覆盖标准关键词
-- 最终答案是否包含标准答案或核心片段
-- 最终答案是否忠于检索上下文
-
-当前报告中的核心指标包括：
-
-- `hit_at_k_rate`
-- `average_keyword_match_ratio`
-- `average_answer_keyword_match_ratio`
-- `answer_contains_gold_rate`
-
-评估结果会输出到：
-
-- `data/eval_reports/dongshan_legal_opinion_eval_report.json`
-
-### 当前样本结果
-
-当前针对“东山精密：2025年度股东会法律意见书”的一版评估结果如下：
-
-- `question_count = 8`
-- `hit_at_k_rate = 1.0`
-- `average_keyword_match_ratio = 0.6875`
-- `average_answer_keyword_match_ratio = 0.7083`
-- `answer_contains_gold_rate = 0.375`
-
-### 结果解读
-
-从当前结果可以看出：
-
-- 检索层表现较好：目标文档能够稳定命中
-- 回答层仍有优化空间：模型在部分问题上会偏离原文，尤其是数字类和决议性质类问题
-
-当前暴露出的典型问题包括：
-
-- 对数字类问题，模型可能尝试自行推算，而不是直接复述原文
-- 对法律/制度类问题，模型可能会补充泛化解释，而不是严格依据检索内容作答
-
-这类评估结果可以直接用于后续优化：
-
-- 调整 `chunk_size`、`top_k` 和检索策略
-- 改进 PDF 文本抽取质量
-- 收紧生成提示词，减少超出证据范围的推断
+线上问答通过 SSE `result` 事件返回最终答案、结构化引用、Trace ID 和失败类型。引用包含文档 ID、文件名、页码/章节、Chunk ID 与逐字原文。明文 Trace 默认关闭；显式设置 `TRACE_ENABLED=true` 后才会写入受容量轮转保护、且已被 Git 忽略的 `data/traces/rag_traces.jsonl`。
 
 ## 支持上传的文件类型
 

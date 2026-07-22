@@ -38,6 +38,7 @@ Thumbs.db
 data/chroma_db/
 data/eval_indexes/
 data/uploads/
+data/traces/
 data/memory.db
 
 agent_project_prompt.md

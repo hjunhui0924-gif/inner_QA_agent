@@ -106,6 +106,7 @@ def _send_message(message: str) -> None:
     url = f"{st.session_state.backend_url.rstrip('/')}/chat/stream"
 
     assistant_text = ""
+    citations: list[dict[str, object]] = []
     with st.chat_message("assistant"):
         answer_placeholder = st.empty()
         with st.spinner("正在思考并检索相关知识..."):
@@ -118,14 +119,24 @@ def _send_message(message: str) -> None:
                     elif event_type == "token":
                         assistant_text += str(event.get("content", ""))
                         answer_placeholder.markdown(assistant_text)
+                    elif event_type == "result":
+                        assistant_text = str(event.get("content", "")).strip()
+                        raw_citations = event.get("citations", [])
+                        citations = (
+                            raw_citations if isinstance(raw_citations, list) else []
+                        )
+                        answer_placeholder.markdown(assistant_text)
                     elif event_type == "done":
                         break
+        _render_citations(citations)
 
     if not assistant_text:
         assistant_text = "未返回有效内容。"
         with st.chat_message("assistant"):
             st.markdown(assistant_text)
-    st.session_state.messages.append({"role": "assistant", "content": assistant_text})
+    st.session_state.messages.append(
+        {"role": "assistant", "content": assistant_text, "citations": citations}
+    )
     _load_session_list()
 
 
@@ -188,6 +199,31 @@ def _render_chat_history() -> None:
         content = str(message.get("content", ""))
         with st.chat_message(role):
             st.markdown(content)
+            raw_citations = message.get("citations", [])
+            if isinstance(raw_citations, list):
+                _render_citations(raw_citations)
+
+
+def _render_citations(citations: list[dict[str, object]]) -> None:
+    """Render structured evidence without requiring a frontend rewrite."""
+
+    if not citations:
+        return
+    with st.expander(f"来源原文（出处信息，{len(citations)}）", expanded=False):
+        for citation in citations:
+            citation_id = str(citation.get("citation_id", ""))
+            title = str(citation.get("title", "未命名文档"))
+            page = citation.get("page")
+            section = str(citation.get("section", "")).strip()
+            location = []
+            if page:
+                location.append(f"第 {page} 页")
+            if section:
+                location.append(section)
+            suffix = f" · {' / '.join(location)}" if location else ""
+            st.markdown(f"**[{citation_id}] {title}{suffix}**")
+            st.caption(str(citation.get("quote", "")))
+        st.caption("来源原文仅证明出处；回答是否受证据支持由独立校验流程判断。")
 
 
 def main() -> None:

@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from backend.agent.edges import route_after_hallucination_check
 from backend.agent.nodes import check_hallucination
+from langchain_core.documents import Document
 
 
 class HallucinationRetryTests(unittest.TestCase):
@@ -35,6 +36,21 @@ class HallucinationNodeTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertFalse(result["hallucination_pass"])
         self.assertEqual(result["hallucination_retry_count"], 1)
+
+    async def test_judge_unavailable_fails_closed_even_with_lexical_overlap(self) -> None:
+        with patch("backend.agent.nodes._build_model", side_effect=RuntimeError("offline")):
+            result = await check_hallucination(
+                {
+                    "route": "rag",
+                    "query": "records",
+                    "answer": "records are retained [C1]",
+                    "retrieved_docs": [
+                        Document(page_content="records are retained", metadata={})
+                    ],
+                }
+            )
+
+        self.assertFalse(result["hallucination_pass"])
 
 
 if __name__ == "__main__":

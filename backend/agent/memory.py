@@ -10,6 +10,7 @@ import tempfile
 import threading
 import zipfile
 from collections.abc import Iterable
+from dataclasses import dataclass
 from io import BytesIO, StringIO
 from pathlib import Path
 from typing import Any, Protocol
@@ -69,6 +70,14 @@ _VECTORSTORE: VectorStoreLike | None = None
 _RETRIEVER: RetrievalEngine | None = None
 _RETRIEVER_KB_VERSION: tuple[int, int] | None = None
 _KNOWLEDGE_WRITE_LOCK = threading.RLock()
+
+
+@dataclass(frozen=True)
+class ExtractedDocument:
+    """Parsed text plus source locations that must survive indexing."""
+
+    content: str
+    segments: list[dict[str, Any]]
 
 
 class _LocalVectorStore:
@@ -419,12 +428,39 @@ def _save_json_file(path: Path, data: list[dict[str, Any]]) -> None:
             raise
 
 
-def _load_knowledge_base_records() -> list[dict[str, str]]:
+def _normalize_segments(value: Any) -> list[dict[str, Any]]:
+    """Validate persisted parser output before it reaches chunk metadata."""
+
+    if not isinstance(value, list):
+        return []
+    normalized: list[dict[str, Any]] = []
+    for item in value:
+        if not isinstance(item, dict):
+            continue
+        text = str(item.get("text", "")).strip()
+        if not text:
+            continue
+        segment: dict[str, Any] = {"text": text}
+        page = item.get("page")
+        try:
+            page_number = int(page) if page is not None and page != "" else None
+        except (TypeError, ValueError):
+            page_number = None
+        if page_number is not None and page_number > 0:
+            segment["page"] = page_number
+        section = str(item.get("section", "")).strip()
+        if section:
+            segment["section"] = section[:300]
+        normalized.append(segment)
+    return normalized
+
+
+def _load_knowledge_base_records() -> list[dict[str, Any]]:
     """Load the raw knowledge base JSON records."""
 
     path = Path(settings.knowledge_base_path)
     records = _load_json_file(path)
-    normalized: list[dict[str, str]] = []
+    normalized: list[dict[str, Any]] = []
     for record in records:
         if not isinstance(record, dict):
             continue
@@ -440,6 +476,7 @@ def _load_knowledge_base_records() -> list[dict[str, str]]:
                     "original_filename": str(
                         record.get("original_filename", "")
                     ).strip(),
+                    "segments": _normalize_segments(record.get("segments", [])),
                     # Recompute so manually migrated/edited legacy JSON cannot
                     # point at vectors created from different content.
                     "content_fingerprint": content_fingerprint(content),
@@ -454,17 +491,37 @@ def _chunk_documents_from_record(
     source: str,
     original_filename: str = "",
     document_id: str = "",
+    segments: list[dict[str, Any]] | None = None,
 ) -> list[Document]:
     """Create chunked documents from one record."""
 
     documents: list[Document] = []
-    chunks = split_text(
-        content,
-        chunk_size=settings.knowledge_chunk_size,
-        overlap=settings.knowledge_chunk_overlap,
-    )
+    normalized_segments = _normalize_segments(segments or [])
+    chunk_units: list[tuple[str, dict[str, Any]]] = []
+    if normalized_segments:
+        for segment in normalized_segments:
+            for chunk in split_text(
+                segment["text"],
+                chunk_size=settings.knowledge_chunk_size,
+                overlap=settings.knowledge_chunk_overlap,
+            ):
+                location = {
+                    key: segment[key]
+                    for key in ("page", "section")
+                    if segment.get(key) not in {None, ""}
+                }
+                chunk_units.append((chunk, location))
+    else:
+        chunk_units = [
+            (chunk, {})
+            for chunk in split_text(
+                content,
+                chunk_size=settings.knowledge_chunk_size,
+                overlap=settings.knowledge_chunk_overlap,
+            )
+        ]
     stable_document_id = document_id or content_fingerprint(content)
-    for index, chunk in enumerate(chunks):
+    for index, (chunk, location) in enumerate(chunk_units):
         documents.append(
             Document(
                 page_content=chunk,
@@ -475,6 +532,7 @@ def _chunk_documents_from_record(
                     "original_filename": original_filename,
                     "chunk_index": index,
                     "chunk_id": f"{stable_document_id}:{index}",
+                    **location,
                 },
             )
         )
@@ -493,6 +551,7 @@ def _build_documents() -> list[Document]:
                 source=record["source"],
                 original_filename=record["original_filename"],
                 document_id=record["content_fingerprint"],
+                segments=record.get("segments", []),
             )
         )
     return documents
@@ -682,35 +741,42 @@ def latest_user_text(messages: list[Any]) -> str:
 
 
 def extract_text_from_upload(filename: str, content: bytes) -> str:
-    """Extract plain text from a supported uploaded file."""
+    """Backward-compatible text-only view of structured extraction."""
+
+    return extract_document_from_upload(filename, content).content
+
+
+def extract_document_from_upload(filename: str, content: bytes) -> ExtractedDocument:
+    """Extract text while retaining PDF pages and document section headings."""
 
     suffix = Path(filename).suffix.lower()
+    segments: list[dict[str, Any]]
     if suffix in {".txt", ".md", ".py", ".log"}:
         text = content.decode("utf-8", errors="ignore")
+        segments = _plain_text_segments(text, preserve_headings=suffix == ".md")
     elif suffix == ".csv":
-        text = content.decode("utf-8", errors="ignore")
-        rows = list(csv.reader(StringIO(text)))
+        raw_text = content.decode("utf-8", errors="ignore")
+        rows = csv.reader(StringIO(raw_text))
         text = "\n".join(" | ".join(cell.strip() for cell in row) for row in rows)
+        segments = [{"text": text}]
     elif suffix == ".json":
         obj = json.loads(content.decode("utf-8", errors="ignore"))
         text = json.dumps(obj, ensure_ascii=False, indent=2)
+        segments = [{"text": text}]
     elif suffix == ".pdf":
         if PdfReader is None:
             raise ValueError("当前环境未安装 pypdf，无法解析 .pdf 文件。")
         reader = PdfReader(BytesIO(content))
         if len(reader.pages) > settings.max_document_pages:
-            raise ValueError(
-                f"PDF 页数不能超过 {settings.max_document_pages} 页。"
-            )
-        parts: list[str] = []
+            raise ValueError(f"PDF 页数不能超过 {settings.max_document_pages} 页。")
+        segments = []
         extracted_length = 0
-        for page in reader.pages:
-            page_text = page.extract_text() or ""
+        for page_number, page in enumerate(reader.pages, start=1):
+            page_text = (page.extract_text() or "").strip()
             extracted_length += len(page_text)
-            if extracted_length > settings.max_extracted_chars:
-                raise ValueError("文档解析后的文本过大。")
-            parts.append(page_text)
-        text = "\n".join(parts)
+            _check_extracted_length(extracted_length)
+            if page_text:
+                segments.append({"text": page_text, "page": page_number})
     elif suffix == ".docx":
         if DocxDocument is None:
             raise ValueError("当前环境未安装 python-docx，无法解析 .docx 文件。")
@@ -721,21 +787,83 @@ def extract_text_from_upload(filename: str, content: bytes) -> str:
             raise ValueError("DOCX 文件结构无效。") from exc
         if uncompressed_size > settings.max_archive_uncompressed_bytes:
             raise ValueError("DOCX 解压后的内容过大。")
-        document = DocxDocument(BytesIO(content))
-        parts = []
-        extracted_length = 0
-        for paragraph in document.paragraphs:
-            extracted_length += len(paragraph.text)
-            if extracted_length > settings.max_extracted_chars:
-                raise ValueError("文档解析后的文本过大。")
-            parts.append(paragraph.text)
-        text = "\n".join(parts)
+        segments = _docx_segments(DocxDocument(BytesIO(content)))
     else:
         raise ValueError("仅支持 .txt .md .csv .json .pdf .docx .py .log 文件。")
 
-    if len(text) > settings.max_extracted_chars:
+    normalized = _normalize_segments(segments)
+    text = "\n\n".join(segment["text"] for segment in normalized)
+    _check_extracted_length(len(text))
+    return ExtractedDocument(content=text, segments=normalized)
+
+
+def _plain_text_segments(text: str, *, preserve_headings: bool) -> list[dict[str, Any]]:
+    if not preserve_headings:
+        return [{"text": text}]
+    segments: list[dict[str, Any]] = []
+    section = ""
+    buffer: list[str] = []
+
+    def flush() -> None:
+        body = "\n".join(buffer).strip()
+        if body:
+            item: dict[str, Any] = {"text": body}
+            if section:
+                item["section"] = section
+            segments.append(item)
+        buffer.clear()
+
+    for line in text.splitlines():
+        heading = line.strip()
+        if heading.startswith("#") and heading.lstrip("#").strip():
+            flush()
+            section = heading.lstrip("#").strip()
+            buffer.append(heading)
+        else:
+            buffer.append(line)
+    flush()
+    return segments or [{"text": text}]
+
+
+def _docx_segments(document: Any) -> list[dict[str, Any]]:
+    segments: list[dict[str, Any]] = []
+    section = ""
+    buffer: list[str] = []
+
+    def flush() -> None:
+        body = "\n".join(buffer).strip()
+        if body:
+            indexed_text = f"{section}\n{body}" if section else body
+            item: dict[str, Any] = {"text": indexed_text}
+            if section:
+                item["section"] = section
+            segments.append(item)
+        buffer.clear()
+
+    for paragraph in document.paragraphs:
+        paragraph_text = paragraph.text.strip()
+        style_name = str(getattr(paragraph.style, "name", ""))
+        if paragraph_text and style_name.casefold().startswith("heading"):
+            flush()
+            section = paragraph_text
+        elif paragraph_text:
+            buffer.append(paragraph_text)
+    flush()
+    for table_number, table in enumerate(document.tables, start=1):
+        rows = [
+            " | ".join(cell.text.strip() for cell in row.cells)
+            for row in table.rows
+        ]
+        table_text = "\n".join(row for row in rows if row.strip())
+        if table_text:
+            segments.append({"text": table_text, "section": f"Table {table_number}"})
+    _check_extracted_length(sum(len(item["text"]) for item in segments))
+    return segments
+
+
+def _check_extracted_length(length: int) -> None:
+    if length > settings.max_extracted_chars:
         raise ValueError("文档解析后的文本过大。")
-    return text
 
 
 def save_uploaded_file(filename: str, content: bytes) -> Path:
@@ -767,6 +895,7 @@ def add_knowledge_record(
     content: str,
     source: str,
     original_filename: str,
+    segments: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Serialize one knowledge write across JSON, vector, and lexical indexes."""
 
@@ -780,6 +909,7 @@ def add_knowledge_record(
             content,
             source,
             original_filename,
+            segments,
         )
 
 
@@ -788,6 +918,7 @@ def _add_knowledge_record_unlocked(
     content: str,
     source: str,
     original_filename: str,
+    segments: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """Append one record to the knowledge base and index it immediately."""
 
@@ -799,6 +930,7 @@ def _add_knowledge_record_unlocked(
     kb_path = Path(settings.knowledge_base_path)
     records = _load_json_file(kb_path)
     candidate_fingerprint = content_fingerprint(clean_content)
+    normalized_segments = _normalize_segments(segments or [])
     duplicate = find_duplicate(
         clean_content,
         records=records,
@@ -809,6 +941,19 @@ def _add_knowledge_record_unlocked(
     if duplicate is not None:
         existing = duplicate.record
         existing_content = str(existing.get("content", "")).strip()
+        metadata_upgraded = False
+        if (
+            duplicate.kind == "exact"
+            and normalized_segments
+            and not _normalize_segments(existing.get("segments", []))
+        ):
+            existing = _upgrade_duplicate_segments(
+                records=records,
+                existing=existing,
+                segments=normalized_segments,
+                kb_path=kb_path,
+            )
+            metadata_upgraded = True
         return {
             "title": str(existing.get("title", "")).strip() or clean_title,
             "content": existing_content,
@@ -817,6 +962,7 @@ def _add_knowledge_record_unlocked(
             "deduplicated": True,
             "dedup_type": "exact" if duplicate.kind == "exact" else "similar",
             "similarity": duplicate.score,
+            "metadata_upgraded": metadata_upgraded,
         }
 
     record = {
@@ -828,12 +974,15 @@ def _add_knowledge_record_unlocked(
         "deduplicated": False,
         "dedup_type": "none",
     }
+    if normalized_segments:
+        record["segments"] = normalized_segments
     documents = _chunk_documents_from_record(
         title=clean_title,
         content=clean_content,
         source=source,
         original_filename=original_filename,
         document_id=candidate_fingerprint,
+        segments=normalized_segments,
     )
     vectorstore = get_vectorstore()
     document_ids = _chunk_ids(documents)
@@ -852,6 +1001,59 @@ def _add_knowledge_record_unlocked(
         raise
     get_retriever().add_documents(documents)
     return record
+
+
+def _upgrade_duplicate_segments(
+    *,
+    records: list[dict[str, Any]],
+    existing: dict[str, Any],
+    segments: list[dict[str, Any]],
+    kb_path: Path,
+) -> dict[str, Any]:
+    """Backfill locations for an exact legacy record and rebuild its chunks."""
+
+    index = next(i for i, record in enumerate(records) if record is existing)
+    updated = dict(existing)
+    updated["segments"] = segments
+    title = str(existing.get("title", "")).strip()
+    content = str(existing.get("content", "")).strip()
+    source = str(existing.get("source", "seed")).strip() or "seed"
+    original_filename = str(existing.get("original_filename", "")).strip()
+    document_id = content_fingerprint(content)
+    old_documents = _chunk_documents_from_record(
+        title,
+        content,
+        source,
+        original_filename,
+        document_id,
+    )
+    new_documents = _chunk_documents_from_record(
+        title,
+        content,
+        source,
+        original_filename,
+        document_id,
+        segments,
+    )
+    old_ids = set(_chunk_ids(old_documents))
+    new_ids = set(_chunk_ids(new_documents))
+    vectorstore = get_vectorstore()
+    vectorstore.add_documents(new_documents, ids=_chunk_ids(new_documents))
+    stale_ids = sorted(old_ids - new_ids)
+    if stale_ids:
+        vectorstore.delete(ids=stale_ids)
+    records[index] = updated
+    try:
+        _save_json_file(kb_path, records)
+    except Exception as persistence_error:
+        try:
+            vectorstore.delete(ids=sorted(new_ids))
+            vectorstore.add_documents(old_documents, ids=_chunk_ids(old_documents))
+        except Exception as rollback_error:
+            persistence_error.add_note(f"Vector rollback also failed: {rollback_error}")
+        raise
+    set_retriever(_build_retrieval_engine(vectorstore))
+    return updated
 
 
 def list_knowledge_records() -> list[dict[str, Any]]:

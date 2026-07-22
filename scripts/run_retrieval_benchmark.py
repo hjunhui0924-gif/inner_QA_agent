@@ -125,7 +125,10 @@ def _build_documents(provenance: list[dict[str, Any]]) -> list[Document]:
                         "chunk_id": chunk_id,
                         "chunk_index": index,
                         "source_id": source["id"],
+                        "document_id": source["id"],
                         "title": source["title"],
+                        "source": source["publisher"],
+                        "original_filename": Path(relative_path).name,
                         "publisher": source["publisher"],
                         "source_url": source["url"],
                     },
@@ -174,16 +177,31 @@ def _build_engine(
         embedding_function=create_embeddings(profile),
         persist_directory=str(INDEX_DIR),
     )
-    existing_ids = set(store.get(include=[]).get("ids", []))
-    missing = [
+    stored = store.get(include=["documents", "metadatas"])
+    existing_by_id = {
+        str(item_id): (page_content, metadata)
+        for item_id, page_content, metadata in zip(
+            stored.get("ids", []),
+            stored.get("documents", []) or [],
+            stored.get("metadatas", []) or [],
+            strict=True,
+        )
+    }
+    changed_or_missing = [
         document
         for document in documents
-        if str(document.metadata["chunk_id"]) not in existing_ids
+        if (
+            str(document.metadata["chunk_id"]) not in existing_by_id
+            or existing_by_id[str(document.metadata["chunk_id"])][0]
+            != document.page_content
+            or existing_by_id[str(document.metadata["chunk_id"])][1]
+            != document.metadata
+        )
     ]
-    if missing:
+    if changed_or_missing:
         store.add_documents(
-            missing,
-            ids=[str(document.metadata["chunk_id"]) for document in missing],
+            changed_or_missing,
+            ids=[str(document.metadata["chunk_id"]) for document in changed_or_missing],
         )
 
     reranker = None

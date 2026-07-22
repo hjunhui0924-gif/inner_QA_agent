@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import uuid
 from collections.abc import AsyncIterator
 from pathlib import Path
 
@@ -16,13 +17,14 @@ from backend.agent.memory import (
     add_knowledge_record,
     append_chat_message,
     delete_chat_session,
-    extract_text_from_upload,
+    extract_document_from_upload,
     list_knowledge_records,
     list_chat_sessions,
     load_chat_messages,
     save_uploaded_file,
 )
 from backend.config import settings
+from backend.observability.tracing import build_trace, record_trace
 
 
 router = APIRouter()
@@ -56,14 +58,15 @@ def _ingest_uploaded_file(
 ) -> dict[str, object]:
     """Parse and persist an upload outside the event-loop thread."""
 
-    extracted_text = extract_text_from_upload(filename, raw_bytes)
+    extracted = extract_document_from_upload(filename, raw_bytes)
     saved_path = save_uploaded_file(filename, raw_bytes)
     try:
         record = add_knowledge_record(
             title=title or Path(filename).stem,
-            content=extracted_text,
+            content=extracted.content,
             source=source,
             original_filename=saved_path.name,
+            segments=extracted.segments,
         )
     except Exception:
         saved_path.unlink(missing_ok=True)
@@ -114,6 +117,14 @@ def _extract_token(event: dict[str, object]) -> str:
     return str(content)
 
 
+def _answer_chunks(answer: str, chunk_size: int = 80) -> list[str]:
+    """Split only the validated final answer for SSE delivery."""
+
+    if chunk_size <= 0:
+        raise ValueError("chunk_size must be positive.")
+    return [answer[index : index + chunk_size] for index in range(0, len(answer), chunk_size)]
+
+
 async def _stream_graph(request: Request, payload: ChatRequest) -> AsyncIterator[str]:
     """Run the graph and emit SSE events."""
 
@@ -122,11 +133,13 @@ async def _stream_graph(request: Request, payload: ChatRequest) -> AsyncIterator
         raise HTTPException(status_code=503, detail="Graph is not initialized.")
 
     thread_id = f"{payload.user_id}_{payload.session_id}"
+    trace_id = str(uuid.uuid4())
     graph_input = {
         "messages": [HumanMessage(content=payload.message)],
         "query": payload.message,
         "user_id": payload.user_id,
         "session_id": payload.session_id,
+        "trace_id": trace_id,
         "retrieval_retry_count": 0,
         "hallucination_retry_count": 0,
         "status_events": [],
@@ -134,6 +147,10 @@ async def _stream_graph(request: Request, payload: ChatRequest) -> AsyncIterator
     config = {"configurable": {"thread_id": thread_id}}
     current_node = ""
     assistant_text = ""
+    current_generation_text = ""
+    final_state: dict[str, object] = dict(graph_input)
+    observed_status_events: list[str] = []
+    disconnected = False
 
     try:
         async for event in graph.astream_events(
@@ -142,13 +159,23 @@ async def _stream_graph(request: Request, payload: ChatRequest) -> AsyncIterator
             version="v2",
         ):
             if await request.is_disconnected():
+                disconnected = True
                 break
 
             event_name = str(event.get("event", ""))
             node_name = _extract_node_name(event)
 
+            if event_name == "on_chain_end":
+                data = event.get("data") or {}
+                output = data.get("output") if isinstance(data, dict) else None
+                if isinstance(output, dict):
+                    final_state.update(output)
+
             if event_name == "on_chain_start" and node_name in NODE_STATUS_MESSAGES:
                 current_node = node_name
+                if node_name == "generate":
+                    current_generation_text = ""
+                observed_status_events.append(node_name)
                 yield _sse_event(
                     {
                         "type": "status",
@@ -159,14 +186,38 @@ async def _stream_graph(request: Request, payload: ChatRequest) -> AsyncIterator
                 continue
 
             if event_name == "on_chain_end" and node_name == current_node:
+                if node_name == "generate":
+                    assistant_text = current_generation_text
                 current_node = ""
                 continue
 
             if event_name == "on_chat_model_stream" and current_node == "generate":
                 token = _extract_token(event)
                 if token:
-                    assistant_text += token
-                    yield _sse_event({"type": "token", "content": token})
+                    current_generation_text += token
+
+        if disconnected:
+            return
+        final_state["status_events"] = observed_status_events
+        final_answer = str(final_state.get("answer", "")).strip() or assistant_text
+        if not final_answer:
+            final_answer = "未返回有效内容。"
+        trace = build_trace(
+            trace_id=trace_id,
+            query=payload.message,
+            state=final_state,
+        )
+        if settings.trace_enabled:
+            try:
+                await asyncio.to_thread(
+                    record_trace,
+                    trace,
+                    settings.trace_log_path,
+                    max_bytes=settings.trace_max_bytes,
+                    backup_count=settings.trace_backup_count,
+                )
+            except Exception:
+                pass
 
         await append_chat_message(
             user_id=payload.user_id,
@@ -178,10 +229,39 @@ async def _stream_graph(request: Request, payload: ChatRequest) -> AsyncIterator
             user_id=payload.user_id,
             session_id=payload.session_id,
             role="assistant",
-            content=assistant_text or "未返回有效内容。",
+            content=final_answer,
         )
-        yield _sse_event({"type": "done"})
+        for chunk in _answer_chunks(final_answer):
+            yield _sse_event({"type": "token", "content": chunk})
+        yield _sse_event(
+            {
+                "type": "result",
+                "content": final_answer,
+                "citations": trace["citations"],
+                "trace_id": trace_id,
+                "failure_type": trace["failure_type"],
+            }
+        )
+        yield _sse_event({"type": "done", "trace_id": trace_id})
     except Exception as exc:
+        error_state = {
+            **final_state,
+            "answer": "",
+            "status_events": [*final_state.get("status_events", []), f"error:{exc}"],
+        }
+        trace = build_trace(trace_id=trace_id, query=payload.message, state=error_state)
+        trace["failure_type"] = "generation_error"
+        if settings.trace_enabled:
+            try:
+                await asyncio.to_thread(
+                    record_trace,
+                    trace,
+                    settings.trace_log_path,
+                    max_bytes=settings.trace_max_bytes,
+                    backup_count=settings.trace_backup_count,
+                )
+            except Exception:
+                pass
         yield _sse_event(
             {
                 "type": "status",
@@ -189,7 +269,7 @@ async def _stream_graph(request: Request, payload: ChatRequest) -> AsyncIterator
                 "content": f"运行失败：{exc}",
             }
         )
-        yield _sse_event({"type": "done"})
+        yield _sse_event({"type": "done", "trace_id": trace_id})
 
 
 @router.post("/chat/stream")

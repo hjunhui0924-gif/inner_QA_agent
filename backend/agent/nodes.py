@@ -13,6 +13,12 @@ from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, System
 from langchain_openai import ChatOpenAI
 
 from backend.config import settings
+from backend.agent.citations import (
+    sanitize_answer_citations,
+    build_citations,
+    citation_markers,
+    format_documents_for_prompt,
+)
 from backend.agent.memory import (
     keyword_overlap_score,
     latest_user_text,
@@ -79,14 +85,7 @@ def _as_text(value: Any) -> str:
 def _format_documents(documents: Sequence[Document]) -> str:
     """Render retrieved documents for prompting."""
 
-    if not documents:
-        return "无"
-    lines: list[str] = []
-    for index, doc in enumerate(documents, start=1):
-        title = str(doc.metadata.get("title", "未命名条目"))
-        snippet = doc.page_content.replace("\n", " ").strip()
-        lines.append(f"{index}. {title}: {snippet}")
-    return "\n".join(lines)
+    return format_documents_for_prompt(documents)
 
 
 def _heuristic_route(query: str) -> Literal["rag", "tool_call", "direct"]:
@@ -244,11 +243,21 @@ async def fallback_answer(state: AgentState) -> dict[str, Any]:
         "我没有在企业内部知识库中找到足够相关的信息。"
         "请补充更具体的制度名称、流程名称或部门信息，我再继续检索。"
     )
+    if state.get("generation_error"):
+        fallback_reason = "generation_error"
+    elif state.get("is_relevant") is False or not state.get("retrieved_docs"):
+        fallback_reason = "retrieval_exhausted"
+    elif state.get("hallucination_pass") is False:
+        fallback_reason = "hallucination_exhausted"
+    else:
+        fallback_reason = "unknown"
     return {
         "answer": answer,
+        "citations": [],
         "messages": [AIMessage(content=answer)],
         "status_events": ["fallback_answer"],
         "hallucination_pass": True,
+        "fallback_reason": fallback_reason,
     }
 
 
@@ -292,6 +301,11 @@ async def generate(state: AgentState) -> dict[str, Any]:
         "你面向企业内部员工，主要支持制度查询、流程说明、审批规则、合同与法务、财务与人事等内部事务。\n"
         "回答时聚焦企业内部知识，不要主动扩展到无关主题。\n"
         "如果知识依据不足，不要臆测，直接说明信息不足并指出建议补充的信息。\n"
+        "RAG 路由必须只使用检索证据回答。每个事实、数字、日期或规则后都要添加对应的 [C1]、[C2] 引用标记。\n"
+        "引用编号只能使用下方证据已有的编号；不得编造编号，不得用常识补充证据中没有的信息，也不要自行计算证据未直接给出的结果。\n"
+        "优先用一至三句话直接回答问题；除非问题明确要求，不要扩展背景、建议、示例、法律后果或证据没有明示的推论。\n"
+        "不得扩展解释证据未直接写明的救济、责任或程序结论，也不要添加证据未写明的条款号。\n"
+        "回答到问题所需的最小充分信息后立即停止，不要解释该规则意味着什么。\n"
         "优先遵守以下信息：\n"
         f"路由类型：{route}\n"
         f"工具结果：{tool_output or '无'}\n"
@@ -305,26 +319,24 @@ async def generate(state: AgentState) -> dict[str, Any]:
         prompt_messages.append(HumanMessage(content=query))
 
     answer = ""
+    generation_error = ""
     try:
-        model = _build_model(temperature=0.2)
+        model = _build_model(temperature=0 if route == "rag" else 0.2)
         async for chunk in model.astream(prompt_messages):
             answer += _as_text(chunk)
-    except Exception:
-        if tool_output:
-            answer = f"{tool_output}\n\n基于以上信息，建议先查看相关说明并按步骤处理。"
-        elif docs:
-            answer = (
-                "根据企业内部知识库内容，相关说明如下：\n"
-                f"{_format_documents(docs)}"
-            )
-        else:
-            answer = (
-                "当前没有足够的企业内部信息支持直接回答。"
-                "请补充更具体的制度名称、流程名称、部门名称或文件标题。"
-            )
+    except Exception as exc:
+        generation_error = f"{type(exc).__name__}: {exc}"[:500]
+        answer = "回答生成服务暂时不可用，当前无法可靠作答，请稍后重试。"
 
+    if route == "rag":
+        answer = sanitize_answer_citations(answer, docs, query=query)
+        citations = build_citations(docs, answer, query=query)
+    else:
+        citations = []
     return {
         "answer": answer,
+        "citations": citations,
+        "generation_error": generation_error,
         "messages": [AIMessage(content=answer)],
         "status_events": ["generate"],
     }
@@ -358,10 +370,7 @@ async def check_hallucination(state: AgentState) -> dict[str, Any]:
         f"知识：\n{_format_documents(docs)}"
     )
 
-    pass_check = keyword_overlap_score(
-        answer,
-        [doc.page_content for doc in docs],
-    ) >= 0.05
+    pass_check = False
     try:
         model = _build_model(temperature=0)
         response = await model.ainvoke([SystemMessage(content=prompt)])
@@ -370,10 +379,16 @@ async def check_hallucination(state: AgentState) -> dict[str, Any]:
         if isinstance(candidate, bool):
             pass_check = candidate
     except Exception:
-        pass
+        pass_check = False
+
+    resolved_citations = build_citations(docs, answer, query=state.get("query", ""))
+    resolved_ids = {citation["citation_id"] for citation in resolved_citations}
+    markers = citation_markers(answer)
+    pass_check = pass_check and bool(markers) and markers == resolved_ids
 
     result: dict[str, Any] = {
         "hallucination_pass": pass_check,
+        "citations": resolved_citations,
         "status_events": [f"check_hallucination:{pass_check}"],
     }
     if not pass_check:

@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     sqlite_db_path: str = str(BASE_DIR / "data" / "memory.db")
     knowledge_base_path: str = str(BASE_DIR / "data" / "knowledge_base.json")
     upload_dir: str = str(BASE_DIR / "data" / "uploads")
+    trace_log_path: str = str(BASE_DIR / "data" / "traces" / "rag_traces.jsonl")
+    trace_enabled: bool = False
+    trace_max_bytes: int = 50 * 1024 * 1024
+    trace_backup_count: int = 3
     backend_host: str = "0.0.0.0"
     backend_port: int = 8000
     max_retrieval_retries: int = 2
@@ -97,6 +101,8 @@ class Settings(BaseSettings):
         "max_extracted_chars",
         "max_document_pages",
         "max_archive_uncompressed_bytes",
+        "trace_max_bytes",
+        "trace_backup_count",
     )
     @classmethod
     def validate_positive_limits(cls, value: int | float) -> int | float:
