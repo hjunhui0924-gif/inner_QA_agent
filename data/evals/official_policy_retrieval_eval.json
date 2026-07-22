@@ -1,0 +1,240 @@
+[
+  {
+    "id": "pipl_01",
+    "category": "date",
+    "question": "个人信息保护法从哪一天开始施行？",
+    "source_ids": ["personal_information_protection_law"],
+    "evidence_phrases": ["本法自2021年11月1日起施行"]
+  },
+  {
+    "id": "pipl_02",
+    "category": "condition",
+    "question": "处理敏感个人信息需要取得哪种同意？",
+    "source_ids": ["personal_information_protection_law"],
+    "evidence_phrases": ["处理敏感个人信息应当取得个人的单独同意"]
+  },
+  {
+    "id": "pipl_03",
+    "category": "condition",
+    "question": "处理不满十四周岁未成年人的个人信息应取得谁的同意？",
+    "source_ids": ["personal_information_protection_law"],
+    "evidence_phrases": ["未成年人的父母或者其他监护人的同意"]
+  },
+  {
+    "id": "pipl_04",
+    "category": "exact_rule",
+    "question": "个人信息的保存期限原则上应当多长？",
+    "source_ids": ["personal_information_protection_law"],
+    "evidence_phrases": ["实现处理目的所必要的最短时间"]
+  },
+  {
+    "id": "pipl_05",
+    "category": "number",
+    "question": "严重违反个人信息保护法时，最高罚款金额或营业额比例是多少？",
+    "source_ids": ["personal_information_protection_law"],
+    "evidence_phrases": ["五千万元以下或者上一年度营业额百分之五以下罚款"]
+  },
+  {
+    "id": "pipl_06",
+    "category": "definition",
+    "question": "个人信息的定义是否包括匿名化处理后的信息？",
+    "source_ids": ["personal_information_protection_law"],
+    "evidence_phrases": ["不包括匿名化处理后的信息"]
+  },
+  {
+    "id": "pipl_07",
+    "category": "condition",
+    "question": "使用个人信息进行自动化决策时需要保证什么？",
+    "source_ids": ["personal_information_protection_law"],
+    "evidence_phrases": ["决策的透明度和结果公平、公正", "不得对个人在交易价格等交易条件上实行不合理的差别待遇"]
+  },
+  {
+    "id": "pipl_08",
+    "category": "retention",
+    "question": "个人信息保护影响评估报告和处理情况记录至少保存几年？",
+    "source_ids": ["personal_information_protection_law"],
+    "evidence_phrases": ["至少保存三年"]
+  },
+  {
+    "id": "dsl_01",
+    "category": "date",
+    "question": "数据安全法自何时起施行？",
+    "source_ids": ["data_security_law"],
+    "evidence_phrases": ["本法自2021年9月1日起施行"]
+  },
+  {
+    "id": "dsl_02",
+    "category": "definition",
+    "question": "数据安全法所称的数据是什么？",
+    "source_ids": ["data_security_law"],
+    "evidence_phrases": ["任何以电子或者其他方式对信息的记录"]
+  },
+  {
+    "id": "dsl_03",
+    "category": "exact_rule",
+    "question": "国家依据什么因素对数据实行分类分级保护？",
+    "source_ids": ["data_security_law"],
+    "evidence_phrases": ["数据在经济社会发展中的重要程度", "造成的危害程度"]
+  },
+  {
+    "id": "dsl_04",
+    "category": "condition",
+    "question": "数据安全审查决定是否还可以继续申诉，法律如何表述？",
+    "source_ids": ["data_security_law"],
+    "evidence_phrases": ["依法作出的安全审查决定为最终决定"]
+  },
+  {
+    "id": "dsl_05",
+    "category": "incident",
+    "question": "发生数据安全事件时，数据处理者要采取哪些动作？",
+    "source_ids": ["data_security_law"],
+    "evidence_phrases": ["立即采取处置措施", "及时告知用户并向有关主管部门报告"]
+  },
+  {
+    "id": "dsl_06",
+    "category": "jurisdiction",
+    "question": "在境外开展数据处理活动损害中国国家安全时是否会被追责？",
+    "source_ids": ["data_security_law"],
+    "evidence_phrases": ["在中华人民共和国境外开展数据处理活动", "依法追究法律责任"]
+  },
+  {
+    "id": "dsl_07",
+    "category": "condition",
+    "question": "重要数据处理者需要设置哪些数据安全岗位或机构？",
+    "source_ids": ["data_security_law"],
+    "evidence_phrases": ["明确数据安全负责人和管理机构"]
+  },
+  {
+    "id": "genai_01",
+    "category": "date",
+    "question": "生成式人工智能服务管理暂行办法何时施行？",
+    "source_ids": ["generative_ai_interim_measures"],
+    "evidence_phrases": ["本办法自2023年8月15日起施行"]
+  },
+  {
+    "id": "genai_02",
+    "category": "scope",
+    "question": "仅研发生成式人工智能但未向境内公众提供服务，是否适用暂行办法？",
+    "source_ids": ["generative_ai_interim_measures"],
+    "evidence_phrases": ["未向境内公众提供生成式人工智能服务的，不适用本办法的规定"]
+  },
+  {
+    "id": "genai_03",
+    "category": "training_data",
+    "question": "生成式人工智能训练数据涉及个人信息时需要满足什么条件？",
+    "source_ids": ["generative_ai_interim_measures"],
+    "evidence_phrases": ["应当取得个人同意或者符合法律、行政法规规定的其他情形"]
+  },
+  {
+    "id": "genai_04",
+    "category": "fairness",
+    "question": "生成式人工智能服务应防止产生哪些方面的歧视？",
+    "source_ids": ["generative_ai_interim_measures"],
+    "evidence_phrases": ["民族、信仰、国别、地域、性别、年龄、职业、健康等歧视"]
+  },
+  {
+    "id": "genai_05",
+    "category": "minor",
+    "question": "提供者应如何防范未成年人沉迷生成式人工智能服务？",
+    "source_ids": ["generative_ai_interim_measures"],
+    "evidence_phrases": ["防范未成年人用户过度依赖或者沉迷生成式人工智能服务"]
+  },
+  {
+    "id": "genai_06",
+    "category": "incident",
+    "question": "提供者发现违法生成内容后应当如何处理？",
+    "source_ids": ["generative_ai_interim_measures"],
+    "evidence_phrases": ["停止生成、停止传输、消除等处置措施", "向有关主管部门报告"]
+  },
+  {
+    "id": "genai_07",
+    "category": "compliance",
+    "question": "哪类生成式人工智能服务需要开展安全评估并履行算法备案？",
+    "source_ids": ["generative_ai_interim_measures"],
+    "evidence_phrases": ["具有舆论属性或者社会动员能力的生成式人工智能服务", "开展安全评估"]
+  },
+  {
+    "id": "nds_01",
+    "category": "date",
+    "question": "网络数据安全管理条例从什么时候开始施行？",
+    "source_ids": ["network_data_security_regulations"],
+    "evidence_phrases": ["本条例自2025年1月1日起施行"]
+  },
+  {
+    "id": "nds_02",
+    "category": "definition",
+    "question": "网络数据安全管理条例如何定义网络数据？",
+    "source_ids": ["network_data_security_regulations"],
+    "evidence_phrases": ["通过网络处理和产生的各种电子数据"]
+  },
+  {
+    "id": "nds_03",
+    "category": "retention",
+    "question": "委托处理个人信息和重要数据的处理情况记录至少保存多久？",
+    "source_ids": ["network_data_security_regulations"],
+    "evidence_phrases": ["处理情况记录，应当至少保存3年"]
+  },
+  {
+    "id": "nds_04",
+    "category": "number",
+    "question": "处理多少人以上个人信息的处理者还要遵守重要数据处理者的有关规定？",
+    "source_ids": ["network_data_security_regulations"],
+    "evidence_phrases": ["处理1000万人以上个人信息"]
+  },
+  {
+    "id": "nds_05",
+    "category": "incident",
+    "question": "发生网络数据安全事件时应急预案和报告要求是什么？",
+    "source_ids": ["network_data_security_regulations"],
+    "evidence_phrases": ["立即启动预案", "向有关主管部门报告"]
+  },
+  {
+    "id": "nds_06",
+    "category": "governance",
+    "question": "重要数据处理者应设置什么安全负责人和机构？",
+    "source_ids": ["network_data_security_regulations"],
+    "evidence_phrases": ["明确网络数据安全负责人和网络数据安全管理机构"]
+  },
+  {
+    "id": "nds_07",
+    "category": "number",
+    "question": "大型网络平台的注册用户数或月活跃用户数门槛是多少？",
+    "source_ids": ["network_data_security_regulations"],
+    "evidence_phrases": ["注册用户5000万以上或者月活跃用户1000万以上"]
+  },
+  {
+    "id": "nds_08",
+    "category": "cross_border",
+    "question": "网络数据处理者向境外提供个人信息可以通过哪些合规路径？",
+    "source_ids": ["network_data_security_regulations"],
+    "evidence_phrases": ["数据出境安全评估", "个人信息保护认证", "个人信息出境标准合同"]
+  },
+  {
+    "id": "no_answer_01",
+    "category": "no_answer",
+    "question": "员工国内出差住宿费每天最多报销多少元？",
+    "source_ids": [],
+    "evidence_phrases": []
+  },
+  {
+    "id": "no_answer_02",
+    "category": "no_answer",
+    "question": "公司会议室需要提前几天预约？",
+    "source_ids": [],
+    "evidence_phrases": []
+  },
+  {
+    "id": "no_answer_03",
+    "category": "no_answer",
+    "question": "这些法规要求生成式人工智能模型至少具有多少亿参数？",
+    "source_ids": [],
+    "evidence_phrases": []
+  },
+  {
+    "id": "no_answer_04",
+    "category": "no_answer",
+    "question": "个人信息保护法由哪一家律师事务所出具法律意见？",
+    "source_ids": [],
+    "evidence_phrases": []
+  }
+]

@@ -1,0 +1,3899 @@
+{
+  "eval_file": "data\\evals\\official_policy_retrieval_eval.json",
+  "provenance_file": "data\\eval_corpus\\provenance.json",
+  "top_k": 5,
+  "corpus_identity": "c018c60490af134f1fd34c851a2a3e31e90bc1947447131eeb439036511ef17e",
+  "collection_name": "official-c018c60490-504feb6de298",
+  "document_count": 4,
+  "chunk_count": 46,
+  "embedding_provider": "dashscope",
+  "embedding_model": "text-embedding-v3",
+  "embedding_dimensions": 1024,
+  "retrieval_config": {
+    "dense_candidate_k": 20,
+    "lexical_candidate_k": 20,
+    "rerank_candidate_k": 12,
+    "rrf_k": 60,
+    "dense_weight": 0.5,
+    "lexical_weight": 0.5
+  },
+  "reranker_model": "gte-rerank-v2",
+  "strategies": {
+    "rerank": {
+      "case_count": 34,
+      "answerable_case_count": 30,
+      "no_answer_case_count": 4,
+      "source_hit_at_k": 1.0,
+      "mrr_at_k": 0.961111111111111,
+      "ndcg_at_k": 0.9710309917857153,
+      "evidence_recall_at_k": 1.0,
+      "full_evidence_hit_rate": 1.0,
+      "latency_p50_ms": 680.4082001326606,
+      "latency_p95_ms": 1012.6575500122268,
+      "rerank_degradation_count": 0,
+      "answerable_min_top_rerank_score": 0.18017659195607838,
+      "no_answer_max_top_rerank_score": 0.23617821227693067,
+      "results": [
+        {
+          "id": "pipl_01",
+          "category": "date",
+          "question": "个人信息保护法从哪一天开始施行？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "data_security_law",
+            "network_data_security_regulations",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:14",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:13"
+          ],
+          "top_rerank_score": 0.34853000928989625,
+          "latency_ms": 954.6054999809712,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_02",
+          "category": "condition",
+          "question": "处理敏感个人信息需要取得哪种同意？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:5",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:4",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2"
+          ],
+          "top_rerank_score": 0.7073378808566255,
+          "latency_ms": 772.4462999030948,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_03",
+          "category": "condition",
+          "question": "处理不满十四周岁未成年人的个人信息应取得谁的同意？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:5",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:7"
+          ],
+          "top_rerank_score": 0.5460901529203053,
+          "latency_ms": 601.7452999949455,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_04",
+          "category": "exact_rule",
+          "question": "个人信息的保存期限原则上应当多长？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:3",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0"
+          ],
+          "top_rerank_score": 0.1860086500119717,
+          "latency_ms": 591.5463999845088,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_05",
+          "category": "number",
+          "question": "严重违反个人信息保护法时，最高罚款金额或营业额比例是多少？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "data_security_law",
+            "personal_information_protection_law",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:13",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:14",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:13"
+          ],
+          "top_rerank_score": 0.3358124813446078,
+          "latency_ms": 867.4330001231283,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_06",
+          "category": "definition",
+          "question": "个人信息的定义是否包括匿名化处理后的信息？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:14",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:1",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9"
+          ],
+          "top_rerank_score": 0.20657855371424225,
+          "latency_ms": 628.6732000298798,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_07",
+          "category": "condition",
+          "question": "使用个人信息进行自动化决策时需要保证什么？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:4",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:14",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:10",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5"
+          ],
+          "top_rerank_score": 0.43263568352933474,
+          "latency_ms": 736.2007000483572,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_08",
+          "category": "retention",
+          "question": "个人信息保护影响评估报告和处理情况记录至少保存几年？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:11"
+          ],
+          "top_rerank_score": 0.782109905596592,
+          "latency_ms": 716.7684000451118,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_01",
+          "category": "date",
+          "question": "数据安全法自何时起施行？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "data_security_law",
+            "data_security_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "data_security_law"
+          ],
+          "retrieved_chunk_ids": [
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:0",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1"
+          ],
+          "top_rerank_score": 0.487081246330438,
+          "latency_ms": 614.4652999937534,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_02",
+          "category": "definition",
+          "question": "数据安全法所称的数据是什么？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "data_security_law",
+            "data_security_law",
+            "data_security_law",
+            "data_security_law",
+            "data_security_law"
+          ],
+          "retrieved_chunk_ids": [
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:0",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:6",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:5"
+          ],
+          "top_rerank_score": 0.7331695654720433,
+          "latency_ms": 616.1366999149323,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_03",
+          "category": "exact_rule",
+          "question": "国家依据什么因素对数据实行分类分级保护？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "data_security_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "data_security_law",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1"
+          ],
+          "top_rerank_score": 0.42306227610093794,
+          "latency_ms": 583.0860999412835,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_04",
+          "category": "condition",
+          "question": "数据安全审查决定是否还可以继续申诉，法律如何表述？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "data_security_law",
+            "data_security_law",
+            "data_security_law",
+            "data_security_law",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:0",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:2",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7"
+          ],
+          "top_rerank_score": 0.18017659195607838,
+          "latency_ms": 698.8490999210626,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_05",
+          "category": "incident",
+          "question": "发生数据安全事件时，数据处理者要采取哪些动作？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "data_security_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "data_security_law"
+          ],
+          "retrieved_chunk_ids": [
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:12",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3"
+          ],
+          "top_rerank_score": 0.22067469831493183,
+          "latency_ms": 610.5609000660479,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_06",
+          "category": "jurisdiction",
+          "question": "在境外开展数据处理活动损害中国国家安全时是否会被追责？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 0.5,
+          "ndcg": 0.6309297535714575,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "data_security_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "data_security_law"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:0",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:13",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8"
+          ],
+          "top_rerank_score": 0.45051924666192994,
+          "latency_ms": 570.1095000840724,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_07",
+          "category": "condition",
+          "question": "重要数据处理者需要设置哪些数据安全岗位或机构？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 0.3333333333333333,
+          "ndcg": 0.5,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "data_security_law",
+            "network_data_security_regulations",
+            "data_security_law"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:2"
+          ],
+          "top_rerank_score": 0.2944819928878677,
+          "latency_ms": 681.3189000822604,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_01",
+          "category": "date",
+          "question": "生成式人工智能服务管理暂行办法何时施行？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2"
+          ],
+          "top_rerank_score": 0.8631741792955836,
+          "latency_ms": 588.3578001521528,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_02",
+          "category": "scope",
+          "question": "仅研发生成式人工智能但未向境内公众提供服务，是否适用暂行办法？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3"
+          ],
+          "top_rerank_score": 0.5810606373393494,
+          "latency_ms": 584.2214999720454,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_03",
+          "category": "training_data",
+          "question": "生成式人工智能训练数据涉及个人信息时需要满足什么条件？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1"
+          ],
+          "top_rerank_score": 0.35088712237028996,
+          "latency_ms": 535.8431998174638,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_04",
+          "category": "fairness",
+          "question": "生成式人工智能服务应防止产生哪些方面的歧视？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5"
+          ],
+          "top_rerank_score": 0.5495077002520097,
+          "latency_ms": 616.3392998278141,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_05",
+          "category": "minor",
+          "question": "提供者应如何防范未成年人沉迷生成式人工智能服务？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2"
+          ],
+          "top_rerank_score": 0.42105576839743003,
+          "latency_ms": 679.4975001830608,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_06",
+          "category": "incident",
+          "question": "提供者发现违法生成内容后应当如何处理？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1"
+          ],
+          "top_rerank_score": 0.2920274003804542,
+          "latency_ms": 745.423800079152,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_07",
+          "category": "compliance",
+          "question": "哪类生成式人工智能服务需要开展安全评估并履行算法备案？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5"
+          ],
+          "top_rerank_score": 0.37756503091929355,
+          "latency_ms": 725.644500227645,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_01",
+          "category": "date",
+          "question": "网络数据安全管理条例从什么时候开始施行？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6"
+          ],
+          "top_rerank_score": 0.7597423798923143,
+          "latency_ms": 673.9602999296039,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_02",
+          "category": "definition",
+          "question": "网络数据安全管理条例如何定义网络数据？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:14",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6"
+          ],
+          "top_rerank_score": 0.5353797078062397,
+          "latency_ms": 693.7561000231653,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_03",
+          "category": "retention",
+          "question": "委托处理个人信息和重要数据的处理情况记录至少保存多久？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6"
+          ],
+          "top_rerank_score": 0.4670945896707612,
+          "latency_ms": 591.687599895522,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_04",
+          "category": "number",
+          "question": "处理多少人以上个人信息的处理者还要遵守重要数据处理者的有关规定？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:5",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4"
+          ],
+          "top_rerank_score": 0.4196487552906083,
+          "latency_ms": 730.7096999138594,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_05",
+          "category": "incident",
+          "question": "发生网络数据安全事件时应急预案和报告要求是什么？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:12",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7"
+          ],
+          "top_rerank_score": 0.4479859890629347,
+          "latency_ms": 771.4555999264121,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_06",
+          "category": "governance",
+          "question": "重要数据处理者应设置什么安全负责人和机构？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "data_security_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "data_security_law"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1"
+          ],
+          "top_rerank_score": 0.3080227067905886,
+          "latency_ms": 1210.2620999794453,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_07",
+          "category": "number",
+          "question": "大型网络平台的注册用户数或月活跃用户数门槛是多少？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:10",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0"
+          ],
+          "top_rerank_score": 0.2549895945465911,
+          "latency_ms": 1120.4685000702739,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_08",
+          "category": "cross_border",
+          "question": "网络数据处理者向境外提供个人信息可以通过哪些合规路径？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:9",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:7",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:6"
+          ],
+          "top_rerank_score": 0.8415793517819513,
+          "latency_ms": 779.7668999992311,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "no_answer_01",
+          "category": "no_answer",
+          "question": "员工国内出差住宿费每天最多报销多少元？",
+          "answerable": false,
+          "source_hit": null,
+          "reciprocal_rank": null,
+          "ndcg": null,
+          "evidence_recall": null,
+          "retrieved_sources": [
+            "data_security_law",
+            "network_data_security_regulations",
+            "data_security_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:7",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:14",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11"
+          ],
+          "top_rerank_score": 0.07434613907229384,
+          "latency_ms": 577.0093998871744,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "no_answer_02",
+          "category": "no_answer",
+          "question": "公司会议室需要提前几天预约？",
+          "answerable": false,
+          "source_hit": null,
+          "reciprocal_rank": null,
+          "ndcg": null,
+          "evidence_recall": null,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "generative_ai_interim_measures",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:3",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:4",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:10"
+          ],
+          "top_rerank_score": 0.005949579483329656,
+          "latency_ms": 705.1969999447465,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "no_answer_03",
+          "category": "no_answer",
+          "question": "这些法规要求生成式人工智能模型至少具有多少亿参数？",
+          "answerable": false,
+          "source_hit": null,
+          "reciprocal_rank": null,
+          "ndcg": null,
+          "evidence_recall": null,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4"
+          ],
+          "top_rerank_score": 0.17941838946824445,
+          "latency_ms": 657.3991000186652,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "no_answer_04",
+          "category": "no_answer",
+          "question": "个人信息保护法由哪一家律师事务所出具法律意见？",
+          "answerable": false,
+          "source_hit": null,
+          "reciprocal_rank": null,
+          "ndcg": null,
+          "evidence_recall": null,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:13",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:11",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:6",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9"
+          ],
+          "top_rerank_score": 0.23617821227693067,
+          "latency_ms": 864.4666001200676,
+          "rerank_used": true,
+          "degraded_reason": null
+        }
+      ]
+    },
+    "fusion": {
+      "case_count": 34,
+      "answerable_case_count": 30,
+      "no_answer_case_count": 4,
+      "source_hit_at_k": 0.9666666666666667,
+      "mrr_at_k": 0.9055555555555556,
+      "ndcg_at_k": 0.9210309917857152,
+      "evidence_recall_at_k": 0.9,
+      "full_evidence_hit_rate": 0.9,
+      "latency_p50_ms": 259.530849987641,
+      "latency_p95_ms": 308.59368005767465,
+      "rerank_degradation_count": 0,
+      "answerable_min_top_rerank_score": null,
+      "no_answer_max_top_rerank_score": null,
+      "results": [
+        {
+          "id": "pipl_01",
+          "category": "date",
+          "question": "个人信息保护法从哪一天开始施行？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 0.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:11",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:1",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 309.40540018491447,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_02",
+          "category": "condition",
+          "question": "处理敏感个人信息需要取得哪种同意？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:5",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:4",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 269.3622999358922,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_03",
+          "category": "condition",
+          "question": "处理不满十四周岁未成年人的个人信息应取得谁的同意？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 0.5,
+          "ndcg": 0.6309297535714575,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:5",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:1"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 264.25500004552305,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_04",
+          "category": "exact_rule",
+          "question": "个人信息的保存期限原则上应当多长？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:3",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:8"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 271.1207000538707,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_05",
+          "category": "number",
+          "question": "严重违反个人信息保护法时，最高罚款金额或营业额比例是多少？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "data_security_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "data_security_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:13",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:14",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:13",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:7"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 258.4975999779999,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_06",
+          "category": "definition",
+          "question": "个人信息的定义是否包括匿名化处理后的信息？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:14",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 293.488800060004,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_07",
+          "category": "condition",
+          "question": "使用个人信息进行自动化决策时需要保证什么？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:4",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:14",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:7"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 282.5771998614073,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_08",
+          "category": "retention",
+          "question": "个人信息保护影响评估报告和处理情况记录至少保存几年？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:12"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 138.73429992236197,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_01",
+          "category": "date",
+          "question": "数据安全法自何时起施行？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "data_security_law",
+            "network_data_security_regulations",
+            "data_security_law",
+            "data_security_law",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:0",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 148.78899999894202,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_02",
+          "category": "definition",
+          "question": "数据安全法所称的数据是什么？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "data_security_law",
+            "data_security_law",
+            "data_security_law",
+            "data_security_law",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:0",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:14"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 180.20369997248054,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_03",
+          "category": "exact_rule",
+          "question": "国家依据什么因素对数据实行分类分级保护？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "data_security_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "data_security_law",
+            "data_security_law"
+          ],
+          "retrieved_chunk_ids": [
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 350.4081000573933,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_04",
+          "category": "condition",
+          "question": "数据安全审查决定是否还可以继续申诉，法律如何表述？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 0.3333333333333333,
+          "ndcg": 0.5,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "data_security_law",
+            "data_security_law",
+            "data_security_law"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:12",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:0",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 274.1865001153201,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_05",
+          "category": "incident",
+          "question": "发生数据安全事件时，数据处理者要采取哪些动作？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 0.3333333333333333,
+          "ndcg": 0.5,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "data_security_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 146.48110000416636,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_06",
+          "category": "jurisdiction",
+          "question": "在境外开展数据处理活动损害中国国家安全时是否会被追责？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "data_security_law",
+            "network_data_security_regulations",
+            "data_security_law",
+            "data_security_law",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:0",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 276.8898999784142,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_07",
+          "category": "condition",
+          "question": "重要数据处理者需要设置哪些数据安全岗位或机构？",
+          "answerable": true,
+          "source_hit": false,
+          "reciprocal_rank": 0.0,
+          "ndcg": 0.0,
+          "evidence_recall": 0.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 175.19259988330305,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_01",
+          "category": "date",
+          "question": "生成式人工智能服务管理暂行办法何时施行？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 278.52259995415807,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_02",
+          "category": "scope",
+          "question": "仅研发生成式人工智能但未向境内公众提供服务，是否适用暂行办法？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 180.3723000921309,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_03",
+          "category": "training_data",
+          "question": "生成式人工智能训练数据涉及个人信息时需要满足什么条件？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 145.3066999092698,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_04",
+          "category": "fairness",
+          "question": "生成式人工智能服务应防止产生哪些方面的歧视？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 308.1565999891609,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_05",
+          "category": "minor",
+          "question": "提供者应如何防范未成年人沉迷生成式人工智能服务？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 279.4959999155253,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_06",
+          "category": "incident",
+          "question": "提供者发现违法生成内容后应当如何处理？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:12"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 294.1082001198083,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_07",
+          "category": "compliance",
+          "question": "哪类生成式人工智能服务需要开展安全评估并履行算法备案？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 159.233900019899,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_01",
+          "category": "date",
+          "question": "网络数据安全管理条例从什么时候开始施行？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:14",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 170.14150018803775,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_02",
+          "category": "definition",
+          "question": "网络数据安全管理条例如何定义网络数据？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 0.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 300.2778000663966,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_03",
+          "category": "retention",
+          "question": "委托处理个人信息和重要数据的处理情况记录至少保存多久？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:3",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 289.4060001708567,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_04",
+          "category": "number",
+          "question": "处理多少人以上个人信息的处理者还要遵守重要数据处理者的有关规定？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:4",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 254.86980006098747,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_05",
+          "category": "incident",
+          "question": "发生网络数据安全事件时应急预案和报告要求是什么？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 174.95419993065298,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_06",
+          "category": "governance",
+          "question": "重要数据处理者应设置什么安全负责人和机构？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "data_security_law"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 260.564099997282,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_07",
+          "category": "number",
+          "question": "大型网络平台的注册用户数或月活跃用户数门槛是多少？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:10",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:9"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 258.3995999302715,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_08",
+          "category": "cross_border",
+          "question": "网络数据处理者向境外提供个人信息可以通过哪些合规路径？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:9",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:6",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:7",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 176.51480017229915,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "no_answer_01",
+          "category": "no_answer",
+          "question": "员工国内出差住宿费每天最多报销多少元？",
+          "answerable": false,
+          "source_hit": null,
+          "reciprocal_rank": null,
+          "ndcg": null,
+          "evidence_recall": null,
+          "retrieved_sources": [
+            "data_security_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "data_security_law",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:7",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:13",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:9",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:13"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 151.22080012224615,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "no_answer_02",
+          "category": "no_answer",
+          "question": "公司会议室需要提前几天预约？",
+          "answerable": false,
+          "source_hit": null,
+          "reciprocal_rank": null,
+          "ndcg": null,
+          "evidence_recall": null,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "network_data_security_regulations",
+            "data_security_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:5",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:3",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 185.1850999519229,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "no_answer_03",
+          "category": "no_answer",
+          "question": "这些法规要求生成式人工智能模型至少具有多少亿参数？",
+          "answerable": false,
+          "source_hit": null,
+          "reciprocal_rank": null,
+          "ndcg": null,
+          "evidence_recall": null,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 279.82730022631586,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "no_answer_04",
+          "category": "no_answer",
+          "question": "个人信息保护法由哪一家律师事务所出具法律意见？",
+          "answerable": false,
+          "source_hit": null,
+          "reciprocal_rank": null,
+          "ndcg": null,
+          "evidence_recall": null,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:11",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:1"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 177.8608998283744,
+          "rerank_used": false,
+          "degraded_reason": null
+        }
+      ]
+    },
+    "dense": {
+      "case_count": 34,
+      "answerable_case_count": 30,
+      "no_answer_case_count": 4,
+      "source_hit_at_k": 0.9666666666666667,
+      "mrr_at_k": 0.8555555555555556,
+      "ndcg_at_k": 0.884123967142861,
+      "evidence_recall_at_k": 0.8333333333333334,
+      "full_evidence_hit_rate": 0.8,
+      "latency_p50_ms": 251.16634997539222,
+      "latency_p95_ms": 328.270924987737,
+      "rerank_degradation_count": 0,
+      "answerable_min_top_rerank_score": null,
+      "no_answer_max_top_rerank_score": null,
+      "results": [
+        {
+          "id": "pipl_01",
+          "category": "date",
+          "question": "个人信息保护法从哪一天开始施行？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "data_security_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:14",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:13",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:11"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 180.11419987306,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_02",
+          "category": "condition",
+          "question": "处理敏感个人信息需要取得哪种同意？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 0.5,
+          "ndcg": 0.6309297535714575,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:5",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:4",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:7"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 182.4634000658989,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_03",
+          "category": "condition",
+          "question": "处理不满十四周岁未成年人的个人信息应取得谁的同意？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 0.3333333333333333,
+          "ndcg": 0.5,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:5",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:7",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 255.29489992186427,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_04",
+          "category": "exact_rule",
+          "question": "个人信息的保存期限原则上应当多长？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 0.5,
+          "ndcg": 0.6309297535714575,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:7",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:3",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:1"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 166.84990003705025,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_05",
+          "category": "number",
+          "question": "严重违反个人信息保护法时，最高罚款金额或营业额比例是多少？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "data_security_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "data_security_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:13",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:12",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:14",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:7"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 160.85169999860227,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_06",
+          "category": "definition",
+          "question": "个人信息的定义是否包括匿名化处理后的信息？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 0.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:14",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:4",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:1"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 161.6861999500543,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_07",
+          "category": "condition",
+          "question": "使用个人信息进行自动化决策时需要保证什么？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:4",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:14",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 274.32450000196695,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_08",
+          "category": "retention",
+          "question": "个人信息保护影响评估报告和处理情况记录至少保存几年？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:13",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:12"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 282.7300999779254,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_01",
+          "category": "date",
+          "question": "数据安全法自何时起施行？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "data_security_law",
+            "data_security_law",
+            "network_data_security_regulations",
+            "data_security_law",
+            "data_security_law"
+          ],
+          "retrieved_chunk_ids": [
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:0",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 282.79159986414015,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_02",
+          "category": "definition",
+          "question": "数据安全法所称的数据是什么？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "data_security_law",
+            "data_security_law",
+            "data_security_law",
+            "data_security_law",
+            "data_security_law"
+          ],
+          "retrieved_chunk_ids": [
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:0",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 164.45339983329177,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_03",
+          "category": "exact_rule",
+          "question": "国家依据什么因素对数据实行分类分级保护？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "data_security_law",
+            "data_security_law",
+            "data_security_law",
+            "data_security_law",
+            "data_security_law"
+          ],
+          "retrieved_chunk_ids": [
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:2",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 165.3209999203682,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_04",
+          "category": "condition",
+          "question": "数据安全审查决定是否还可以继续申诉，法律如何表述？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 0.5,
+          "ndcg": 0.6309297535714575,
+          "evidence_recall": 0.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "data_security_law",
+            "data_security_law",
+            "data_security_law",
+            "data_security_law"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:12",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:2",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 309.2445998918265,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_05",
+          "category": "incident",
+          "question": "发生数据安全事件时，数据处理者要采取哪些动作？",
+          "answerable": true,
+          "source_hit": false,
+          "reciprocal_rank": 0.0,
+          "ndcg": 0.0,
+          "evidence_recall": 0.5,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 356.8901000544429,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_06",
+          "category": "jurisdiction",
+          "question": "在境外开展数据处理活动损害中国国家安全时是否会被追责？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 0.5,
+          "ndcg": 0.6309297535714575,
+          "evidence_recall": 0.5,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "data_security_law",
+            "data_security_law",
+            "network_data_security_regulations",
+            "data_security_law"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:13",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:7"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 268.592800013721,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_07",
+          "category": "condition",
+          "question": "重要数据处理者需要设置哪些数据安全岗位或机构？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 0.3333333333333333,
+          "ndcg": 0.5,
+          "evidence_recall": 0.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "data_security_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 139.30810010060668,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_01",
+          "category": "date",
+          "question": "生成式人工智能服务管理暂行办法何时施行？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 165.7720000948757,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_02",
+          "category": "scope",
+          "question": "仅研发生成式人工智能但未向境内公众提供服务，是否适用暂行办法？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 298.02340012975037,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_03",
+          "category": "training_data",
+          "question": "生成式人工智能训练数据涉及个人信息时需要满足什么条件？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 129.68520005233586,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_04",
+          "category": "fairness",
+          "question": "生成式人工智能服务应防止产生哪些方面的歧视？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 238.82030020467937,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_05",
+          "category": "minor",
+          "question": "提供者应如何防范未成年人沉迷生成式人工智能服务？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 272.5879999343306,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_06",
+          "category": "incident",
+          "question": "提供者发现违法生成内容后应当如何处理？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "network_data_security_regulations",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:13",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 177.58300015702844,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_07",
+          "category": "compliance",
+          "question": "哪类生成式人工智能服务需要开展安全评估并履行算法备案？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 179.84470003284514,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_01",
+          "category": "date",
+          "question": "网络数据安全管理条例从什么时候开始施行？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "data_security_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:14",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 303.1192000489682,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_02",
+          "category": "definition",
+          "question": "网络数据安全管理条例如何定义网络数据？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:14"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 147.27509999647737,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_03",
+          "category": "retention",
+          "question": "委托处理个人信息和重要数据的处理情况记录至少保存多久？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 0.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:3",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 472.059499938041,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_04",
+          "category": "number",
+          "question": "处理多少人以上个人信息的处理者还要遵守重要数据处理者的有关规定？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:5",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:4",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 312.8605999518186,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_05",
+          "category": "incident",
+          "question": "发生网络数据安全事件时应急预案和报告要求是什么？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 278.88079988770187,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_06",
+          "category": "governance",
+          "question": "重要数据处理者应设置什么安全负责人和机构？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "data_security_law"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 249.57889993675053,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_07",
+          "category": "number",
+          "question": "大型网络平台的注册用户数或月活跃用户数门槛是多少？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:10",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:9"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 305.8199000079185,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_08",
+          "category": "cross_border",
+          "question": "网络数据处理者向境外提供个人信息可以通过哪些合规路径？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:9",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:6",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:7",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 266.83109998703003,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "no_answer_01",
+          "category": "no_answer",
+          "question": "员工国内出差住宿费每天最多报销多少元？",
+          "answerable": false,
+          "source_hit": null,
+          "reciprocal_rank": null,
+          "ndcg": null,
+          "evidence_recall": null,
+          "retrieved_sources": [
+            "data_security_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:7",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:13",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:9",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:6",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 162.12540003471076,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "no_answer_02",
+          "category": "no_answer",
+          "question": "公司会议室需要提前几天预约？",
+          "answerable": false,
+          "source_hit": null,
+          "reciprocal_rank": null,
+          "ndcg": null,
+          "evidence_recall": null,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "generative_ai_interim_measures",
+            "data_security_law",
+            "data_security_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:5",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:6"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 252.7538000140339,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "no_answer_03",
+          "category": "no_answer",
+          "question": "这些法规要求生成式人工智能模型至少具有多少亿参数？",
+          "answerable": false,
+          "source_hit": null,
+          "reciprocal_rank": null,
+          "ndcg": null,
+          "evidence_recall": null,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 281.01569996215403,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "no_answer_04",
+          "category": "no_answer",
+          "question": "个人信息保护法由哪一家律师事务所出具法律意见？",
+          "answerable": false,
+          "source_hit": null,
+          "reciprocal_rank": null,
+          "ndcg": null,
+          "evidence_recall": null,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:11",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:14",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 140.05490019917488,
+          "rerank_used": false,
+          "degraded_reason": null
+        }
+      ]
+    },
+    "lexical": {
+      "case_count": 34,
+      "answerable_case_count": 30,
+      "no_answer_case_count": 4,
+      "source_hit_at_k": 0.9666666666666667,
+      "mrr_at_k": 0.9277777777777777,
+      "ndcg_at_k": 0.937697658452382,
+      "evidence_recall_at_k": 0.9,
+      "full_evidence_hit_rate": 0.9,
+      "latency_p50_ms": 0.6263500545173883,
+      "latency_p95_ms": 0.9221201064065099,
+      "rerank_degradation_count": 0,
+      "answerable_min_top_rerank_score": null,
+      "no_answer_max_top_rerank_score": null,
+      "results": [
+        {
+          "id": "pipl_01",
+          "category": "date",
+          "question": "个人信息保护法从哪一天开始施行？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 0.5,
+          "ndcg": 0.6309297535714575,
+          "evidence_recall": 0.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.7499998901039362,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_02",
+          "category": "condition",
+          "question": "处理敏感个人信息需要取得哪种同意？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:5",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:4",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.6331000477075577,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_03",
+          "category": "condition",
+          "question": "处理不满十四周岁未成年人的个人信息应取得谁的同意？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:5",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:1",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.8131999056786299,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_04",
+          "category": "exact_rule",
+          "question": "个人信息的保存期限原则上应当多长？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:3",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:8",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.5765999667346478,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_05",
+          "category": "number",
+          "question": "严重违反个人信息保护法时，最高罚款金额或营业额比例是多少？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "data_security_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:13",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:14",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:13",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:7"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.743999844416976,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_06",
+          "category": "definition",
+          "question": "个人信息的定义是否包括匿名化处理后的信息？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:14",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.579700106754899,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_07",
+          "category": "condition",
+          "question": "使用个人信息进行自动化决策时需要保证什么？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:4",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:14",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:10",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.6187998224049807,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "pipl_08",
+          "category": "retention",
+          "question": "个人信息保护影响评估报告和处理情况记录至少保存几年？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.9168002288788557,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_01",
+          "category": "date",
+          "question": "数据安全法自何时起施行？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 0.3333333333333333,
+          "ndcg": 0.5,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "network_data_security_regulations",
+            "data_security_law",
+            "generative_ai_interim_measures",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.3823998849838972,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_02",
+          "category": "definition",
+          "question": "数据安全法所称的数据是什么？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "data_security_law",
+            "network_data_security_regulations",
+            "generative_ai_interim_measures",
+            "data_security_law",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:0",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:14",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.35520014353096485,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_03",
+          "category": "exact_rule",
+          "question": "国家依据什么因素对数据实行分类分级保护？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "data_security_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.6891000084578991,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_04",
+          "category": "condition",
+          "question": "数据安全审查决定是否还可以继续申诉，法律如何表述？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "data_security_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:3",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 1.0861000046133995,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_05",
+          "category": "incident",
+          "question": "发生数据安全事件时，数据处理者要采取哪些动作？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "data_security_law",
+            "network_data_security_regulations",
+            "data_security_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.780200120061636,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_06",
+          "category": "jurisdiction",
+          "question": "在境外开展数据处理活动损害中国国家安全时是否会被追责？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "data_security_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "data_security_law",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:0",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:12"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.8332000579684973,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_07",
+          "category": "condition",
+          "question": "重要数据处理者需要设置哪些数据安全岗位或机构？",
+          "answerable": true,
+          "source_hit": false,
+          "reciprocal_rank": 0.0,
+          "ndcg": 0.0,
+          "evidence_recall": 0.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:12",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:9",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.619600061327219,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_01",
+          "category": "date",
+          "question": "生成式人工智能服务管理暂行办法何时施行？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.5427999421954155,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_02",
+          "category": "scope",
+          "question": "仅研发生成式人工智能但未向境内公众提供服务，是否适用暂行办法？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.72640017606318,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_03",
+          "category": "training_data",
+          "question": "生成式人工智能训练数据涉及个人信息时需要满足什么条件？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.6781998090445995,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_04",
+          "category": "fairness",
+          "question": "生成式人工智能服务应防止产生哪些方面的歧视？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.538000138476491,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_05",
+          "category": "minor",
+          "question": "提供者应如何防范未成年人沉迷生成式人工智能服务？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.5834999028593302,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_06",
+          "category": "incident",
+          "question": "提供者发现违法生成内容后应当如何处理？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "personal_information_protection_law",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:12",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.5207001231610775,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "genai_07",
+          "category": "compliance",
+          "question": "哪类生成式人工智能服务需要开展安全评估并履行算法备案？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.7046000100672245,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_01",
+          "category": "date",
+          "question": "网络数据安全管理条例从什么时候开始施行？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.5598000716418028,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_02",
+          "category": "definition",
+          "question": "网络数据安全管理条例如何定义网络数据？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 0.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.49910019151866436,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_03",
+          "category": "retention",
+          "question": "委托处理个人信息和重要数据的处理情况记录至少保存多久？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.8767999242991209,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_04",
+          "category": "number",
+          "question": "处理多少人以上个人信息的处理者还要遵守重要数据处理者的有关规定？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:14",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.9319998789578676,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_05",
+          "category": "incident",
+          "question": "发生网络数据安全事件时应急预案和报告要求是什么？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "data_security_law",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.6679999642074108,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_06",
+          "category": "governance",
+          "question": "重要数据处理者应设置什么安全负责人和机构？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "data_security_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.6721001118421555,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_07",
+          "category": "number",
+          "question": "大型网络平台的注册用户数或月活跃用户数门槛是多少？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:10",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:9"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.46369992196559906,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "nds_08",
+          "category": "cross_border",
+          "question": "网络数据处理者向境外提供个人信息可以通过哪些合规路径？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:9",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:6",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:7"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.8270000107586384,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "no_answer_01",
+          "category": "no_answer",
+          "question": "员工国内出差住宿费每天最多报销多少元？",
+          "answerable": false,
+          "source_hit": null,
+          "reciprocal_rank": null,
+          "ndcg": null,
+          "evidence_recall": null,
+          "retrieved_sources": [
+            "personal_information_protection_law",
+            "data_security_law",
+            "network_data_security_regulations",
+            "data_security_law",
+            "data_security_law"
+          ],
+          "retrieved_chunk_ids": [
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:13",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:7",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:13",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:6"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.3098000306636095,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "no_answer_02",
+          "category": "no_answer",
+          "question": "公司会议室需要提前几天预约？",
+          "answerable": false,
+          "source_hit": null,
+          "reciprocal_rank": null,
+          "ndcg": null,
+          "evidence_recall": null,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "network_data_security_regulations",
+            "data_security_law",
+            "personal_information_protection_law",
+            "network_data_security_regulations"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:10",
+            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:5",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:3",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.2437999937683344,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "no_answer_03",
+          "category": "no_answer",
+          "question": "这些法规要求生成式人工智能模型至少具有多少亿参数？",
+          "answerable": false,
+          "source_hit": null,
+          "reciprocal_rank": null,
+          "ndcg": null,
+          "evidence_recall": null,
+          "retrieved_sources": [
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures",
+            "generative_ai_interim_measures"
+          ],
+          "retrieved_chunk_ids": [
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
+            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.5403999239206314,
+          "rerank_used": false,
+          "degraded_reason": null
+        },
+        {
+          "id": "no_answer_04",
+          "category": "no_answer",
+          "question": "个人信息保护法由哪一家律师事务所出具法律意见？",
+          "answerable": false,
+          "source_hit": null,
+          "reciprocal_rank": null,
+          "ndcg": null,
+          "evidence_recall": null,
+          "retrieved_sources": [
+            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
+            "network_data_security_regulations",
+            "personal_information_protection_law"
+          ],
+          "retrieved_chunk_ids": [
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:1",
+            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
+            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0"
+          ],
+          "top_rerank_score": null,
+          "latency_ms": 0.595899997279048,
+          "rerank_used": false,
+          "degraded_reason": null
+        }
+      ]
+    }
+  }
+}

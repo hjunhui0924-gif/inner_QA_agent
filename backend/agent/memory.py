@@ -4,10 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import csv
-import hashlib
 import json
-import math
-import re
 from collections.abc import Iterable
 from io import BytesIO, StringIO
 from pathlib import Path
@@ -36,97 +33,32 @@ except ImportError:  # pragma: no cover
         Chroma = None  # type: ignore[assignment]
 
 from backend.config import settings
+from backend.knowledge.chunking import split_text
+from backend.knowledge.deduplication import content_fingerprint, find_duplicate
+from backend.knowledge.embeddings import EmbeddingProfile, create_embeddings
+from backend.retrieval.engine import RetrievalConfig, RetrievalEngine, tokenize
+from backend.retrieval.reranker import DashScopeReranker
 
 
 class VectorStoreLike(Protocol):
     """Minimal vector store interface used by the app."""
 
-    def add_documents(self, documents: list[Document]) -> Any:
+    def add_documents(
+        self,
+        documents: list[Document],
+        **kwargs: Any,
+    ) -> Any:
         """Add documents to the index."""
 
     def similarity_search(self, query: str, k: int = 4) -> list[Document]:
         """Run a similarity search."""
 
+    def get(self, **kwargs: Any) -> dict[str, Any]:
+        """Return persisted vector-store records."""
+
 
 _VECTORSTORE: VectorStoreLike | None = None
-
-
-class HashingEmbeddings(Embeddings):
-    """Dependency-light embeddings for local retrieval."""
-
-    def __init__(self, dimensions: int = 256) -> None:
-        self.dimensions = dimensions
-
-    def embed_documents(self, texts: list[str]) -> list[list[float]]:
-        return [self._embed(text) for text in texts]
-
-    def embed_query(self, text: str) -> list[float]:
-        return self._embed(text)
-
-    def _embed(self, text: str) -> list[float]:
-        vector = [0.0] * self.dimensions
-        tokens = _tokenize_text(text)
-        if not tokens:
-            return vector
-
-        for token in tokens:
-            digest = hashlib.sha256(token.encode("utf-8")).hexdigest()
-            index = int(digest[:8], 16) % self.dimensions
-            vector[index] += 1.0
-
-        norm = math.sqrt(sum(value * value for value in vector))
-        if norm:
-            vector = [value / norm for value in vector]
-        return vector
-
-
-def _is_cjk_char(char: str) -> bool:
-    """Return whether one character is a CJK ideograph."""
-
-    if not char:
-        return False
-    code = ord(char)
-    return 0x4E00 <= code <= 0x9FFF
-
-
-def _tokenize_text(text: str) -> list[str]:
-    """Tokenize mixed Chinese and ASCII text for hashing and lexical overlap."""
-
-    lowered = text.lower()
-    tokens: list[str] = []
-    buffer: list[str] = []
-    cjk_run: list[str] = []
-
-    def flush_buffer() -> None:
-        if buffer:
-            tokens.append("".join(buffer))
-            buffer.clear()
-
-    def flush_cjk_run() -> None:
-        if not cjk_run:
-            return
-        run = "".join(cjk_run)
-        tokens.extend(cjk_run)
-        if len(run) >= 2:
-            tokens.extend(run[index : index + 2] for index in range(len(run) - 1))
-        if len(run) >= 3:
-            tokens.extend(run[index : index + 3] for index in range(len(run) - 2))
-        cjk_run.clear()
-
-    for char in lowered:
-        if char.isascii() and (char.isalnum() or char == "_"):
-            flush_cjk_run()
-            buffer.append(char)
-            continue
-        flush_buffer()
-        if _is_cjk_char(char):
-            cjk_run.append(char)
-            continue
-        flush_cjk_run()
-
-    flush_buffer()
-    flush_cjk_run()
-    return tokens
+_RETRIEVER: RetrievalEngine | None = None
 
 
 class _LocalVectorStore:
@@ -139,7 +71,11 @@ class _LocalVectorStore:
             [document.page_content for document in documents]
         )
 
-    def add_documents(self, documents: list[Document]) -> None:
+    def add_documents(
+        self,
+        documents: list[Document],
+        **kwargs: Any,
+    ) -> None:
         self._documents.extend(documents)
         self._vectors.extend(
             self._embeddings.embed_documents(
@@ -155,6 +91,14 @@ class _LocalVectorStore:
             scored.append((score, document))
         scored.sort(key=lambda item: item[0], reverse=True)
         return [document for _, document in scored[:k]]
+
+    def get(self, **kwargs: Any) -> dict[str, Any]:
+        return {
+            "ids": [
+                str(document.metadata.get("chunk_id", index))
+                for index, document in enumerate(self._documents)
+            ]
+        }
 
 
 def ensure_data_directories() -> None:
@@ -173,12 +117,27 @@ def set_vectorstore(vectorstore: VectorStoreLike) -> None:
     _VECTORSTORE = vectorstore
 
 
+def set_retriever(retriever: RetrievalEngine) -> None:
+    """Register the shared hybrid retrieval engine."""
+
+    global _RETRIEVER
+    _RETRIEVER = retriever
+
+
 def get_vectorstore() -> VectorStoreLike:
     """Return the shared vector store instance."""
 
     if _VECTORSTORE is None:
         raise RuntimeError("Vector store has not been initialized yet.")
     return _VECTORSTORE
+
+
+def get_retriever() -> RetrievalEngine:
+    """Return the initialized hybrid retrieval engine."""
+
+    if _RETRIEVER is None:
+        raise RuntimeError("Retrieval engine has not been initialized yet.")
+    return _RETRIEVER
 
 
 async def ensure_user_memory_db(db_path: str | Path) -> None:
@@ -363,24 +322,6 @@ async def delete_chat_session(user_id: str, session_id: str) -> None:
         await db.commit()
 
 
-def _chunk_text(text: str, chunk_size: int = 500, chunk_overlap: int = 50) -> list[str]:
-    """Split text into overlapping chunks."""
-
-    stripped = text.strip()
-    if len(stripped) <= chunk_size:
-        return [stripped]
-
-    chunks: list[str] = []
-    start = 0
-    while start < len(stripped):
-        end = min(len(stripped), start + chunk_size)
-        chunks.append(stripped[start:end])
-        if end >= len(stripped):
-            break
-        start = max(0, end - chunk_overlap)
-    return chunks
-
-
 def _load_json_file(path: Path) -> list[dict[str, Any]]:
     """Load JSON array content from disk."""
 
@@ -396,62 +337,6 @@ def _save_json_file(path: Path, data: list[dict[str, Any]]) -> None:
 
     with path.open("w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
-
-
-def _normalize_text_for_dedup(text: str) -> str:
-    """Normalize content before duplicate comparison."""
-
-    return " ".join(text.split()).strip()
-
-
-def _content_fingerprint(text: str) -> str:
-    """Build a stable fingerprint for one knowledge entry."""
-
-    normalized = _normalize_text_for_dedup(text)
-    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
-
-
-def _cosine_similarity(vec1: list[float], vec2: list[float]) -> float:
-    """Compute cosine similarity for normalized vectors."""
-
-    if not vec1 or not vec2:
-        return 0.0
-    return sum(a * b for a, b in zip(vec1, vec2, strict=False))
-
-
-def _find_near_duplicate(
-    candidate_text: str,
-    records: list[dict[str, Any]],
-    threshold: float,
-) -> dict[str, Any] | None:
-    """Find a semantically similar existing knowledge record."""
-
-    embeddings = HashingEmbeddings(dimensions=settings.embedding_dim)
-    candidate_vector = embeddings.embed_query(candidate_text)
-    best_match: dict[str, Any] | None = None
-    best_score = -1.0
-
-    for existing in records:
-        existing_content = str(existing.get("content", "")).strip()
-        if not existing_content:
-            continue
-        score = _cosine_similarity(
-            candidate_vector,
-            embeddings.embed_query(existing_content),
-        )
-        if score > best_score:
-            best_score = score
-            best_match = {
-                "title": str(existing.get("title", "")).strip(),
-                "content": existing_content,
-                "source": str(existing.get("source", "seed")).strip() or "seed",
-                "original_filename": str(existing.get("original_filename", "")).strip(),
-                "similarity": score,
-            }
-
-    if best_match and best_score >= threshold:
-        return best_match
-    return None
 
 
 def _load_knowledge_base_records() -> list[dict[str, str]]:
@@ -472,6 +357,13 @@ def _load_knowledge_base_records() -> list[dict[str, str]]:
                     "title": title,
                     "content": content,
                     "source": source,
+                    "original_filename": str(
+                        record.get("original_filename", "")
+                    ).strip(),
+                    "content_fingerprint": str(
+                        record.get("content_fingerprint", "")
+                    ).strip()
+                    or content_fingerprint(content),
                 }
             )
     return normalized
@@ -481,18 +373,29 @@ def _chunk_documents_from_record(
     title: str,
     content: str,
     source: str,
+    original_filename: str = "",
+    document_id: str = "",
 ) -> list[Document]:
     """Create chunked documents from one record."""
 
     documents: list[Document] = []
-    for index, chunk in enumerate(_chunk_text(content)):
+    chunks = split_text(
+        content,
+        chunk_size=settings.knowledge_chunk_size,
+        overlap=settings.knowledge_chunk_overlap,
+    )
+    stable_document_id = document_id or content_fingerprint(content)
+    for index, chunk in enumerate(chunks):
         documents.append(
             Document(
                 page_content=chunk,
                 metadata={
+                    "document_id": stable_document_id,
                     "title": title,
                     "source": source,
+                    "original_filename": original_filename,
                     "chunk_index": index,
+                    "chunk_id": f"{stable_document_id}:{index}",
                 },
             )
         )
@@ -509,16 +412,37 @@ def _build_documents() -> list[Document]:
                 title=record["title"],
                 content=record["content"],
                 source=record["source"],
+                original_filename=record["original_filename"],
+                document_id=record["content_fingerprint"],
             )
         )
     return documents
 
 
-def _build_local_vectorstore() -> _LocalVectorStore:
+def _chunk_ids(documents: list[Document]) -> list[str]:
+    """Return stable IDs for vector-store persistence."""
+
+    return [str(document.metadata["chunk_id"]) for document in documents]
+
+
+def _embedding_profile() -> EmbeddingProfile:
+    """Build the configured embedding profile without creating network clients."""
+
+    return EmbeddingProfile(
+        provider=settings.embedding_provider,  # type: ignore[arg-type]
+        model=settings.embedding_model,
+        dimensions=settings.embedding_dimensions,
+        index_version=settings.embedding_index_version,
+        api_key=settings.dashscope_api_key,
+        base_url=settings.dashscope_base_url,
+    )
+
+
+def _build_local_vectorstore(embeddings: Embeddings) -> _LocalVectorStore:
     """Create the fallback in-memory vector store."""
 
     return _LocalVectorStore(
-        embeddings=HashingEmbeddings(dimensions=settings.embedding_dim),
+        embeddings=embeddings,
         documents=_build_documents(),
     )
 
@@ -526,25 +450,35 @@ def _build_local_vectorstore() -> _LocalVectorStore:
 def _create_vectorstore_sync() -> VectorStoreLike:
     """Build or open the local persistent vector store."""
 
+    profile = _embedding_profile()
+    embeddings = create_embeddings(profile)
     if Chroma is None:
-        return _build_local_vectorstore()
+        return _build_local_vectorstore(embeddings)
 
     persist_dir = Path(settings.chroma_persist_dir)
     persist_dir.mkdir(parents=True, exist_ok=True)
-    embeddings = HashingEmbeddings(dimensions=settings.embedding_dim)
     vectorstore = Chroma(
-        collection_name="enterprise_knowledge_base",
+        collection_name=profile.collection_name(settings.chroma_collection_prefix),
         embedding_function=embeddings,
         persist_directory=str(persist_dir),
     )
 
-    try:
-        count = vectorstore._collection.count()
-    except Exception:
-        count = 0
-
-    if count == 0:
-        vectorstore.add_documents(_build_documents())
+    documents = _build_documents()
+    if documents:
+        try:
+            existing_ids = set(vectorstore.get(include=[]).get("ids", []))
+        except Exception:
+            existing_ids = set()
+        missing_documents = [
+            document
+            for document in documents
+            if str(document.metadata["chunk_id"]) not in existing_ids
+        ]
+        if missing_documents:
+            vectorstore.add_documents(
+                missing_documents,
+                ids=_chunk_ids(missing_documents),
+            )
     return vectorstore
 
 
@@ -554,6 +488,32 @@ async def ensure_vectorstore() -> VectorStoreLike:
     ensure_data_directories()
     vectorstore = await asyncio.to_thread(_create_vectorstore_sync)
     set_vectorstore(vectorstore)
+    reranker = None
+    if settings.reranker_enabled and settings.dashscope_api_key:
+        reranker = DashScopeReranker(
+            api_key=settings.dashscope_api_key,
+            model=settings.reranker_model,
+            endpoint=settings.reranker_endpoint,
+            api_style=settings.reranker_api_style,  # type: ignore[arg-type]
+            timeout_seconds=settings.reranker_timeout_seconds,
+            max_document_chars=settings.reranker_max_document_chars,
+        )
+    set_retriever(
+        RetrievalEngine(
+            vectorstore,
+            _build_documents(),
+            config=RetrievalConfig(
+                dense_candidate_k=settings.retrieval_dense_candidate_k,
+                lexical_candidate_k=settings.retrieval_lexical_candidate_k,
+                rerank_candidate_k=settings.retrieval_rerank_candidate_k,
+                rrf_k=settings.retrieval_rrf_k,
+                dense_weight=settings.retrieval_dense_weight,
+                lexical_weight=settings.retrieval_lexical_weight,
+                production_strategy=settings.retrieval_strategy,  # type: ignore[arg-type]
+            ),
+            reranker=reranker,
+        )
+    )
     return vectorstore
 
 
@@ -561,12 +521,12 @@ def search_knowledge_base_text(query: str, top_k: int = 4) -> str:
     """Search the enterprise knowledge base and return a compact summary."""
 
     try:
-        vectorstore = get_vectorstore()
+        retriever = get_retriever()
     except RuntimeError:
         return "知识库尚未初始化。"
 
     try:
-        docs = vectorstore.similarity_search(query, k=top_k)
+        docs = retriever.retrieve(query, top_k=top_k).documents
     except Exception as exc:
         return f"知识库检索失败：{exc}"
 
@@ -585,20 +545,21 @@ def search_knowledge_base_text(query: str, top_k: int = 4) -> str:
 async def search_documents(query: str, top_k: int = 4) -> list[Document]:
     """Retrieve the most relevant documents from the vector store."""
 
-    vectorstore = get_vectorstore()
-    return await asyncio.to_thread(vectorstore.similarity_search, query, top_k)
+    retriever = get_retriever()
+    result = await asyncio.to_thread(retriever.retrieve, query, top_k)
+    return result.documents
 
 
 def keyword_overlap_score(query: str, texts: Iterable[str]) -> float:
     """Return a simple lexical overlap score."""
 
-    query_tokens = set(_tokenize_text(query))
+    query_tokens = set(tokenize(query))
     if not query_tokens:
         return 0.0
 
     combined_tokens: set[str] = set()
     for text in texts:
-        combined_tokens.update(_tokenize_text(text))
+        combined_tokens.update(tokenize(text))
     if not combined_tokens:
         return 0.0
     return len(query_tokens & combined_tokens) / len(query_tokens)
@@ -670,36 +631,25 @@ def add_knowledge_record(
 
     kb_path = Path(settings.knowledge_base_path)
     records = _load_json_file(kb_path)
-    candidate_fingerprint = _content_fingerprint(clean_content)
-
-    for existing in records:
-        existing_content = str(existing.get("content", "")).strip()
-        if not existing_content:
-            continue
-        if _content_fingerprint(existing_content) == candidate_fingerprint:
-            return {
-                "title": str(existing.get("title", "")).strip() or clean_title,
-                "content": existing_content,
-                "source": str(existing.get("source", "seed")).strip() or "seed",
-                "original_filename": str(existing.get("original_filename", "")).strip(),
-                "deduplicated": True,
-                "dedup_type": "exact",
-            }
-
-    near_duplicate = _find_near_duplicate(
-        candidate_text=clean_content,
+    candidate_fingerprint = content_fingerprint(clean_content)
+    duplicate = find_duplicate(
+        clean_content,
         records=records,
-        threshold=settings.knowledge_dedup_similarity_threshold,
+        near_threshold=settings.knowledge_near_duplicate_threshold,
+        minimum_length_ratio=settings.knowledge_near_duplicate_min_length_ratio,
+        minimum_near_length=settings.knowledge_near_duplicate_min_length,
     )
-    if near_duplicate is not None:
+    if duplicate is not None:
+        existing = duplicate.record
+        existing_content = str(existing.get("content", "")).strip()
         return {
-            "title": near_duplicate["title"] or clean_title,
-            "content": near_duplicate["content"],
-            "source": near_duplicate["source"],
-            "original_filename": near_duplicate["original_filename"],
+            "title": str(existing.get("title", "")).strip() or clean_title,
+            "content": existing_content,
+            "source": str(existing.get("source", "seed")).strip() or "seed",
+            "original_filename": str(existing.get("original_filename", "")).strip(),
             "deduplicated": True,
-            "dedup_type": "similar",
-            "similarity": near_duplicate["similarity"],
+            "dedup_type": "exact" if duplicate.kind == "exact" else "similar",
+            "similarity": duplicate.score,
         }
 
     record = {
@@ -714,13 +664,18 @@ def add_knowledge_record(
     records.append(record)
     _save_json_file(kb_path, records)
 
-    get_vectorstore().add_documents(
-        _chunk_documents_from_record(
-            title=clean_title,
-            content=clean_content,
-            source=source,
-        )
+    documents = _chunk_documents_from_record(
+        title=clean_title,
+        content=clean_content,
+        source=source,
+        original_filename=original_filename,
+        document_id=candidate_fingerprint,
     )
+    get_vectorstore().add_documents(
+        documents,
+        ids=_chunk_ids(documents),
+    )
+    get_retriever().add_documents(documents)
     return record
 
 

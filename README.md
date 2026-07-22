@@ -60,7 +60,36 @@ pip install -r requirements.txt
 
 ```env
 DASHSCOPE_API_KEY=你的DashScopeKey
+EMBEDDING_PROVIDER=dashscope
+EMBEDDING_MODEL=text-embedding-v3
+EMBEDDING_DIMENSIONS=1024
+EMBEDDING_INDEX_VERSION=v3
+RETRIEVAL_STRATEGY=rerank
+RETRIEVAL_DENSE_CANDIDATE_K=20
+RETRIEVAL_LEXICAL_CANDIDATE_K=20
+RETRIEVAL_RERANK_CANDIDATE_K=12
+RETRIEVAL_DENSE_WEIGHT=0.5
+RETRIEVAL_LEXICAL_WEIGHT=0.5
+RERANKER_ENABLED=true
+RERANKER_MODEL=gte-rerank-v2
+RERANKER_API_STYLE=native
 ```
+
+默认使用 DashScope `text-embedding-v3` 作为中文语义检索模型。Embedding
+提供方、模型、维度或索引版本发生变化时，系统会自动使用新的 Chroma
+collection，避免新旧向量混用。无网络的本地开发可显式设置
+`EMBEDDING_PROVIDER=hashing`，但该模式仅提供词法检索能力，不应作为生产配置或
+正式评测结果。
+
+知识库去重不再使用语义向量：完全重复使用规范化内容指纹，近重复使用保守的字符
+shingle 重合率。这样可以跳过格式略有差异的文件副本，同时保留主题相似但规则不同
+的制度文档。
+
+检索默认同时运行语义召回与 BM25 式中文词法召回，再通过 RRF 融合排序。词法召回
+用于补足文号、金额、日期和制度原词等精确匹配场景，语义召回用于处理同义表达；
+融合后的候选再通过 `gte-rerank-v2` 进行精排。远程精排超时或异常时自动降级为
+RRF 结果，不中断问答。Rerank 模型与端点均可配置，模型说明以
+[阿里云文本排序官方文档](https://help.aliyun.com/zh/model-studio/text-rerank-api)为准。
 
 仓库中只保留 `.env.example`，不要提交真实 `.env`。
 
@@ -119,7 +148,42 @@ GET /chat/sessions/{user_id}
 DELETE /chat/session/{user_id}/{session_id}
 ```
 
-## RAG 评估
+## 官方文档检索 Benchmark
+
+项目提供了一套可复现的多文档检索消融实验。语料来自以下官方原始页面：
+
+- [中华人民共和国个人信息保护法](http://www.npc.gov.cn/npc/c2/c30834/202108/t20210820_313088.html)（中国人大网）
+- [中华人民共和国数据安全法](http://www.npc.gov.cn/npc/c2/c30834/202106/t20210610_311888.html)（中国人大网）
+- [生成式人工智能服务管理暂行办法](https://www.cac.gov.cn/2023-07/13/c_1690898327029107.htm)（国家互联网信息办公室）
+- [网络数据安全管理条例](https://www.gov.cn/zhengce/content/202409/content_6977766.htm)（中国政府网）
+
+下载器会校验最终域名、正文长度并记录来源 URL、抓取时间和 SHA-256：
+
+```bash
+python scripts/download_eval_corpus.py
+```
+
+运行 BM25、向量、RRF、Rerank 四组消融实验：
+
+```bash
+python scripts/run_retrieval_benchmark.py --top-k 5
+```
+
+当前 34 条评测包含 30 条可回答问题和 4 条无答案问题；四份法规主题高度相似，
+用于检验相近条款、数字、日期、定义和跨境规则的区分能力。当前实测结果：
+
+| 策略 | Source Hit@5 | MRR@5 | 证据召回@5 | 完整证据命中率 | P50 延迟 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 向量检索 | 96.67% | 85.56% | 83.33% | 80.00% | 251 ms |
+| BM25 式词法检索 | 96.67% | 92.78% | 90.00% | 90.00% | 0.6 ms |
+| BM25 + 向量 + RRF | 96.67% | 90.56% | 90.00% | 90.00% | 260 ms |
+| BM25 + 向量 + RRF + Rerank | 100.00% | 96.11% | 100.00% | 100.00% | 680 ms |
+
+完整报告位于 `data/eval_reports/official_policy_retrieval_benchmark.json`。Rerank
+分数在可回答与无答案样本之间仍有重叠，因此项目没有根据这 34 条数据硬编码拒答阈值；
+无答案识别需要独立校准集和证据充分性判别，不能由 Top-K 命中率替代。
+
+## RAG 回答评估
 
 项目内提供了一版最小可用的 RAG 评估脚本，当前针对“东山精密：2025年度股东会法律意见书”准备了标准评估样本，用于验证企业文档在检索层和最终回答层的表现。
 
