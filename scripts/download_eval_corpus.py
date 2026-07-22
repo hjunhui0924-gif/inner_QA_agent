@@ -5,7 +5,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -132,11 +134,31 @@ def _verify_cached_snapshot(
     return actual
 
 
+def _atomic_write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    handle, temporary_name = tempfile.mkstemp(
+        prefix=f".{path.name}.",
+        suffix=".tmp",
+        dir=path.parent,
+        text=True,
+    )
+    try:
+        with os.fdopen(handle, "w", encoding="utf-8") as stream:
+            stream.write(content)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary_name, path)
+    except Exception:
+        Path(temporary_name).unlink(missing_ok=True)
+        raise
+
+
 def download_corpus(*, refresh: bool = False) -> list[dict[str, Any]]:
     """Download missing official documents and return provenance records."""
 
     DOCUMENTS_DIR.mkdir(parents=True, exist_ok=True)
     provenance: list[dict[str, Any]] = []
+    pending_writes: dict[Path, str] = {}
     previous_records = (
         json.loads(PROVENANCE_PATH.read_text(encoding="utf-8"))
         if PROVENANCE_PATH.exists()
@@ -155,9 +177,15 @@ def download_corpus(*, refresh: bool = False) -> list[dict[str, Any]]:
         for item in _load_manifest():
             if not re.fullmatch(r"[a-z0-9_]+", item["id"]):
                 raise ValueError(f"Unsafe corpus id: {item['id']}")
-            target = DOCUMENTS_DIR / f"{item['id']}.md"
             previous = previous_by_id.get(item["id"], {})
-            if target.exists() and not refresh:
+            previous_relative_path = str(previous.get("local_path", "")).replace(
+                "\\", "/"
+            )
+            previous_target = (
+                BASE_DIR / previous_relative_path if previous_relative_path else None
+            )
+            if previous_target is not None and previous_target.exists() and not refresh:
+                target = previous_target
                 body = target.read_text(encoding="utf-8")
                 content_sha256 = _verify_cached_snapshot(body, previous, item["id"])
                 final_url = str(previous.get("final_url", item["url"]))
@@ -182,7 +210,6 @@ def download_corpus(*, refresh: bool = False) -> list[dict[str, Any]]:
                     f"原始来源：{item['url']}\n\n"
                     f"{body_text}\n"
                 )
-                target.write_text(body, encoding="utf-8")
                 final_url = str(response.url)
                 status_code = response.status_code
                 retrieved_at = datetime.now(timezone.utc).isoformat()
@@ -194,6 +221,11 @@ def download_corpus(*, refresh: bool = False) -> list[dict[str, Any]]:
                     f"Official snapshot digest changed for {item['id']}; "
                     "review the source before updating expected_sha256"
                 )
+            if refresh or previous_target is None or not previous_target.exists():
+                target = DOCUMENTS_DIR / (
+                    f"{item['id']}-{content_sha256[:12]}.md"
+                )
+                pending_writes[target] = body
 
             provenance.append(
                 {
@@ -206,9 +238,13 @@ def download_corpus(*, refresh: bool = False) -> list[dict[str, Any]]:
                     "retrieved_at": retrieved_at,
                 }
             )
-    PROVENANCE_PATH.write_text(
+    # Content-addressed snapshots are written first. Provenance is the single
+    # atomic pointer switch, so a failed multi-source refresh keeps the old set.
+    for target, body in pending_writes.items():
+        _atomic_write_text(target, body)
+    _atomic_write_text(
+        PROVENANCE_PATH,
         json.dumps(provenance, ensure_ascii=False, indent=2),
-        encoding="utf-8",
     )
     return provenance
 

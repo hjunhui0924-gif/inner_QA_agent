@@ -8,12 +8,14 @@ import json
 import os
 import tempfile
 import threading
+import zipfile
 from collections.abc import Iterable
 from io import BytesIO, StringIO
 from pathlib import Path
 from typing import Any, Protocol
 
 import aiosqlite
+from filelock import FileLock
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 
@@ -65,6 +67,7 @@ class VectorStoreLike(Protocol):
 
 _VECTORSTORE: VectorStoreLike | None = None
 _RETRIEVER: RetrievalEngine | None = None
+_RETRIEVER_KB_VERSION: tuple[int, int] | None = None
 _KNOWLEDGE_WRITE_LOCK = threading.RLock()
 
 
@@ -116,7 +119,11 @@ class _LocalVectorStore:
         return [document for _, document in scored[:k]]
 
     def get(self, **kwargs: Any) -> dict[str, Any]:
-        return {"ids": list(self._ids)}
+        return {
+            "ids": list(self._ids),
+            "documents": [document.page_content for document in self._documents],
+            "metadatas": [dict(document.metadata) for document in self._documents],
+        }
 
     def delete(self, ids: list[str]) -> None:
         rejected = set(ids)
@@ -154,8 +161,9 @@ def set_vectorstore(vectorstore: VectorStoreLike) -> None:
 def set_retriever(retriever: RetrievalEngine) -> None:
     """Register the shared hybrid retrieval engine."""
 
-    global _RETRIEVER
+    global _RETRIEVER, _RETRIEVER_KB_VERSION
     _RETRIEVER = retriever
+    _RETRIEVER_KB_VERSION = _knowledge_base_version()
 
 
 def get_vectorstore() -> VectorStoreLike:
@@ -169,9 +177,31 @@ def get_vectorstore() -> VectorStoreLike:
 def get_retriever() -> RetrievalEngine:
     """Return the initialized hybrid retrieval engine."""
 
+    _refresh_retriever_if_stale()
     if _RETRIEVER is None:
         raise RuntimeError("Retrieval engine has not been initialized yet.")
     return _RETRIEVER
+
+
+def _knowledge_base_version() -> tuple[int, int] | None:
+    path = Path(settings.knowledge_base_path)
+    if not path.exists():
+        return None
+    stat = path.stat()
+    return (stat.st_mtime_ns, stat.st_size)
+
+
+def _refresh_retriever_if_stale() -> None:
+    global _RETRIEVER, _RETRIEVER_KB_VERSION
+    current_version = _knowledge_base_version()
+    if _RETRIEVER is None or current_version == _RETRIEVER_KB_VERSION:
+        return
+    with _KNOWLEDGE_WRITE_LOCK:
+        current_version = _knowledge_base_version()
+        if current_version == _RETRIEVER_KB_VERSION:
+            return
+        _RETRIEVER = _build_retrieval_engine(get_vectorstore())
+        _RETRIEVER_KB_VERSION = current_version
 
 
 async def ensure_user_memory_db(db_path: str | Path) -> None:
@@ -517,20 +547,39 @@ def _create_vectorstore_sync() -> VectorStoreLike:
     )
 
     documents = _build_documents()
-    existing_ids = set(vectorstore.get(include=[]).get("ids", []))
+    stored = vectorstore.get(include=["documents", "metadatas"])
+    stored_ids = [str(item) for item in stored.get("ids", [])]
+    stored_documents = stored.get("documents", []) or []
+    stored_metadatas = stored.get("metadatas", []) or []
+    existing_by_id = {
+        item_id: (page_content, metadata)
+        for item_id, page_content, metadata in zip(
+            stored_ids,
+            stored_documents,
+            stored_metadatas,
+            strict=True,
+        )
+    }
+    existing_ids = set(existing_by_id)
     expected_ids = set(_chunk_ids(documents))
     stale_ids = sorted(existing_ids - expected_ids)
     if stale_ids:
         vectorstore.delete(ids=stale_ids)
-    missing_documents = [
+    changed_or_missing_documents = [
         document
         for document in documents
-        if str(document.metadata["chunk_id"]) not in existing_ids
+        if (
+            str(document.metadata["chunk_id"]) not in existing_by_id
+            or existing_by_id[str(document.metadata["chunk_id"])][0]
+            != document.page_content
+            or existing_by_id[str(document.metadata["chunk_id"])][1]
+            != document.metadata
+        )
     ]
-    if missing_documents:
+    if changed_or_missing_documents:
         vectorstore.add_documents(
-            missing_documents,
-            ids=_chunk_ids(missing_documents),
+            changed_or_missing_documents,
+            ids=_chunk_ids(changed_or_missing_documents),
         )
     return vectorstore
 
@@ -541,6 +590,13 @@ async def ensure_vectorstore() -> VectorStoreLike:
     ensure_data_directories()
     vectorstore = await asyncio.to_thread(_create_vectorstore_sync)
     set_vectorstore(vectorstore)
+    set_retriever(_build_retrieval_engine(vectorstore))
+    return vectorstore
+
+
+def _build_retrieval_engine(vectorstore: VectorStoreLike) -> RetrievalEngine:
+    """Build one worker's lexical/fusion state from the durable knowledge JSON."""
+
     reranker = None
     if settings.reranker_enabled and settings.dashscope_api_key:
         reranker = DashScopeReranker(
@@ -551,23 +607,20 @@ async def ensure_vectorstore() -> VectorStoreLike:
             timeout_seconds=settings.reranker_timeout_seconds,
             max_document_chars=settings.reranker_max_document_chars,
         )
-    set_retriever(
-        RetrievalEngine(
-            vectorstore,
-            _build_documents(),
-            config=RetrievalConfig(
-                dense_candidate_k=settings.retrieval_dense_candidate_k,
-                lexical_candidate_k=settings.retrieval_lexical_candidate_k,
-                rerank_candidate_k=settings.retrieval_rerank_candidate_k,
-                rrf_k=settings.retrieval_rrf_k,
-                dense_weight=settings.retrieval_dense_weight,
-                lexical_weight=settings.retrieval_lexical_weight,
-                production_strategy=settings.retrieval_strategy,  # type: ignore[arg-type]
-            ),
-            reranker=reranker,
-        )
+    return RetrievalEngine(
+        vectorstore,
+        _build_documents(),
+        config=RetrievalConfig(
+            dense_candidate_k=settings.retrieval_dense_candidate_k,
+            lexical_candidate_k=settings.retrieval_lexical_candidate_k,
+            rerank_candidate_k=settings.retrieval_rerank_candidate_k,
+            rrf_k=settings.retrieval_rrf_k,
+            dense_weight=settings.retrieval_dense_weight,
+            lexical_weight=settings.retrieval_lexical_weight,
+            production_strategy=settings.retrieval_strategy,  # type: ignore[arg-type]
+        ),
+        reranker=reranker,
     )
-    return vectorstore
 
 
 def search_knowledge_base_text(query: str, top_k: int = 4) -> str:
@@ -633,25 +686,56 @@ def extract_text_from_upload(filename: str, content: bytes) -> str:
 
     suffix = Path(filename).suffix.lower()
     if suffix in {".txt", ".md", ".py", ".log"}:
-        return content.decode("utf-8", errors="ignore")
-    if suffix == ".csv":
+        text = content.decode("utf-8", errors="ignore")
+    elif suffix == ".csv":
         text = content.decode("utf-8", errors="ignore")
         rows = list(csv.reader(StringIO(text)))
-        return "\n".join(" | ".join(cell.strip() for cell in row) for row in rows)
-    if suffix == ".json":
+        text = "\n".join(" | ".join(cell.strip() for cell in row) for row in rows)
+    elif suffix == ".json":
         obj = json.loads(content.decode("utf-8", errors="ignore"))
-        return json.dumps(obj, ensure_ascii=False, indent=2)
-    if suffix == ".pdf":
+        text = json.dumps(obj, ensure_ascii=False, indent=2)
+    elif suffix == ".pdf":
         if PdfReader is None:
             raise ValueError("当前环境未安装 pypdf，无法解析 .pdf 文件。")
         reader = PdfReader(BytesIO(content))
-        return "\n".join((page.extract_text() or "") for page in reader.pages)
-    if suffix == ".docx":
+        if len(reader.pages) > settings.max_document_pages:
+            raise ValueError(
+                f"PDF 页数不能超过 {settings.max_document_pages} 页。"
+            )
+        parts: list[str] = []
+        extracted_length = 0
+        for page in reader.pages:
+            page_text = page.extract_text() or ""
+            extracted_length += len(page_text)
+            if extracted_length > settings.max_extracted_chars:
+                raise ValueError("文档解析后的文本过大。")
+            parts.append(page_text)
+        text = "\n".join(parts)
+    elif suffix == ".docx":
         if DocxDocument is None:
             raise ValueError("当前环境未安装 python-docx，无法解析 .docx 文件。")
+        try:
+            with zipfile.ZipFile(BytesIO(content)) as archive:
+                uncompressed_size = sum(item.file_size for item in archive.infolist())
+        except zipfile.BadZipFile as exc:
+            raise ValueError("DOCX 文件结构无效。") from exc
+        if uncompressed_size > settings.max_archive_uncompressed_bytes:
+            raise ValueError("DOCX 解压后的内容过大。")
         document = DocxDocument(BytesIO(content))
-        return "\n".join(paragraph.text for paragraph in document.paragraphs)
-    raise ValueError("仅支持 .txt .md .csv .json .pdf .docx .py .log 文件。")
+        parts = []
+        extracted_length = 0
+        for paragraph in document.paragraphs:
+            extracted_length += len(paragraph.text)
+            if extracted_length > settings.max_extracted_chars:
+                raise ValueError("文档解析后的文本过大。")
+            parts.append(paragraph.text)
+        text = "\n".join(parts)
+    else:
+        raise ValueError("仅支持 .txt .md .csv .json .pdf .docx .py .log 文件。")
+
+    if len(text) > settings.max_extracted_chars:
+        raise ValueError("文档解析后的文本过大。")
+    return text
 
 
 def save_uploaded_file(filename: str, content: bytes) -> Path:
@@ -661,15 +745,21 @@ def save_uploaded_file(filename: str, content: bytes) -> Path:
     safe_filename = Path(filename.replace("\\", "/")).name.replace("\x00", "")
     if safe_filename in {"", ".", ".."}:
         raise ValueError("上传文件名无效。")
-    target = Path(settings.upload_dir) / safe_filename
-    stem = target.stem
-    suffix = target.suffix
-    counter = 1
-    while target.exists():
-        target = Path(settings.upload_dir) / f"{stem}_{counter}{suffix}"
-        counter += 1
-    target.write_bytes(content)
-    return target
+    source = Path(safe_filename)
+    handle, target_name = tempfile.mkstemp(
+        prefix=f"{source.stem[:80]}-",
+        suffix=source.suffix,
+        dir=settings.upload_dir,
+    )
+    try:
+        with os.fdopen(handle, "wb") as stream:
+            stream.write(content)
+            stream.flush()
+            os.fsync(stream.fileno())
+    except Exception:
+        Path(target_name).unlink(missing_ok=True)
+        raise
+    return Path(target_name)
 
 
 def add_knowledge_record(
@@ -680,7 +770,11 @@ def add_knowledge_record(
 ) -> dict[str, Any]:
     """Serialize one knowledge write across JSON, vector, and lexical indexes."""
 
-    with _KNOWLEDGE_WRITE_LOCK:
+    lock_path = f"{settings.knowledge_base_path}.lock"
+    with _KNOWLEDGE_WRITE_LOCK, FileLock(
+        lock_path,
+        timeout=settings.knowledge_write_lock_timeout_seconds,
+    ):
         return _add_knowledge_record_unlocked(
             title,
             content,
@@ -750,8 +844,11 @@ def _add_knowledge_record_unlocked(
     records.append(record)
     try:
         _save_json_file(kb_path, records)
-    except Exception:
-        vectorstore.delete(ids=document_ids)
+    except Exception as persistence_error:
+        try:
+            vectorstore.delete(ids=document_ids)
+        except Exception as rollback_error:
+            persistence_error.add_note(f"Vector rollback also failed: {rollback_error}")
         raise
     get_retriever().add_documents(documents)
     return record

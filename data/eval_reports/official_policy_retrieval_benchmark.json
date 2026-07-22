@@ -1,14 +1,22 @@
 {
+  "generated_at": "2026-07-22T12:00:34.729863+00:00",
+  "git_commit": "9b80be40a1f725f2841670fe6cfc118374134719",
+  "git_dirty": false,
+  "python_version": "3.13.0",
+  "hosted_model_results_are_time_variant": true,
   "eval_file": "data\\evals\\official_policy_retrieval_eval.json",
   "provenance_file": "data\\eval_corpus\\provenance.json",
   "top_k": 5,
-  "corpus_identity": "c018c60490af134f1fd34c851a2a3e31e90bc1947447131eeb439036511ef17e",
-  "collection_name": "official-c018c60490-504feb6de298",
+  "corpus_identity": "7567f01ab01d45111142931e680fc5eb15e4998a5f9eeee831fc10fa4e429af1",
+  "collection_name": "official-7567f01ab0-92718f17bd40",
   "document_count": 4,
   "chunk_count": 46,
   "embedding_provider": "dashscope",
   "embedding_model": "text-embedding-v3",
   "embedding_dimensions": 1024,
+  "embedding_index_version": "v3-chunk800-overlap120",
+  "chunk_size": 800,
+  "chunk_overlap": 120,
   "retrieval_config": {
     "dense_candidate_k": 20,
     "lexical_candidate_k": 20,
@@ -18,21 +26,24 @@
     "lexical_weight": 0.5
   },
   "reranker_model": "gte-rerank-v2",
+  "reranker_endpoint": "https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank",
+  "reranker_api_style": "native",
+  "reranker_timeout_seconds": 10.0,
   "strategies": {
     "rerank": {
       "case_count": 34,
       "answerable_case_count": 30,
       "no_answer_case_count": 4,
       "source_hit_at_k": 1.0,
-      "mrr_at_k": 0.961111111111111,
-      "ndcg_at_k": 0.9710309917857153,
+      "mrr_at_k": 0.95,
+      "ndcg_at_k": 0.9630929753571458,
       "evidence_recall_at_k": 1.0,
       "full_evidence_hit_rate": 1.0,
-      "latency_p50_ms": 680.4082001326606,
-      "latency_p95_ms": 1012.6575500122268,
+      "latency_p50_ms": 725.8583501679823,
+      "latency_p95_ms": 828.9503899868575,
       "rerank_degradation_count": 0,
-      "answerable_min_top_rerank_score": 0.18017659195607838,
-      "no_answer_max_top_rerank_score": 0.23617821227693067,
+      "answerable_min_top_rerank_score": 0.18208469773811622,
+      "no_answer_max_top_rerank_score": 0.20914806400421188,
       "results": [
         {
           "id": "pipl_01",
@@ -46,19 +57,19 @@
           "retrieved_sources": [
             "personal_information_protection_law",
             "personal_information_protection_law",
-            "data_security_law",
             "network_data_security_regulations",
+            "personal_information_protection_law",
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:14",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:13"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:14",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:0",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:11",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10"
           ],
-          "top_rerank_score": 0.34853000928989625,
-          "latency_ms": 954.6054999809712,
+          "top_rerank_score": 0.18665062912893457,
+          "latency_ms": 724.5040000416338,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -75,18 +86,18 @@
             "personal_information_protection_law",
             "network_data_security_regulations",
             "personal_information_protection_law",
-            "network_data_security_regulations",
+            "personal_information_protection_law",
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:5",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:4",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:5",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:4",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:4",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:2",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:1"
           ],
-          "top_rerank_score": 0.7073378808566255,
-          "latency_ms": 772.4462999030948,
+          "top_rerank_score": 0.700937241337531,
+          "latency_ms": 754.9689000006765,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -96,25 +107,25 @@
           "question": "处理不满十四周岁未成年人的个人信息应取得谁的同意？",
           "answerable": true,
           "source_hit": true,
-          "reciprocal_rank": 1.0,
-          "ndcg": 1.0,
+          "reciprocal_rank": 0.5,
+          "ndcg": 0.6309297535714575,
           "evidence_recall": 1.0,
           "retrieved_sources": [
+            "network_data_security_regulations",
             "personal_information_protection_law",
-            "network_data_security_regulations",
-            "network_data_security_regulations",
+            "personal_information_protection_law",
             "personal_information_protection_law",
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:5",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:7"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:4",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:5",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:4",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:2",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:1"
           ],
-          "top_rerank_score": 0.5460901529203053,
-          "latency_ms": 601.7452999949455,
+          "top_rerank_score": 0.5820300779037386,
+          "latency_ms": 714.398100040853,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -130,19 +141,19 @@
           "retrieved_sources": [
             "personal_information_protection_law",
             "personal_information_protection_law",
+            "personal_information_protection_law",
             "network_data_security_regulations",
-            "network_data_security_regulations",
-            "personal_information_protection_law"
+            "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:3",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:3",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:4"
           ],
-          "top_rerank_score": 0.1860086500119717,
-          "latency_ms": 591.5463999845088,
+          "top_rerank_score": 0.18951186489319233,
+          "latency_ms": 661.2698999233544,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -159,18 +170,18 @@
             "personal_information_protection_law",
             "network_data_security_regulations",
             "data_security_law",
-            "personal_information_protection_law",
-            "network_data_security_regulations"
+            "network_data_security_regulations",
+            "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:13",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:14",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:13"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:13",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:13",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:8",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:14",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:0"
           ],
           "top_rerank_score": 0.3358124813446078,
-          "latency_ms": 867.4330001231283,
+          "latency_ms": 774.9159999657422,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -191,14 +202,14 @@
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:14",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:1",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:0",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:14",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:1",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:3"
           ],
-          "top_rerank_score": 0.20657855371424225,
-          "latency_ms": 628.6732000298798,
+          "top_rerank_score": 0.19469775332941294,
+          "latency_ms": 782.9832001589239,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -216,17 +227,17 @@
             "personal_information_protection_law",
             "personal_information_protection_law",
             "network_data_security_regulations",
-            "network_data_security_regulations"
+            "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:4",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:14",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:10",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:4",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:14",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:1"
           ],
-          "top_rerank_score": 0.43263568352933474,
-          "latency_ms": 736.2007000483572,
+          "top_rerank_score": 0.4178367714218588,
+          "latency_ms": 768.8344998750836,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -241,20 +252,20 @@
           "evidence_recall": 1.0,
           "retrieved_sources": [
             "personal_information_protection_law",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
             "network_data_security_regulations",
-            "personal_information_protection_law",
-            "personal_information_protection_law",
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:11"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:0",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:11"
           ],
-          "top_rerank_score": 0.782109905596592,
-          "latency_ms": 716.7684000451118,
+          "top_rerank_score": 0.7839986935925497,
+          "latency_ms": 872.7444000542164,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -271,18 +282,18 @@
             "data_security_law",
             "data_security_law",
             "network_data_security_regulations",
-            "network_data_security_regulations",
-            "data_security_law"
+            "data_security_law",
+            "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:0",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1"
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:0",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:8",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:1",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:15"
           ],
-          "top_rerank_score": 0.487081246330438,
-          "latency_ms": 614.4652999937534,
+          "top_rerank_score": 0.3185909739460237,
+          "latency_ms": 594.0040000714362,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -303,14 +314,14 @@
             "data_security_law"
           ],
           "retrieved_chunk_ids": [
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:0",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:6",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:5"
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:0",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:1",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:8"
           ],
-          "top_rerank_score": 0.7331695654720433,
-          "latency_ms": 616.1366999149323,
+          "top_rerank_score": 0.7957490496266483,
+          "latency_ms": 667.2333998139948,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -325,20 +336,20 @@
           "evidence_recall": 1.0,
           "retrieved_sources": [
             "data_security_law",
-            "network_data_security_regulations",
-            "network_data_security_regulations",
             "data_security_law",
-            "generative_ai_interim_measures"
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1"
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:2",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:1",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6"
           ],
-          "top_rerank_score": 0.42306227610093794,
-          "latency_ms": 583.0860999412835,
+          "top_rerank_score": 0.4996413998178624,
+          "latency_ms": 726.3647001236677,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -354,19 +365,19 @@
           "retrieved_sources": [
             "data_security_law",
             "data_security_law",
-            "data_security_law",
+            "network_data_security_regulations",
             "data_security_law",
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:0",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:2",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7"
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:0",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:12",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:1",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:3"
           ],
-          "top_rerank_score": 0.18017659195607838,
-          "latency_ms": 698.8490999210626,
+          "top_rerank_score": 0.18208469773811622,
+          "latency_ms": 789.6104999817908,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -382,19 +393,19 @@
           "retrieved_sources": [
             "data_security_law",
             "network_data_security_regulations",
-            "network_data_security_regulations",
+            "data_security_law",
             "network_data_security_regulations",
             "data_security_law"
           ],
           "retrieved_chunk_ids": [
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:12",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3"
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:12",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:0"
           ],
-          "top_rerank_score": 0.22067469831493183,
-          "latency_ms": 610.5609000660479,
+          "top_rerank_score": 0.32820953896869215,
+          "latency_ms": 745.4961999319494,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -402,6 +413,34 @@
           "id": "dsl_06",
           "category": "jurisdiction",
           "question": "在境外开展数据处理活动损害中国国家安全时是否会被追责？",
+          "answerable": true,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
+          "retrieved_sources": [
+            "data_security_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "data_security_law",
+            "data_security_law"
+          ],
+          "retrieved_chunk_ids": [
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:0",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:6",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4"
+          ],
+          "top_rerank_score": 0.4103526085652476,
+          "latency_ms": 731.8967999890447,
+          "rerank_used": true,
+          "degraded_reason": null
+        },
+        {
+          "id": "dsl_07",
+          "category": "condition",
+          "question": "重要数据处理者需要设置哪些数据安全岗位或机构？",
           "answerable": true,
           "source_hit": true,
           "reciprocal_rank": 0.5,
@@ -415,42 +454,14 @@
             "data_security_law"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:0",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:13",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:7",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:2"
           ],
-          "top_rerank_score": 0.45051924666192994,
-          "latency_ms": 570.1095000840724,
-          "rerank_used": true,
-          "degraded_reason": null
-        },
-        {
-          "id": "dsl_07",
-          "category": "condition",
-          "question": "重要数据处理者需要设置哪些数据安全岗位或机构？",
-          "answerable": true,
-          "source_hit": true,
-          "reciprocal_rank": 0.3333333333333333,
-          "ndcg": 0.5,
-          "evidence_recall": 1.0,
-          "retrieved_sources": [
-            "network_data_security_regulations",
-            "network_data_security_regulations",
-            "data_security_law",
-            "network_data_security_regulations",
-            "data_security_law"
-          ],
-          "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:2"
-          ],
-          "top_rerank_score": 0.2944819928878677,
-          "latency_ms": 681.3189000822604,
+          "top_rerank_score": 0.32581117503014556,
+          "latency_ms": 767.1672001015395,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -471,14 +482,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2"
           ],
-          "top_rerank_score": 0.8631741792955836,
-          "latency_ms": 588.3578001521528,
+          "top_rerank_score": 0.8504599141840773,
+          "latency_ms": 755.2076999563724,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -499,14 +510,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5"
           ],
-          "top_rerank_score": 0.5810606373393494,
-          "latency_ms": 584.2214999720454,
+          "top_rerank_score": 0.6799932929520713,
+          "latency_ms": 805.3689999505877,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -527,14 +538,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3"
           ],
-          "top_rerank_score": 0.35088712237028996,
-          "latency_ms": 535.8431998174638,
+          "top_rerank_score": 0.44524979839937423,
+          "latency_ms": 573.8554999697953,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -555,14 +566,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3"
           ],
-          "top_rerank_score": 0.5495077002520097,
-          "latency_ms": 616.3392998278141,
+          "top_rerank_score": 0.7219094184390603,
+          "latency_ms": 611.5331000182778,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -583,14 +594,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1"
           ],
-          "top_rerank_score": 0.42105576839743003,
-          "latency_ms": 679.4975001830608,
+          "top_rerank_score": 0.6918848746170291,
+          "latency_ms": 774.5474001858383,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -607,18 +618,18 @@
             "generative_ai_interim_measures",
             "generative_ai_interim_measures",
             "generative_ai_interim_measures",
-            "generative_ai_interim_measures",
-            "generative_ai_interim_measures"
+            "network_data_security_regulations",
+            "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:11",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:12"
           ],
-          "top_rerank_score": 0.2920274003804542,
-          "latency_ms": 745.423800079152,
+          "top_rerank_score": 0.40750620785654273,
+          "latency_ms": 734.211300034076,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -639,14 +650,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5"
           ],
-          "top_rerank_score": 0.37756503091929355,
-          "latency_ms": 725.644500227645,
+          "top_rerank_score": 0.6328127547316077,
+          "latency_ms": 563.0913998465985,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -663,18 +674,18 @@
             "network_data_security_regulations",
             "network_data_security_regulations",
             "network_data_security_regulations",
-            "network_data_security_regulations",
+            "data_security_law",
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:15",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:1",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:0",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:11"
           ],
-          "top_rerank_score": 0.7597423798923143,
-          "latency_ms": 673.9602999296039,
+          "top_rerank_score": 0.8133062429608491,
+          "latency_ms": 583.3813999779522,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -695,14 +706,14 @@
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:14",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:14",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:11",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:1"
           ],
-          "top_rerank_score": 0.5353797078062397,
-          "latency_ms": 693.7561000231653,
+          "top_rerank_score": 0.5810606373393494,
+          "latency_ms": 636.7750999052078,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -717,20 +728,20 @@
           "evidence_recall": 1.0,
           "retrieved_sources": [
             "network_data_security_regulations",
-            "network_data_security_regulations",
             "personal_information_protection_law",
-            "network_data_security_regulations",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:3",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8"
           ],
-          "top_rerank_score": 0.4670945896707612,
-          "latency_ms": 591.687599895522,
+          "top_rerank_score": 0.4495457718310868,
+          "latency_ms": 672.7227999363095,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -748,17 +759,17 @@
             "network_data_security_regulations",
             "network_data_security_regulations",
             "personal_information_protection_law",
-            "network_data_security_regulations"
+            "data_security_law"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:5",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:3",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4"
           ],
-          "top_rerank_score": 0.4196487552906083,
-          "latency_ms": 730.7096999138594,
+          "top_rerank_score": 0.40669149064201776,
+          "latency_ms": 792.8090000059456,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -775,18 +786,18 @@
             "network_data_security_regulations",
             "network_data_security_regulations",
             "network_data_security_regulations",
-            "network_data_security_regulations",
+            "data_security_law",
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:12",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:1",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:11",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6"
           ],
-          "top_rerank_score": 0.4479859890629347,
-          "latency_ms": 771.4555999264121,
+          "top_rerank_score": 0.5649926358805748,
+          "latency_ms": 589.2431999091059,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -796,25 +807,25 @@
           "question": "重要数据处理者应设置什么安全负责人和机构？",
           "answerable": true,
           "source_hit": true,
-          "reciprocal_rank": 1.0,
-          "ndcg": 1.0,
+          "reciprocal_rank": 0.5,
+          "ndcg": 0.6309297535714575,
           "evidence_recall": 1.0,
           "retrieved_sources": [
-            "network_data_security_regulations",
             "data_security_law",
+            "network_data_security_regulations",
             "network_data_security_regulations",
             "network_data_security_regulations",
             "data_security_law"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1"
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:7",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:0"
           ],
-          "top_rerank_score": 0.3080227067905886,
-          "latency_ms": 1210.2620999794453,
+          "top_rerank_score": 0.30426130985008093,
+          "latency_ms": 611.0969998408109,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -835,14 +846,14 @@
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:10",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:15",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:10",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:11",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0"
           ],
-          "top_rerank_score": 0.2549895945465911,
-          "latency_ms": 1120.4685000702739,
+          "top_rerank_score": 0.25863820859839004,
+          "latency_ms": 803.3002999145538,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -858,19 +869,19 @@
           "retrieved_sources": [
             "network_data_security_regulations",
             "network_data_security_regulations",
-            "network_data_security_regulations",
             "personal_information_protection_law",
+            "network_data_security_regulations",
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:9",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:7",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:6"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:9",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:7",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:6"
           ],
-          "top_rerank_score": 0.8415793517819513,
-          "latency_ms": 779.7668999992311,
+          "top_rerank_score": 0.7515739832958932,
+          "latency_ms": 911.3054000772536,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -885,20 +896,20 @@
           "evidence_recall": null,
           "retrieved_sources": [
             "data_security_law",
-            "network_data_security_regulations",
             "data_security_law",
+            "network_data_security_regulations",
             "network_data_security_regulations",
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:7",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:14",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11"
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:8",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:7",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:9",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:14",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:10"
           ],
-          "top_rerank_score": 0.07434613907229384,
-          "latency_ms": 577.0093998871744,
+          "top_rerank_score": 0.08351528826843457,
+          "latency_ms": 609.9247001111507,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -913,20 +924,20 @@
           "evidence_recall": null,
           "retrieved_sources": [
             "network_data_security_regulations",
-            "generative_ai_interim_measures",
             "personal_information_protection_law",
+            "generative_ai_interim_measures",
             "personal_information_protection_law",
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:3",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:4",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:10"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:10",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:3",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:2",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:3"
           ],
           "top_rerank_score": 0.005949579483329656,
-          "latency_ms": 705.1969999447465,
+          "latency_ms": 577.5238000787795,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -947,14 +958,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5"
           ],
-          "top_rerank_score": 0.17941838946824445,
-          "latency_ms": 657.3991000186652,
+          "top_rerank_score": 0.18072215126668004,
+          "latency_ms": 725.3520002122968,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -975,14 +986,14 @@
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:13",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:11",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:6",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:0",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:1",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:13",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:11"
           ],
-          "top_rerank_score": 0.23617821227693067,
-          "latency_ms": 864.4666001200676,
+          "top_rerank_score": 0.20914806400421188,
+          "latency_ms": 699.6594998054206,
           "rerank_used": true,
           "degraded_reason": null
         }
@@ -992,13 +1003,13 @@
       "case_count": 34,
       "answerable_case_count": 30,
       "no_answer_case_count": 4,
-      "source_hit_at_k": 0.9666666666666667,
-      "mrr_at_k": 0.9055555555555556,
-      "ndcg_at_k": 0.9210309917857152,
-      "evidence_recall_at_k": 0.9,
-      "full_evidence_hit_rate": 0.9,
-      "latency_p50_ms": 259.530849987641,
-      "latency_p95_ms": 308.59368005767465,
+      "source_hit_at_k": 1.0,
+      "mrr_at_k": 0.9388888888888889,
+      "ndcg_at_k": 0.9543643251190486,
+      "evidence_recall_at_k": 0.9666666666666667,
+      "full_evidence_hit_rate": 0.9666666666666667,
+      "latency_p50_ms": 203.72634986415505,
+      "latency_p95_ms": 411.5184800350107,
       "rerank_degradation_count": 0,
       "answerable_min_top_rerank_score": null,
       "no_answer_max_top_rerank_score": null,
@@ -1020,14 +1031,14 @@
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:11",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:1",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:0",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:11",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:1",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9"
           ],
           "top_rerank_score": null,
-          "latency_ms": 309.40540018491447,
+          "latency_ms": 387.2530001681298,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1037,25 +1048,25 @@
           "question": "处理敏感个人信息需要取得哪种同意？",
           "answerable": true,
           "source_hit": true,
-          "reciprocal_rank": 1.0,
-          "ndcg": 1.0,
+          "reciprocal_rank": 0.5,
+          "ndcg": 0.6309297535714575,
           "evidence_recall": 1.0,
           "retrieved_sources": [
+            "network_data_security_regulations",
             "personal_information_protection_law",
-            "network_data_security_regulations",
-            "network_data_security_regulations",
+            "personal_information_protection_law",
             "personal_information_protection_law",
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:5",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:4",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:4",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:5",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:4",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:2",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9"
           ],
           "top_rerank_score": null,
-          "latency_ms": 269.3622999358922,
+          "latency_ms": 201.67939993552864,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1065,25 +1076,25 @@
           "question": "处理不满十四周岁未成年人的个人信息应取得谁的同意？",
           "answerable": true,
           "source_hit": true,
-          "reciprocal_rank": 0.5,
-          "ndcg": 0.6309297535714575,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
           "evidence_recall": 1.0,
           "retrieved_sources": [
-            "network_data_security_regulations",
             "personal_information_protection_law",
             "network_data_security_regulations",
             "personal_information_protection_law",
-            "personal_information_protection_law"
+            "personal_information_protection_law",
+            "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:5",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:1"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:5",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:4",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:2",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:4",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 264.25500004552305,
+          "latency_ms": 213.90970004722476,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1100,18 +1111,18 @@
             "personal_information_protection_law",
             "personal_information_protection_law",
             "network_data_security_regulations",
-            "network_data_security_regulations",
+            "personal_information_protection_law",
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:3",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:8"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:3",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:4",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:8"
           ],
           "top_rerank_score": null,
-          "latency_ms": 271.1207000538707,
+          "latency_ms": 429.3841999024153,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1126,20 +1137,20 @@
           "evidence_recall": 1.0,
           "retrieved_sources": [
             "personal_information_protection_law",
+            "network_data_security_regulations",
             "data_security_law",
-            "network_data_security_regulations",
-            "network_data_security_regulations",
-            "data_security_law"
+            "personal_information_protection_law",
+            "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:13",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:14",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:13",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:7"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:13",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:13",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:7",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:12",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:14"
           ],
           "top_rerank_score": null,
-          "latency_ms": 258.4975999779999,
+          "latency_ms": 203.34249990992248,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1156,18 +1167,18 @@
             "personal_information_protection_law",
             "personal_information_protection_law",
             "personal_information_protection_law",
-            "network_data_security_regulations",
+            "personal_information_protection_law",
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:14",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:14",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:0",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:4",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9"
           ],
           "top_rerank_score": null,
-          "latency_ms": 293.488800060004,
+          "latency_ms": 417.4639000557363,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1185,17 +1196,17 @@
             "personal_information_protection_law",
             "personal_information_protection_law",
             "network_data_security_regulations",
-            "personal_information_protection_law"
+            "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:4",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:14",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:7"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:4",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:14",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:3"
           ],
           "top_rerank_score": null,
-          "latency_ms": 282.5771998614073,
+          "latency_ms": 208.29079998657107,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1216,14 +1227,14 @@
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:12"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:3",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:12"
           ],
           "top_rerank_score": null,
-          "latency_ms": 138.73429992236197,
+          "latency_ms": 408.3171000238508,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1239,19 +1250,19 @@
           "retrieved_sources": [
             "data_security_law",
             "network_data_security_regulations",
-            "data_security_law",
+            "personal_information_protection_law",
             "data_security_law",
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:0",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15"
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:8",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:14",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:0",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:15"
           ],
           "top_rerank_score": null,
-          "latency_ms": 148.78899999894202,
+          "latency_ms": 295.89129984378815,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1269,17 +1280,17 @@
             "data_security_law",
             "data_security_law",
             "data_security_law",
-            "network_data_security_regulations"
+            "data_security_law"
           ],
           "retrieved_chunk_ids": [
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:0",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:14"
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:0",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:8",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:1"
           ],
           "top_rerank_score": null,
-          "latency_ms": 180.20369997248054,
+          "latency_ms": 164.63020001538098,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1294,20 +1305,20 @@
           "evidence_recall": 1.0,
           "retrieved_sources": [
             "data_security_law",
-            "network_data_security_regulations",
-            "network_data_security_regulations",
             "data_security_law",
-            "data_security_law"
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1"
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:2",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:1",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6"
           ],
           "top_rerank_score": null,
-          "latency_ms": 350.4081000573933,
+          "latency_ms": 298.79620019346476,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1317,25 +1328,25 @@
           "question": "数据安全审查决定是否还可以继续申诉，法律如何表述？",
           "answerable": true,
           "source_hit": true,
-          "reciprocal_rank": 0.3333333333333333,
-          "ndcg": 0.5,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
           "evidence_recall": 1.0,
           "retrieved_sources": [
+            "data_security_law",
             "network_data_security_regulations",
             "network_data_security_regulations",
-            "data_security_law",
-            "data_security_law",
-            "data_security_law"
+            "network_data_security_regulations",
+            "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:12",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:0",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4"
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:3",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:7",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6"
           ],
           "top_rerank_score": null,
-          "latency_ms": 274.1865001153201,
+          "latency_ms": 172.57290007546544,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1345,25 +1356,25 @@
           "question": "发生数据安全事件时，数据处理者要采取哪些动作？",
           "answerable": true,
           "source_hit": true,
-          "reciprocal_rank": 0.3333333333333333,
-          "ndcg": 0.5,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
           "evidence_recall": 1.0,
           "retrieved_sources": [
-            "network_data_security_regulations",
+            "data_security_law",
             "network_data_security_regulations",
             "data_security_law",
             "network_data_security_regulations",
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8"
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:1",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6"
           ],
           "top_rerank_score": null,
-          "latency_ms": 146.48110000416636,
+          "latency_ms": 184.32980007492006,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1378,20 +1389,20 @@
           "evidence_recall": 1.0,
           "retrieved_sources": [
             "data_security_law",
+            "data_security_law",
+            "data_security_law",
             "network_data_security_regulations",
-            "data_security_law",
-            "data_security_law",
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:0",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0"
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:8",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:0",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:14",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0"
           ],
           "top_rerank_score": null,
-          "latency_ms": 276.8898999784142,
+          "latency_ms": 274.4815000332892,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1400,26 +1411,26 @@
           "category": "condition",
           "question": "重要数据处理者需要设置哪些数据安全岗位或机构？",
           "answerable": true,
-          "source_hit": false,
-          "reciprocal_rank": 0.0,
-          "ndcg": 0.0,
-          "evidence_recall": 0.0,
+          "source_hit": true,
+          "reciprocal_rank": 0.3333333333333333,
+          "ndcg": 0.5,
+          "evidence_recall": 1.0,
           "retrieved_sources": [
             "network_data_security_regulations",
             "network_data_security_regulations",
-            "network_data_security_regulations",
+            "data_security_law",
             "network_data_security_regulations",
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:7"
           ],
           "top_rerank_score": null,
-          "latency_ms": 175.19259988330305,
+          "latency_ms": 156.23140009120107,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1440,14 +1451,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1"
           ],
           "top_rerank_score": null,
-          "latency_ms": 278.52259995415807,
+          "latency_ms": 305.90720009058714,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1468,14 +1479,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 180.3723000921309,
+          "latency_ms": 348.5962001141161,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1496,14 +1507,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0"
           ],
           "top_rerank_score": null,
-          "latency_ms": 145.3066999092698,
+          "latency_ms": 319.0115001052618,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1524,14 +1535,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3"
           ],
           "top_rerank_score": null,
-          "latency_ms": 308.1565999891609,
+          "latency_ms": 297.97019995748997,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1552,14 +1563,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1"
           ],
           "top_rerank_score": null,
-          "latency_ms": 279.4959999155253,
+          "latency_ms": 183.54859994724393,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1576,18 +1587,18 @@
             "generative_ai_interim_measures",
             "generative_ai_interim_measures",
             "generative_ai_interim_measures",
-            "generative_ai_interim_measures",
+            "network_data_security_regulations",
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:12"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:10",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:12"
           ],
           "top_rerank_score": null,
-          "latency_ms": 294.1082001198083,
+          "latency_ms": 165.91580002568662,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1608,14 +1619,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3"
           ],
           "top_rerank_score": null,
-          "latency_ms": 159.233900019899,
+          "latency_ms": 348.41690002940595,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1636,14 +1647,14 @@
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:14",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:11",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:14",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:15",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6"
           ],
           "top_rerank_score": null,
-          "latency_ms": 170.14150018803775,
+          "latency_ms": 308.50759986788034,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1655,7 +1666,7 @@
           "source_hit": true,
           "reciprocal_rank": 1.0,
           "ndcg": 1.0,
-          "evidence_recall": 0.0,
+          "evidence_recall": 1.0,
           "retrieved_sources": [
             "network_data_security_regulations",
             "network_data_security_regulations",
@@ -1664,14 +1675,14 @@
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:1",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:14",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:11"
           ],
           "top_rerank_score": null,
-          "latency_ms": 300.2778000663966,
+          "latency_ms": 204.11019981838763,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1681,25 +1692,25 @@
           "question": "委托处理个人信息和重要数据的处理情况记录至少保存多久？",
           "answerable": true,
           "source_hit": true,
-          "reciprocal_rank": 1.0,
-          "ndcg": 1.0,
+          "reciprocal_rank": 0.3333333333333333,
+          "ndcg": 0.5,
           "evidence_recall": 1.0,
           "retrieved_sources": [
-            "network_data_security_regulations",
+            "personal_information_protection_law",
             "personal_information_protection_law",
             "network_data_security_regulations",
             "personal_information_protection_law",
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:3",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:3",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 289.4060001708567,
+          "latency_ms": 160.82289977930486,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1715,19 +1726,19 @@
           "retrieved_sources": [
             "network_data_security_regulations",
             "network_data_security_regulations",
-            "personal_information_protection_law",
+            "network_data_security_regulations",
             "network_data_security_regulations",
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:4",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:15",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:4",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 254.86980006098747,
+          "latency_ms": 275.20369994454086,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1745,17 +1756,17 @@
             "network_data_security_regulations",
             "network_data_security_regulations",
             "network_data_security_regulations",
-            "network_data_security_regulations"
+            "data_security_law"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:1",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:11",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4"
           ],
           "top_rerank_score": null,
-          "latency_ms": 174.95419993065298,
+          "latency_ms": 160.64410004764795,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1770,20 +1781,20 @@
           "evidence_recall": 1.0,
           "retrieved_sources": [
             "network_data_security_regulations",
+            "data_security_law",
             "network_data_security_regulations",
             "network_data_security_regulations",
-            "network_data_security_regulations",
-            "data_security_law"
+            "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:7",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 260.564099997282,
+          "latency_ms": 179.38180011697114,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1804,14 +1815,14 @@
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:10",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:9"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:15",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:10",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:9",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 258.3995999302715,
+          "latency_ms": 151.35050006210804,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1826,20 +1837,20 @@
           "evidence_recall": 1.0,
           "retrieved_sources": [
             "network_data_security_regulations",
-            "personal_information_protection_law",
-            "personal_information_protection_law",
             "network_data_security_regulations",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:9",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:6",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:7",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:9",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:6",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:7",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 176.51480017229915,
+          "latency_ms": 171.84439999982715,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1853,21 +1864,21 @@
           "ndcg": null,
           "evidence_recall": null,
           "retrieved_sources": [
+            "network_data_security_regulations",
             "data_security_law",
             "network_data_security_regulations",
             "network_data_security_regulations",
-            "data_security_law",
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:7",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:13",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:9",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:13"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:13",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:7",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:9",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:13"
           ],
           "top_rerank_score": null,
-          "latency_ms": 151.22080012224615,
+          "latency_ms": 184.0455001220107,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1882,20 +1893,20 @@
           "evidence_recall": null,
           "retrieved_sources": [
             "generative_ai_interim_measures",
-            "network_data_security_regulations",
             "data_security_law",
+            "network_data_security_regulations",
             "personal_information_protection_law",
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:5",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:3",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:5",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:3",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 185.1850999519229,
+          "latency_ms": 160.32640007324517,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1916,14 +1927,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1"
           ],
           "top_rerank_score": null,
-          "latency_ms": 279.82730022631586,
+          "latency_ms": 162.25890000350773,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1944,14 +1955,14 @@
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:11",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:1"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:0",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:1",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:11"
           ],
           "top_rerank_score": null,
-          "latency_ms": 177.8608998283744,
+          "latency_ms": 160.17620009370148,
           "rerank_used": false,
           "degraded_reason": null
         }
@@ -1961,13 +1972,13 @@
       "case_count": 34,
       "answerable_case_count": 30,
       "no_answer_case_count": 4,
-      "source_hit_at_k": 0.9666666666666667,
-      "mrr_at_k": 0.8555555555555556,
-      "ndcg_at_k": 0.884123967142861,
-      "evidence_recall_at_k": 0.8333333333333334,
-      "full_evidence_hit_rate": 0.8,
-      "latency_p50_ms": 251.16634997539222,
-      "latency_p95_ms": 328.270924987737,
+      "source_hit_at_k": 1.0,
+      "mrr_at_k": 0.9177777777777778,
+      "ndcg_at_k": 0.9382904104792485,
+      "evidence_recall_at_k": 0.8666666666666667,
+      "full_evidence_hit_rate": 0.8666666666666667,
+      "latency_p50_ms": 284.00570002850145,
+      "latency_p95_ms": 318.9298200653866,
       "rerank_degradation_count": 0,
       "answerable_min_top_rerank_score": null,
       "no_answer_max_top_rerank_score": null,
@@ -1986,17 +1997,17 @@
             "personal_information_protection_law",
             "data_security_law",
             "personal_information_protection_law",
-            "personal_information_protection_law"
+            "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:14",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:13",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:11"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:14",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:0",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:8",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:11",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0"
           ],
           "top_rerank_score": null,
-          "latency_ms": 180.11419987306,
+          "latency_ms": 189.79589990340173,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2013,18 +2024,18 @@
             "network_data_security_regulations",
             "personal_information_protection_law",
             "personal_information_protection_law",
-            "personal_information_protection_law",
+            "network_data_security_regulations",
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:5",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:4",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:7"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:4",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:5",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:4",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 182.4634000658989,
+          "latency_ms": 286.2678000237793,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2034,25 +2045,25 @@
           "question": "处理不满十四周岁未成年人的个人信息应取得谁的同意？",
           "answerable": true,
           "source_hit": true,
-          "reciprocal_rank": 0.3333333333333333,
-          "ndcg": 0.5,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
           "evidence_recall": 1.0,
           "retrieved_sources": [
-            "network_data_security_regulations",
+            "personal_information_protection_law",
             "network_data_security_regulations",
             "personal_information_protection_law",
-            "personal_information_protection_law",
+            "network_data_security_regulations",
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:5",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:7",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:5",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:4",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:2",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:4"
           ],
           "top_rerank_score": null,
-          "latency_ms": 255.29489992186427,
+          "latency_ms": 186.65089993737638,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2062,25 +2073,25 @@
           "question": "个人信息的保存期限原则上应当多长？",
           "answerable": true,
           "source_hit": true,
-          "reciprocal_rank": 0.5,
-          "ndcg": 0.6309297535714575,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
           "evidence_recall": 1.0,
           "retrieved_sources": [
-            "network_data_security_regulations",
+            "personal_information_protection_law",
             "personal_information_protection_law",
             "personal_information_protection_law",
             "personal_information_protection_law",
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:7",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:3",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:1"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:3",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:7",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:1"
           ],
           "top_rerank_score": null,
-          "latency_ms": 166.84990003705025,
+          "latency_ms": 289.66169990599155,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2098,17 +2109,17 @@
             "data_security_law",
             "personal_information_protection_law",
             "personal_information_protection_law",
-            "data_security_law"
+            "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:13",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:12",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:14",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:7"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:13",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:8",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:14",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:12",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:13"
           ],
           "top_rerank_score": null,
-          "latency_ms": 160.85169999860227,
+          "latency_ms": 222.29270008392632,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2129,14 +2140,14 @@
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:14",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:4",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:1"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:14",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:4",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:2",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:1",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10"
           ],
           "top_rerank_score": null,
-          "latency_ms": 161.6861999500543,
+          "latency_ms": 318.3925000485033,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2153,18 +2164,18 @@
             "personal_information_protection_law",
             "personal_information_protection_law",
             "personal_information_protection_law",
-            "personal_information_protection_law",
-            "generative_ai_interim_measures"
+            "generative_ai_interim_measures",
+            "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:4",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:14",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:4",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:14",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 274.32450000196695,
+          "latency_ms": 290.17069982364774,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2179,20 +2190,20 @@
           "evidence_recall": 1.0,
           "retrieved_sources": [
             "personal_information_protection_law",
-            "network_data_security_regulations",
+            "personal_information_protection_law",
             "personal_information_protection_law",
             "personal_information_protection_law",
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:13",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:12"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:13",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:3",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:12"
           ],
           "top_rerank_score": null,
-          "latency_ms": 282.7300999779254,
+          "latency_ms": 166.17119987495244,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2207,20 +2218,20 @@
           "evidence_recall": 1.0,
           "retrieved_sources": [
             "data_security_law",
-            "data_security_law",
             "network_data_security_regulations",
+            "data_security_law",
             "data_security_law",
             "data_security_law"
           ],
           "retrieved_chunk_ids": [
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:0",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4"
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:8",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:0",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:1",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3"
           ],
           "top_rerank_score": null,
-          "latency_ms": 282.79159986414015,
+          "latency_ms": 149.5797000825405,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2241,14 +2252,14 @@
             "data_security_law"
           ],
           "retrieved_chunk_ids": [
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:0",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4"
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:0",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:1",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:8",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 164.45339983329177,
+          "latency_ms": 281.74360003322363,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2264,19 +2275,19 @@
           "retrieved_sources": [
             "data_security_law",
             "data_security_law",
+            "network_data_security_regulations",
             "data_security_law",
-            "data_security_law",
-            "data_security_law"
+            "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:2",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8"
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:2",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:1",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:1",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6"
           ],
           "top_rerank_score": null,
-          "latency_ms": 165.3209999203682,
+          "latency_ms": 306.50750012136996,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2286,25 +2297,25 @@
           "question": "数据安全审查决定是否还可以继续申诉，法律如何表述？",
           "answerable": true,
           "source_hit": true,
-          "reciprocal_rank": 0.5,
-          "ndcg": 0.6309297535714575,
+          "reciprocal_rank": 0.2,
+          "ndcg": 0.38685280723454163,
           "evidence_recall": 0.0,
           "retrieved_sources": [
             "network_data_security_regulations",
-            "data_security_law",
-            "data_security_law",
-            "data_security_law",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
+            "network_data_security_regulations",
             "data_security_law"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:12",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:2",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:12",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:3",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:13",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:7",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:8"
           ],
           "top_rerank_score": null,
-          "latency_ms": 309.2445998918265,
+          "latency_ms": 288.88499992899597,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2313,26 +2324,26 @@
           "category": "incident",
           "question": "发生数据安全事件时，数据处理者要采取哪些动作？",
           "answerable": true,
-          "source_hit": false,
-          "reciprocal_rank": 0.0,
-          "ndcg": 0.0,
-          "evidence_recall": 0.5,
+          "source_hit": true,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 1.0,
           "retrieved_sources": [
+            "data_security_law",
             "network_data_security_regulations",
             "network_data_security_regulations",
-            "network_data_security_regulations",
-            "network_data_security_regulations",
+            "data_security_law",
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3"
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:7"
           ],
           "top_rerank_score": null,
-          "latency_ms": 356.8901000544429,
+          "latency_ms": 183.4460999816656,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2342,25 +2353,25 @@
           "question": "在境外开展数据处理活动损害中国国家安全时是否会被追责？",
           "answerable": true,
           "source_hit": true,
-          "reciprocal_rank": 0.5,
-          "ndcg": 0.6309297535714575,
-          "evidence_recall": 0.5,
+          "reciprocal_rank": 1.0,
+          "ndcg": 1.0,
+          "evidence_recall": 0.0,
           "retrieved_sources": [
-            "network_data_security_regulations",
+            "data_security_law",
             "data_security_law",
             "data_security_law",
             "network_data_security_regulations",
             "data_security_law"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:13",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:7"
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:8",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:7",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:14",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:6"
           ],
           "top_rerank_score": null,
-          "latency_ms": 268.592800013721,
+          "latency_ms": 160.91590002179146,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2370,25 +2381,25 @@
           "question": "重要数据处理者需要设置哪些数据安全岗位或机构？",
           "answerable": true,
           "source_hit": true,
-          "reciprocal_rank": 0.3333333333333333,
-          "ndcg": 0.5,
-          "evidence_recall": 0.0,
+          "reciprocal_rank": 0.5,
+          "ndcg": 0.6309297535714575,
+          "evidence_recall": 1.0,
           "retrieved_sources": [
             "network_data_security_regulations",
-            "network_data_security_regulations",
+            "data_security_law",
             "data_security_law",
             "network_data_security_regulations",
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:7",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 139.30810010060668,
+          "latency_ms": 343.1145001668483,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2409,14 +2420,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1"
           ],
           "top_rerank_score": null,
-          "latency_ms": 165.7720000948757,
+          "latency_ms": 305.665299994871,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2437,14 +2448,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 298.02340012975037,
+          "latency_ms": 296.4784000068903,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2465,14 +2476,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0"
           ],
           "top_rerank_score": null,
-          "latency_ms": 129.68520005233586,
+          "latency_ms": 270.47240012325346,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2493,14 +2504,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 238.82030020467937,
+          "latency_ms": 178.40840015560389,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2521,14 +2532,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0"
           ],
           "top_rerank_score": null,
-          "latency_ms": 272.5879999343306,
+          "latency_ms": 163.71700004674494,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2543,20 +2554,20 @@
           "evidence_recall": 1.0,
           "retrieved_sources": [
             "generative_ai_interim_measures",
-            "generative_ai_interim_measures",
+            "network_data_security_regulations",
             "generative_ai_interim_measures",
             "network_data_security_regulations",
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:13",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:13",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:10",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 177.58300015702844,
+          "latency_ms": 163.65540004335344,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2577,14 +2588,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1"
           ],
           "top_rerank_score": null,
-          "latency_ms": 179.84470003284514,
+          "latency_ms": 310.0707000121474,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2605,14 +2616,14 @@
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:14",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:15",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:8",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:11",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:14"
           ],
           "top_rerank_score": null,
-          "latency_ms": 303.1192000489682,
+          "latency_ms": 319.9277000967413,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2633,14 +2644,14 @@
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:14"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:1",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:14",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:11",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:15"
           ],
           "top_rerank_score": null,
-          "latency_ms": 147.27509999647737,
+          "latency_ms": 314.112399937585,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2650,25 +2661,25 @@
           "question": "委托处理个人信息和重要数据的处理情况记录至少保存多久？",
           "answerable": true,
           "source_hit": true,
-          "reciprocal_rank": 1.0,
-          "ndcg": 1.0,
+          "reciprocal_rank": 0.3333333333333333,
+          "ndcg": 0.5,
           "evidence_recall": 0.0,
           "retrieved_sources": [
-            "network_data_security_regulations",
             "personal_information_protection_law",
             "personal_information_protection_law",
             "network_data_security_regulations",
+            "personal_information_protection_law",
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:3",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:3",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:3",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 472.059499938041,
+          "latency_ms": 314.3863999284804,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2683,20 +2694,20 @@
           "evidence_recall": 1.0,
           "retrieved_sources": [
             "network_data_security_regulations",
-            "personal_information_protection_law",
+            "network_data_security_regulations",
             "network_data_security_regulations",
             "personal_information_protection_law",
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:5",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:4",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:15",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:1",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:3"
           ],
           "top_rerank_score": null,
-          "latency_ms": 312.8605999518186,
+          "latency_ms": 225.63040000386536,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2713,18 +2724,18 @@
             "network_data_security_regulations",
             "network_data_security_regulations",
             "network_data_security_regulations",
-            "network_data_security_regulations",
+            "data_security_law",
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:1",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:7"
           ],
           "top_rerank_score": null,
-          "latency_ms": 278.88079988770187,
+          "latency_ms": 273.3740999829024,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2739,20 +2750,20 @@
           "evidence_recall": 1.0,
           "retrieved_sources": [
             "network_data_security_regulations",
+            "data_security_law",
             "network_data_security_regulations",
-            "network_data_security_regulations",
-            "network_data_security_regulations",
-            "data_security_law"
+            "data_security_law",
+            "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:1"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:7",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 249.57889993675053,
+          "latency_ms": 188.17169987596571,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2773,14 +2784,14 @@
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:10",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:9"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:15",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:10",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 305.8199000079185,
+          "latency_ms": 313.36929998360574,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2795,20 +2806,20 @@
           "evidence_recall": 1.0,
           "retrieved_sources": [
             "network_data_security_regulations",
-            "personal_information_protection_law",
-            "personal_information_protection_law",
             "network_data_security_regulations",
+            "personal_information_protection_law",
+            "personal_information_protection_law",
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:9",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:6",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:7",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:9",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:6",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:7",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 266.83109998703003,
+          "latency_ms": 300.4451000597328,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2822,21 +2833,21 @@
           "ndcg": null,
           "evidence_recall": null,
           "retrieved_sources": [
-            "data_security_law",
             "network_data_security_regulations",
             "network_data_security_regulations",
             "personal_information_protection_law",
-            "network_data_security_regulations"
+            "network_data_security_regulations",
+            "data_security_law"
           ],
           "retrieved_chunk_ids": [
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:7",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:13",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:9",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:6",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:13",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:9",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:6",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:7"
           ],
           "top_rerank_score": null,
-          "latency_ms": 162.12540003471076,
+          "latency_ms": 306.8176000379026,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2850,21 +2861,21 @@
           "ndcg": null,
           "evidence_recall": null,
           "retrieved_sources": [
-            "personal_information_protection_law",
             "network_data_security_regulations",
             "generative_ai_interim_measures",
             "data_security_law",
-            "data_security_law"
+            "network_data_security_regulations",
+            "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:5",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:6"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:5",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:7",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:15"
           ],
           "top_rerank_score": null,
-          "latency_ms": 252.7538000140339,
+          "latency_ms": 177.71179997362196,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2885,14 +2896,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 281.01569996215403,
+          "latency_ms": 265.0472999084741,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2913,14 +2924,14 @@
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:11",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:14",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:11",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:0",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:14",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9"
           ],
           "top_rerank_score": null,
-          "latency_ms": 140.05490019917488,
+          "latency_ms": 301.8720999825746,
           "rerank_used": false,
           "degraded_reason": null
         }
@@ -2933,10 +2944,10 @@
       "source_hit_at_k": 0.9666666666666667,
       "mrr_at_k": 0.9277777777777777,
       "ndcg_at_k": 0.937697658452382,
-      "evidence_recall_at_k": 0.9,
-      "full_evidence_hit_rate": 0.9,
-      "latency_p50_ms": 0.6263500545173883,
-      "latency_p95_ms": 0.9221201064065099,
+      "evidence_recall_at_k": 0.8666666666666667,
+      "full_evidence_hit_rate": 0.8666666666666667,
+      "latency_p50_ms": 1.3584501575678587,
+      "latency_p95_ms": 2.263799996580928,
       "rerank_degradation_count": 0,
       "answerable_min_top_rerank_score": null,
       "no_answer_max_top_rerank_score": null,
@@ -2947,25 +2958,25 @@
           "question": "个人信息保护法从哪一天开始施行？",
           "answerable": true,
           "source_hit": true,
-          "reciprocal_rank": 0.5,
-          "ndcg": 0.6309297535714575,
+          "reciprocal_rank": 0.3333333333333333,
+          "ndcg": 0.5,
           "evidence_recall": 0.0,
           "retrieved_sources": [
             "network_data_security_regulations",
+            "generative_ai_interim_measures",
             "personal_information_protection_law",
             "generative_ai_interim_measures",
-            "generative_ai_interim_measures",
-            "network_data_security_regulations"
+            "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:0",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.7499998901039362,
+          "latency_ms": 2.3418001364916563,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2981,19 +2992,19 @@
           "retrieved_sources": [
             "personal_information_protection_law",
             "network_data_security_regulations",
-            "network_data_security_regulations",
             "personal_information_protection_law",
+            "network_data_security_regulations",
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:5",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:4",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:5",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:4",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:4",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:3",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:11"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.6331000477075577,
+          "latency_ms": 1.2487000785768032,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3009,19 +3020,19 @@
           "retrieved_sources": [
             "personal_information_protection_law",
             "network_data_security_regulations",
-            "network_data_security_regulations",
+            "personal_information_protection_law",
             "personal_information_protection_law",
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:5",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:1",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:5",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:4",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:4",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:1",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.8131999056786299,
+          "latency_ms": 1.4285000506788492,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3039,17 +3050,17 @@
             "network_data_security_regulations",
             "personal_information_protection_law",
             "network_data_security_regulations",
-            "personal_information_protection_law"
+            "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:3",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:8",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:3",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:4",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:8",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:3",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.5765999667346478,
+          "latency_ms": 1.2022999580949545,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3065,19 +3076,19 @@
           "retrieved_sources": [
             "personal_information_protection_law",
             "network_data_security_regulations",
-            "network_data_security_regulations",
             "personal_information_protection_law",
-            "data_security_law"
+            "data_security_law",
+            "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:13",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:14",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:13",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:7"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:13",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:13",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:7",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:14"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.743999844416976,
+          "latency_ms": 2.5671999901533127,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3098,14 +3109,14 @@
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:14",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:0",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:14",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.579700106754899,
+          "latency_ms": 1.568799838423729,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3126,14 +3137,14 @@
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:4",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:14",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:10",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:4",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:14",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:10",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.6187998224049807,
+          "latency_ms": 1.5102000907063484,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3154,14 +3165,14 @@
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:7",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.9168002288788557,
+          "latency_ms": 1.7914001364260912,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3171,25 +3182,25 @@
           "question": "数据安全法自何时起施行？",
           "answerable": true,
           "source_hit": true,
-          "reciprocal_rank": 0.3333333333333333,
-          "ndcg": 0.5,
+          "reciprocal_rank": 0.5,
+          "ndcg": 0.6309297535714575,
           "evidence_recall": 1.0,
           "retrieved_sources": [
-            "generative_ai_interim_measures",
             "network_data_security_regulations",
             "data_security_law",
             "generative_ai_interim_measures",
-            "network_data_security_regulations"
+            "personal_information_protection_law",
+            "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:8",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:14",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.3823998849838972,
+          "latency_ms": 1.0118999052792788,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3207,17 +3218,17 @@
             "network_data_security_regulations",
             "generative_ai_interim_measures",
             "data_security_law",
-            "network_data_security_regulations"
+            "data_security_law"
           ],
           "retrieved_chunk_ids": [
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:0",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:14",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0"
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:0",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:14",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:7"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.35520014353096485,
+          "latency_ms": 0.8187999483197927,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3232,20 +3243,20 @@
           "evidence_recall": 1.0,
           "retrieved_sources": [
             "data_security_law",
+            "data_security_law",
             "network_data_security_regulations",
             "network_data_security_regulations",
-            "generative_ai_interim_measures",
-            "generative_ai_interim_measures"
+            "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1"
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:2",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:1",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.6891000084578991,
+          "latency_ms": 1.8384000286459923,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3262,18 +3273,18 @@
             "data_security_law",
             "network_data_security_regulations",
             "network_data_security_regulations",
-            "personal_information_protection_law",
-            "personal_information_protection_law"
+            "network_data_security_regulations",
+            "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:3",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:9"
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:7",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:3"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.0861000046133995,
+          "latency_ms": 1.2531999964267015,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3289,19 +3300,19 @@
           "retrieved_sources": [
             "data_security_law",
             "network_data_security_regulations",
-            "data_security_law",
             "network_data_security_regulations",
+            "data_security_law",
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8"
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:1",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:11"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.780200120061636,
+          "latency_ms": 1.3723000884056091,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3317,19 +3328,19 @@
           "retrieved_sources": [
             "data_security_law",
             "network_data_security_regulations",
-            "network_data_security_regulations",
             "data_security_law",
-            "network_data_security_regulations"
+            "network_data_security_regulations",
+            "data_security_law"
           ],
           "retrieved_chunk_ids": [
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:0",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:12"
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:0",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:8",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:12",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:1"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.8332000579684973,
+          "latency_ms": 1.607599901035428,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3350,14 +3361,14 @@
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:12",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:9",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:12",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.619600061327219,
+          "latency_ms": 1.245100051164627,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3378,14 +3389,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.5427999421954155,
+          "latency_ms": 2.0776998717337847,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3406,14 +3417,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.72640017606318,
+          "latency_ms": 1.6794998664408922,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3434,14 +3445,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.6781998090445995,
+          "latency_ms": 1.3830000534653664,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3462,14 +3473,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.538000138476491,
+          "latency_ms": 1.6243001446127892,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3490,14 +3501,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.5834999028593302,
+          "latency_ms": 1.1934000067412853,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3513,19 +3524,19 @@
           "retrieved_sources": [
             "generative_ai_interim_measures",
             "generative_ai_interim_measures",
-            "generative_ai_interim_measures",
             "personal_information_protection_law",
+            "generative_ai_interim_measures",
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:12",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:12",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.5207001231610775,
+          "latency_ms": 0.9909998625516891,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3546,14 +3557,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.7046000100672245,
+          "latency_ms": 1.3163001276552677,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3565,7 +3576,7 @@
           "source_hit": true,
           "reciprocal_rank": 1.0,
           "ndcg": 1.0,
-          "evidence_recall": 1.0,
+          "evidence_recall": 0.0,
           "retrieved_sources": [
             "network_data_security_regulations",
             "network_data_security_regulations",
@@ -3574,14 +3585,14 @@
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:3",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:1"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.5598000716418028,
+          "latency_ms": 1.0377999860793352,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3602,14 +3613,14 @@
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:0",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:1"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:7",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:3"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.49910019151866436,
+          "latency_ms": 0.8010000456124544,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3624,20 +3635,20 @@
           "evidence_recall": 1.0,
           "retrieved_sources": [
             "network_data_security_regulations",
-            "network_data_security_regulations",
+            "personal_information_protection_law",
             "personal_information_protection_law",
             "network_data_security_regulations",
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:10",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:7",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.8767999242991209,
+          "latency_ms": 1.4955999795347452,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3658,14 +3669,14 @@
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:14",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:14",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.9319998789578676,
+          "latency_ms": 1.651400001719594,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3682,18 +3693,18 @@
             "network_data_security_regulations",
             "network_data_security_regulations",
             "network_data_security_regulations",
-            "data_security_law",
-            "network_data_security_regulations"
+            "network_data_security_regulations",
+            "data_security_law"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:3",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:1",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:11",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.6679999642074108,
+          "latency_ms": 1.1833000462502241,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3708,20 +3719,20 @@
           "evidence_recall": 1.0,
           "retrieved_sources": [
             "network_data_security_regulations",
-            "network_data_security_regulations",
             "data_security_law",
+            "network_data_security_regulations",
             "network_data_security_regulations",
             "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:6",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:7",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:4",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:2"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:7",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.6721001118421555,
+          "latency_ms": 2.221799921244383,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3739,17 +3750,17 @@
             "network_data_security_regulations",
             "network_data_security_regulations",
             "network_data_security_regulations",
-            "network_data_security_regulations"
+            "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:10",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:11",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:9"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:15",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:10",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:9",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.46369992196559906,
+          "latency_ms": 1.083899987861514,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3764,20 +3775,20 @@
           "evidence_recall": 1.0,
           "retrieved_sources": [
             "network_data_security_regulations",
+            "network_data_security_regulations",
             "personal_information_protection_law",
             "network_data_security_regulations",
-            "network_data_security_regulations",
-            "personal_information_protection_law"
+            "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:9",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:6",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:8",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:4",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:7"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:9",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:6",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:4",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.8270000107586384,
+          "latency_ms": 1.7228999640792608,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3795,17 +3806,17 @@
             "data_security_law",
             "network_data_security_regulations",
             "data_security_law",
-            "data_security_law"
+            "network_data_security_regulations"
           ],
           "retrieved_chunk_ids": [
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:13",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:7",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:13",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:8",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:6"
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:13",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:7",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:13",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:6",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.3098000306636095,
+          "latency_ms": 1.0176999494433403,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3822,18 +3833,18 @@
             "generative_ai_interim_measures",
             "network_data_security_regulations",
             "data_security_law",
-            "personal_information_protection_law",
-            "network_data_security_regulations"
+            "network_data_security_regulations",
+            "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:0",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:10",
-            "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf:5",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:3",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:3"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:10",
+            "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:5",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:9",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:3"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.2437999937683344,
+          "latency_ms": 1.3446002267301083,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3854,14 +3865,14 @@
             "generative_ai_interim_measures"
           ],
           "retrieved_chunk_ids": [
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:2",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:5",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:1",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:4",
-            "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489:3"
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+            "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.5403999239206314,
+          "latency_ms": 1.2515000998973846,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3877,19 +3888,19 @@
           "retrieved_sources": [
             "network_data_security_regulations",
             "personal_information_protection_law",
-            "personal_information_protection_law",
+            "network_data_security_regulations",
             "network_data_security_regulations",
             "personal_information_protection_law"
           ],
           "retrieved_chunk_ids": [
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:15",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:2",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:1",
-            "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df:5",
-            "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0:0"
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:14",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:1",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:15",
+            "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5",
+            "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.595899997279048,
+          "latency_ms": 1.2326999567449093,
           "rerank_used": false,
           "degraded_reason": null
         }

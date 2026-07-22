@@ -16,11 +16,11 @@ class HallucinationRetryTests(unittest.TestCase):
         with patch("backend.agent.edges.settings.max_hallucination_retries", 1):
             self.assertEqual(route_after_hallucination_check(state), "generate")
 
-    def test_retry_limit_ends_after_the_allowed_retry_fails(self) -> None:
+    def test_retry_limit_uses_safe_fallback_after_allowed_retry_fails(self) -> None:
         state = {"hallucination_pass": False, "hallucination_retry_count": 2}
 
         with patch("backend.agent.edges.settings.max_hallucination_retries", 1):
-            self.assertEqual(route_after_hallucination_check(state), "__end__")
+            self.assertEqual(route_after_hallucination_check(state), "fallback_answer")
 
 
 class HallucinationNodeTests(unittest.IsolatedAsyncioTestCase):

@@ -58,7 +58,11 @@ class Settings(BaseSettings):
     knowledge_near_duplicate_threshold: float = 0.92
     knowledge_near_duplicate_min_length_ratio: float = 0.85
     knowledge_near_duplicate_min_length: int = 200
+    knowledge_write_lock_timeout_seconds: float = 30.0
     max_upload_bytes: int = 20 * 1024 * 1024
+    max_extracted_chars: int = 5_000_000
+    max_document_pages: int = 500
+    max_archive_uncompressed_bytes: int = 100 * 1024 * 1024
     backend_url: str = "http://localhost:8000"
 
     @field_validator("embedding_provider")
@@ -86,6 +90,19 @@ class Settings(BaseSettings):
         if normalized not in {"native", "compatible"}:
             raise ValueError("RERANKER_API_STYLE must be native or compatible.")
         return normalized
+
+    @field_validator(
+        "knowledge_write_lock_timeout_seconds",
+        "max_upload_bytes",
+        "max_extracted_chars",
+        "max_document_pages",
+        "max_archive_uncompressed_bytes",
+    )
+    @classmethod
+    def validate_positive_limits(cls, value: int | float) -> int | float:
+        if value <= 0:
+            raise ValueError("Upload, extraction, page, archive, and lock limits must be positive.")
+        return value
 
 
 settings = Settings()

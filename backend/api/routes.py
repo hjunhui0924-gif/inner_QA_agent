@@ -48,6 +48,31 @@ class ChatRequest(BaseModel):
     session_id: str = Field(default="session_default")
 
 
+def _ingest_uploaded_file(
+    filename: str,
+    raw_bytes: bytes,
+    title: str,
+    source: str,
+) -> dict[str, object]:
+    """Parse and persist an upload outside the event-loop thread."""
+
+    extracted_text = extract_text_from_upload(filename, raw_bytes)
+    saved_path = save_uploaded_file(filename, raw_bytes)
+    try:
+        record = add_knowledge_record(
+            title=title or Path(filename).stem,
+            content=extracted_text,
+            source=source,
+            original_filename=saved_path.name,
+        )
+    except Exception:
+        saved_path.unlink(missing_ok=True)
+        raise
+    if record.get("deduplicated"):
+        saved_path.unlink(missing_ok=True)
+    return record
+
+
 def _sse_event(payload: dict[str, object]) -> str:
     """Format a payload as one SSE data event."""
 
@@ -226,14 +251,12 @@ async def upload_knowledge_file(
         )
 
     try:
-        extracted_text = extract_text_from_upload(filename, raw_bytes)
-        saved_path = save_uploaded_file(filename, raw_bytes)
         record = await asyncio.to_thread(
-            add_knowledge_record,
-            title or Path(filename).stem,
-            extracted_text,
+            _ingest_uploaded_file,
+            filename,
+            raw_bytes,
+            title,
             source,
-            saved_path.name,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

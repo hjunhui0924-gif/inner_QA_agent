@@ -8,6 +8,7 @@ import json
 import subprocess
 import sys
 from datetime import datetime, timezone
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Any
 
@@ -67,8 +68,30 @@ def _run_identity() -> dict[str, Any]:
         "git_commit": commit,
         "git_dirty": bool(status),
         "python_version": sys.version.split()[0],
+        "package_versions": _package_versions(
+            [
+                "langchain",
+                "langchain-chroma",
+                "chromadb",
+                "langchain-openai",
+                "httpx",
+                "pydantic",
+                "beautifulsoup4",
+                "filelock",
+            ]
+        ),
         "hosted_model_results_are_time_variant": True,
     }
+
+
+def _package_versions(packages: list[str]) -> dict[str, str]:
+    versions: dict[str, str] = {}
+    for package in packages:
+        try:
+            versions[package] = version(package)
+        except PackageNotFoundError:
+            versions[package] = "not-installed"
+    return versions
 
 
 def _build_documents(provenance: list[dict[str, Any]]) -> list[Document]:
@@ -129,8 +152,20 @@ def _build_engine(
         api_key=settings.dashscope_api_key,
         base_url=settings.dashscope_base_url,
     )
+    corpus_identity_payload = [
+        {
+            key: item[key]
+            for key in ("id", "title", "publisher", "url", "content_sha256")
+        }
+        for item in provenance
+    ]
     corpus_identity = hashlib.sha256(
-        "|".join(item["content_sha256"] for item in provenance).encode("utf-8")
+        json.dumps(
+            corpus_identity_payload,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
     ).hexdigest()
     collection_name = profile.collection_name(f"official-{corpus_identity[:10]}")
     INDEX_DIR.mkdir(parents=True, exist_ok=True)

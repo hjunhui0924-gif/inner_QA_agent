@@ -22,7 +22,7 @@ def route_after_hallucination_check(state: AgentState) -> str:
     if state.get("hallucination_pass"):
         return "__end__"
     if state.get("hallucination_retry_count", 0) > settings.max_hallucination_retries:
-        return "__end__"
+        return "fallback_answer"
     return "generate"
 
 
