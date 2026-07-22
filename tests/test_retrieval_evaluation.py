@@ -125,7 +125,7 @@ class RetrievalEvaluationTests(unittest.TestCase):
             base = Path(directory)
             source = base / "nested" / "document.md"
             source.parent.mkdir()
-            content = "第一条 正式正文。"
+            content = "第一条 正式正文。\n第二条 跨平台换行。"
             source.write_text(content, encoding="utf-8")
             provenance = [
                 {

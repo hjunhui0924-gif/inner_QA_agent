@@ -76,16 +76,17 @@ def _build_documents(provenance: list[dict[str, Any]]) -> list[Document]:
     for source in provenance:
         relative_path = str(source["local_path"]).replace("\\", "/")
         path = BASE_DIR / relative_path
-        content_bytes = path.read_bytes()
-        actual_sha256 = hashlib.sha256(content_bytes).hexdigest()
+        # Text-mode reading normalizes CRLF/CR to LF, matching the downloader's
+        # canonical snapshot and keeping digests stable across Git platforms.
+        content = path.read_text(encoding="utf-8")
+        actual_sha256 = hashlib.sha256(content.encode("utf-8")).hexdigest()
         if actual_sha256 != source["content_sha256"]:
             raise ValueError(
                 f"Corpus checksum mismatch for {source['id']}: "
                 "run download_eval_corpus.py --refresh"
             )
-        if len(content_bytes.decode("utf-8")) != source["content_length"]:
+        if len(content) != source["content_length"]:
             raise ValueError(f"Corpus length mismatch for {source['id']}")
-        content = content_bytes.decode("utf-8")
         for index, chunk in enumerate(
             split_text(
                 content,
