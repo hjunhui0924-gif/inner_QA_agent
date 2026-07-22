@@ -5,7 +5,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -41,11 +43,49 @@ def _load_json(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _run_identity() -> dict[str, Any]:
+    try:
+        commit = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=BASE_DIR,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        status = subprocess.run(
+            ["git", "status", "--porcelain"],
+            cwd=BASE_DIR,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        commit = "unknown"
+        status = "unknown"
+    return {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "git_commit": commit,
+        "git_dirty": bool(status),
+        "python_version": sys.version.split()[0],
+        "hosted_model_results_are_time_variant": True,
+    }
+
+
 def _build_documents(provenance: list[dict[str, Any]]) -> list[Document]:
     documents: list[Document] = []
     for source in provenance:
-        path = BASE_DIR / source["local_path"]
-        content = path.read_text(encoding="utf-8")
+        relative_path = str(source["local_path"]).replace("\\", "/")
+        path = BASE_DIR / relative_path
+        content_bytes = path.read_bytes()
+        actual_sha256 = hashlib.sha256(content_bytes).hexdigest()
+        if actual_sha256 != source["content_sha256"]:
+            raise ValueError(
+                f"Corpus checksum mismatch for {source['id']}: "
+                "run download_eval_corpus.py --refresh"
+            )
+        if len(content_bytes.decode("utf-8")) != source["content_length"]:
+            raise ValueError(f"Corpus length mismatch for {source['id']}")
+        content = content_bytes.decode("utf-8")
         for index, chunk in enumerate(
             split_text(
                 content,
@@ -80,7 +120,11 @@ def _build_engine(
         provider=settings.embedding_provider,  # type: ignore[arg-type]
         model=settings.embedding_model,
         dimensions=settings.embedding_dimensions,
-        index_version=settings.embedding_index_version,
+        index_version=(
+            f"{settings.embedding_index_version}-"
+            f"chunk{settings.knowledge_chunk_size}-"
+            f"overlap{settings.knowledge_chunk_overlap}"
+        ),
         api_key=settings.dashscope_api_key,
         base_url=settings.dashscope_base_url,
     )
@@ -139,6 +183,9 @@ def _build_engine(
         "embedding_provider": profile.provider,
         "embedding_model": profile.model,
         "embedding_dimensions": profile.dimensions,
+        "embedding_index_version": profile.index_version,
+        "chunk_size": settings.knowledge_chunk_size,
+        "chunk_overlap": settings.knowledge_chunk_overlap,
         "retrieval_config": {
             "dense_candidate_k": config.dense_candidate_k,
             "lexical_candidate_k": config.lexical_candidate_k,
@@ -148,6 +195,13 @@ def _build_engine(
             "lexical_weight": config.lexical_weight,
         },
         "reranker_model": settings.reranker_model if enable_rerank else None,
+        "reranker_endpoint": settings.reranker_endpoint if enable_rerank else None,
+        "reranker_api_style": (
+            settings.reranker_api_style if enable_rerank else None
+        ),
+        "reranker_timeout_seconds": (
+            settings.reranker_timeout_seconds if enable_rerank else None
+        ),
     }
     return engine, metadata
 
@@ -169,6 +223,7 @@ def run_benchmark(
     )
     selected = strategies or ["rerank", "fusion", "dense", "lexical"]
     report = {
+        **_run_identity(),
         "eval_file": str(EVAL_PATH.relative_to(BASE_DIR)),
         "provenance_file": str(PROVENANCE_PATH.relative_to(BASE_DIR)),
         "top_k": top_k,

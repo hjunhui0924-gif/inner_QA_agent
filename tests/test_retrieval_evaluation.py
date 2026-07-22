@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 import unittest
+import hashlib
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from langchain_core.documents import Document
 
@@ -12,6 +16,7 @@ from backend.evaluation.retrieval import (
     validate_cases_against_corpus,
 )
 from backend.retrieval.engine import RetrievalResult
+from scripts.run_retrieval_benchmark import _build_documents
 
 
 class _EvaluationEngineFake:
@@ -94,7 +99,53 @@ class RetrievalEvaluationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "evidence not found"):
             validate_cases_against_corpus(cases, documents)
 
+    def test_benchmark_rejects_a_tampered_corpus_snapshot(self) -> None:
+        with TemporaryDirectory() as directory:
+            base = Path(directory)
+            source = base / "document.md"
+            source.write_text("modified content", encoding="utf-8")
+            provenance = [
+                {
+                    "id": "official",
+                    "title": "Official",
+                    "publisher": "Publisher",
+                    "url": "https://example.test/official",
+                    "local_path": "document.md",
+                    "content_sha256": "0" * 64,
+                    "content_length": len("modified content"),
+                }
+            ]
+
+            with patch("scripts.run_retrieval_benchmark.BASE_DIR", base):
+                with self.assertRaisesRegex(ValueError, "checksum mismatch"):
+                    _build_documents(provenance)
+
+    def test_benchmark_accepts_legacy_backslash_provenance_paths(self) -> None:
+        with TemporaryDirectory() as directory:
+            base = Path(directory)
+            source = base / "nested" / "document.md"
+            source.parent.mkdir()
+            content = "第一条 正式正文。"
+            source.write_text(content, encoding="utf-8")
+            provenance = [
+                {
+                    "id": "official",
+                    "title": "Official",
+                    "publisher": "Publisher",
+                    "url": "https://example.test/official",
+                    "local_path": "nested\\document.md",
+                    "content_sha256": hashlib.sha256(
+                        content.encode("utf-8")
+                    ).hexdigest(),
+                    "content_length": len(content),
+                }
+            ]
+
+            with patch("scripts.run_retrieval_benchmark.BASE_DIR", base):
+                documents = _build_documents(provenance)
+
+            self.assertEqual(documents[0].metadata["source_id"], "official")
+
 
 if __name__ == "__main__":
     unittest.main()
-

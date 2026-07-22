@@ -4,7 +4,11 @@ from __future__ import annotations
 
 import unittest
 
-from scripts.download_eval_corpus import _extract_text, _validate_source
+from scripts.download_eval_corpus import (
+    _extract_text,
+    _validate_source,
+    _verify_cached_snapshot,
+)
 
 
 class CorpusDownloaderTests(unittest.TestCase):
@@ -25,7 +29,12 @@ class CorpusDownloaderTests(unittest.TestCase):
         self.assertIn("第一条", extracted)
         self.assertGreater(len(extracted), 1200)
 
+    def test_changed_cached_snapshot_is_not_blessed(self) -> None:
+        previous = {"content_sha256": "0" * 64}
+
+        with self.assertRaisesRegex(ValueError, "snapshot changed"):
+            _verify_cached_snapshot("tampered", previous, "official")
+
 
 if __name__ == "__main__":
     unittest.main()
-

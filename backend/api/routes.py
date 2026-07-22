@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 from collections.abc import AsyncIterator
 from pathlib import Path
@@ -21,6 +22,7 @@ from backend.agent.memory import (
     load_chat_messages,
     save_uploaded_file,
 )
+from backend.config import settings
 
 
 router = APIRouter()
@@ -214,18 +216,24 @@ async def upload_knowledge_file(
     """Upload a file and write it into the knowledge base."""
 
     filename = file.filename or "untitled.txt"
-    raw_bytes = await file.read()
+    raw_bytes = await file.read(settings.max_upload_bytes + 1)
     if not raw_bytes:
         raise HTTPException(status_code=400, detail="上传文件为空。")
+    if len(raw_bytes) > settings.max_upload_bytes:
+        raise HTTPException(
+            status_code=413,
+            detail=f"上传文件不能超过 {settings.max_upload_bytes // (1024 * 1024)} MB。",
+        )
 
     try:
         extracted_text = extract_text_from_upload(filename, raw_bytes)
         saved_path = save_uploaded_file(filename, raw_bytes)
-        record = add_knowledge_record(
-            title=title or Path(filename).stem,
-            content=extracted_text,
-            source=source,
-            original_filename=saved_path.name,
+        record = await asyncio.to_thread(
+            add_knowledge_record,
+            title or Path(filename).stem,
+            extracted_text,
+            source,
+            saved_path.name,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

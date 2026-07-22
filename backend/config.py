@@ -58,6 +58,7 @@ class Settings(BaseSettings):
     knowledge_near_duplicate_threshold: float = 0.92
     knowledge_near_duplicate_min_length_ratio: float = 0.85
     knowledge_near_duplicate_min_length: int = 200
+    max_upload_bytes: int = 20 * 1024 * 1024
     backend_url: str = "http://localhost:8000"
 
     @field_validator("embedding_provider")

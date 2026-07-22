@@ -344,6 +344,9 @@ async def check_hallucination(state: AgentState) -> dict[str, Any]:
     if not docs:
         return {
             "hallucination_pass": False,
+            "hallucination_retry_count": (
+                state.get("hallucination_retry_count", 0) + 1
+            ),
             "status_events": ["check_hallucination:no_docs"],
         }
 
@@ -369,7 +372,12 @@ async def check_hallucination(state: AgentState) -> dict[str, Any]:
     except Exception:
         pass
 
-    return {
+    result: dict[str, Any] = {
         "hallucination_pass": pass_check,
         "status_events": [f"check_hallucination:{pass_check}"],
     }
+    if not pass_check:
+        result["hallucination_retry_count"] = (
+            state.get("hallucination_retry_count", 0) + 1
+        )
+    return result

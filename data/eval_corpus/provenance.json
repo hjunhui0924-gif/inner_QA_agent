@@ -5,12 +5,14 @@
     "publisher": "中国人大网",
     "url": "http://www.npc.gov.cn/npc/c2/c30834/202108/t20210820_313088.html",
     "allowed_host": "www.npc.gov.cn",
+    "content_selector": "#Zoom",
+    "expected_sha256": "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca",
     "final_url": "http://www.npc.gov.cn/npc/c2/c30834/202108/t20210820_313088.html",
     "http_status": 200,
-    "local_path": "data\\eval_corpus\\documents\\personal_information_protection_law.md",
-    "content_sha256": "015df8f9ce5fea175225e2ca7a75aafd66daee3bc497421a1859801682c2d4c0",
-    "content_length": 9551,
-    "retrieved_at": "2026-07-22T11:13:38.149044+00:00"
+    "local_path": "data/eval_corpus/documents/personal_information_protection_law.md",
+    "content_sha256": "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca",
+    "content_length": 9427,
+    "retrieved_at": "2026-07-22T11:46:55.053653+00:00"
   },
   {
     "id": "data_security_law",
@@ -18,12 +20,14 @@
     "publisher": "中国人大网",
     "url": "http://www.npc.gov.cn/npc/c2/c30834/202106/t20210610_311888.html",
     "allowed_host": "www.npc.gov.cn",
+    "content_selector": "#Zoom",
+    "expected_sha256": "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed",
     "final_url": "http://www.npc.gov.cn/npc/c2/c30834/202106/t20210610_311888.html",
     "http_status": 200,
-    "local_path": "data\\eval_corpus\\documents\\data_security_law.md",
-    "content_sha256": "1dd5d7dbf8b427302d560de65fc296e3210cc48f65c8fa839f1887da997b86bf",
-    "content_length": 5812,
-    "retrieved_at": "2026-07-22T11:13:38.205268+00:00"
+    "local_path": "data/eval_corpus/documents/data_security_law.md",
+    "content_sha256": "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed",
+    "content_length": 5689,
+    "retrieved_at": "2026-07-22T11:46:55.106203+00:00"
   },
   {
     "id": "generative_ai_interim_measures",
@@ -31,12 +35,14 @@
     "publisher": "国家互联网信息办公室",
     "url": "https://www.cac.gov.cn/2023-07/13/c_1690898327029107.htm",
     "allowed_host": "www.cac.gov.cn",
+    "content_selector": "#BodyLabel",
+    "expected_sha256": "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5",
     "final_url": "https://www.cac.gov.cn/2023-07/13/c_1690898327029107.htm",
     "http_status": 200,
-    "local_path": "data\\eval_corpus\\documents\\generative_ai_interim_measures.md",
-    "content_sha256": "7a221ad5867544cd7ee03d78933fb0bc54f1b8986878134139d205ce53fcc489",
-    "content_length": 3754,
-    "retrieved_at": "2026-07-22T11:13:38.424199+00:00"
+    "local_path": "data/eval_corpus/documents/generative_ai_interim_measures.md",
+    "content_sha256": "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5",
+    "content_length": 3601,
+    "retrieved_at": "2026-07-22T11:46:55.296409+00:00"
   },
   {
     "id": "network_data_security_regulations",
@@ -44,11 +50,13 @@
     "publisher": "中国政府网",
     "url": "https://www.gov.cn/zhengce/content/202409/content_6977766.htm",
     "allowed_host": "www.gov.cn",
+    "content_selector": "#UCAP-CONTENT",
+    "expected_sha256": "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e",
     "final_url": "https://www.gov.cn/zhengce/content/202409/content_6977766.htm",
     "http_status": 200,
-    "local_path": "data\\eval_corpus\\documents\\network_data_security_regulations.md",
-    "content_sha256": "b16c588c4f309eac4a9f5114795b22a238804133dfde1371a9c18408594842df",
-    "content_length": 10271,
-    "retrieved_at": "2026-07-22T11:13:38.572322+00:00"
+    "local_path": "data/eval_corpus/documents/network_data_security_regulations.md",
+    "content_sha256": "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e",
+    "content_length": 10061,
+    "retrieved_at": "2026-07-22T11:46:55.460322+00:00"
   }
 ]

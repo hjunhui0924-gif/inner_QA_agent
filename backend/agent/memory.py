@@ -5,6 +5,9 @@ from __future__ import annotations
 import asyncio
 import csv
 import json
+import os
+import tempfile
+import threading
 from collections.abc import Iterable
 from io import BytesIO, StringIO
 from pathlib import Path
@@ -56,9 +59,13 @@ class VectorStoreLike(Protocol):
     def get(self, **kwargs: Any) -> dict[str, Any]:
         """Return persisted vector-store records."""
 
+    def delete(self, ids: list[str]) -> Any:
+        """Delete persisted records by stable ID."""
+
 
 _VECTORSTORE: VectorStoreLike | None = None
 _RETRIEVER: RetrievalEngine | None = None
+_KNOWLEDGE_WRITE_LOCK = threading.RLock()
 
 
 class _LocalVectorStore:
@@ -66,7 +73,11 @@ class _LocalVectorStore:
 
     def __init__(self, embeddings: Embeddings, documents: list[Document]) -> None:
         self._embeddings = embeddings
-        self._documents = documents
+        self._documents = list(documents)
+        self._ids = [
+            str(document.metadata.get("chunk_id", index))
+            for index, document in enumerate(documents)
+        ]
         self._vectors = embeddings.embed_documents(
             [document.page_content for document in documents]
         )
@@ -76,12 +87,24 @@ class _LocalVectorStore:
         documents: list[Document],
         **kwargs: Any,
     ) -> None:
-        self._documents.extend(documents)
-        self._vectors.extend(
-            self._embeddings.embed_documents(
-                [document.page_content for document in documents]
-            )
+        ids = [str(item) for item in kwargs.get("ids", [])]
+        if len(ids) != len(documents):
+            ids = [
+                str(document.metadata.get("chunk_id", len(self._ids) + index))
+                for index, document in enumerate(documents)
+            ]
+        vectors = self._embeddings.embed_documents(
+            [document.page_content for document in documents]
         )
+        for item_id, document, vector in zip(ids, documents, vectors, strict=True):
+            if item_id in self._ids:
+                index = self._ids.index(item_id)
+                self._documents[index] = document
+                self._vectors[index] = vector
+            else:
+                self._ids.append(item_id)
+                self._documents.append(document)
+                self._vectors.append(vector)
 
     def similarity_search(self, query: str, k: int = 4) -> list[Document]:
         query_vector = self._embeddings.embed_query(query)
@@ -93,12 +116,23 @@ class _LocalVectorStore:
         return [document for _, document in scored[:k]]
 
     def get(self, **kwargs: Any) -> dict[str, Any]:
-        return {
-            "ids": [
-                str(document.metadata.get("chunk_id", index))
-                for index, document in enumerate(self._documents)
-            ]
-        }
+        return {"ids": list(self._ids)}
+
+    def delete(self, ids: list[str]) -> None:
+        rejected = set(ids)
+        retained = [
+            (item_id, document, vector)
+            for item_id, document, vector in zip(
+                self._ids,
+                self._documents,
+                self._vectors,
+                strict=True,
+            )
+            if item_id not in rejected
+        ]
+        self._ids = [item[0] for item in retained]
+        self._documents = [item[1] for item in retained]
+        self._vectors = [item[2] for item in retained]
 
 
 def ensure_data_directories() -> None:
@@ -333,10 +367,26 @@ def _load_json_file(path: Path) -> list[dict[str, Any]]:
 
 
 def _save_json_file(path: Path, data: list[dict[str, Any]]) -> None:
-    """Persist JSON array content to disk."""
+    """Atomically persist JSON so interruption cannot truncate the knowledge base."""
 
-    with path.open("w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    handle, temporary_name = tempfile.mkstemp(
+        prefix=f".{path.name}.",
+        suffix=".tmp",
+        dir=path.parent,
+        text=True,
+    )
+    try:
+        with os.fdopen(handle, "w", encoding="utf-8") as stream:
+            json.dump(data, stream, ensure_ascii=False, indent=2)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary_name, path)
+    except Exception:
+        try:
+            Path(temporary_name).unlink(missing_ok=True)
+        finally:
+            raise
 
 
 def _load_knowledge_base_records() -> list[dict[str, str]]:
@@ -360,10 +410,9 @@ def _load_knowledge_base_records() -> list[dict[str, str]]:
                     "original_filename": str(
                         record.get("original_filename", "")
                     ).strip(),
-                    "content_fingerprint": str(
-                        record.get("content_fingerprint", "")
-                    ).strip()
-                    or content_fingerprint(content),
+                    # Recompute so manually migrated/edited legacy JSON cannot
+                    # point at vectors created from different content.
+                    "content_fingerprint": content_fingerprint(content),
                 }
             )
     return normalized
@@ -432,7 +481,11 @@ def _embedding_profile() -> EmbeddingProfile:
         provider=settings.embedding_provider,  # type: ignore[arg-type]
         model=settings.embedding_model,
         dimensions=settings.embedding_dimensions,
-        index_version=settings.embedding_index_version,
+        index_version=(
+            f"{settings.embedding_index_version}-"
+            f"chunk{settings.knowledge_chunk_size}-"
+            f"overlap{settings.knowledge_chunk_overlap}"
+        ),
         api_key=settings.dashscope_api_key,
         base_url=settings.dashscope_base_url,
     )
@@ -464,21 +517,21 @@ def _create_vectorstore_sync() -> VectorStoreLike:
     )
 
     documents = _build_documents()
-    if documents:
-        try:
-            existing_ids = set(vectorstore.get(include=[]).get("ids", []))
-        except Exception:
-            existing_ids = set()
-        missing_documents = [
-            document
-            for document in documents
-            if str(document.metadata["chunk_id"]) not in existing_ids
-        ]
-        if missing_documents:
-            vectorstore.add_documents(
-                missing_documents,
-                ids=_chunk_ids(missing_documents),
-            )
+    existing_ids = set(vectorstore.get(include=[]).get("ids", []))
+    expected_ids = set(_chunk_ids(documents))
+    stale_ids = sorted(existing_ids - expected_ids)
+    if stale_ids:
+        vectorstore.delete(ids=stale_ids)
+    missing_documents = [
+        document
+        for document in documents
+        if str(document.metadata["chunk_id"]) not in existing_ids
+    ]
+    if missing_documents:
+        vectorstore.add_documents(
+            missing_documents,
+            ids=_chunk_ids(missing_documents),
+        )
     return vectorstore
 
 
@@ -605,7 +658,10 @@ def save_uploaded_file(filename: str, content: bytes) -> Path:
     """Persist the uploaded original file locally."""
 
     ensure_data_directories()
-    target = Path(settings.upload_dir) / filename
+    safe_filename = Path(filename.replace("\\", "/")).name.replace("\x00", "")
+    if safe_filename in {"", ".", ".."}:
+        raise ValueError("上传文件名无效。")
+    target = Path(settings.upload_dir) / safe_filename
     stem = target.stem
     suffix = target.suffix
     counter = 1
@@ -617,6 +673,23 @@ def save_uploaded_file(filename: str, content: bytes) -> Path:
 
 
 def add_knowledge_record(
+    title: str,
+    content: str,
+    source: str,
+    original_filename: str,
+) -> dict[str, Any]:
+    """Serialize one knowledge write across JSON, vector, and lexical indexes."""
+
+    with _KNOWLEDGE_WRITE_LOCK:
+        return _add_knowledge_record_unlocked(
+            title,
+            content,
+            source,
+            original_filename,
+        )
+
+
+def _add_knowledge_record_unlocked(
     title: str,
     content: str,
     source: str,
@@ -661,9 +734,6 @@ def add_knowledge_record(
         "deduplicated": False,
         "dedup_type": "none",
     }
-    records.append(record)
-    _save_json_file(kb_path, records)
-
     documents = _chunk_documents_from_record(
         title=clean_title,
         content=clean_content,
@@ -671,10 +741,18 @@ def add_knowledge_record(
         original_filename=original_filename,
         document_id=candidate_fingerprint,
     )
-    get_vectorstore().add_documents(
+    vectorstore = get_vectorstore()
+    document_ids = _chunk_ids(documents)
+    vectorstore.add_documents(
         documents,
-        ids=_chunk_ids(documents),
+        ids=document_ids,
     )
+    records.append(record)
+    try:
+        _save_json_file(kb_path, records)
+    except Exception:
+        vectorstore.delete(ids=document_ids)
+        raise
     get_retriever().add_documents(documents)
     return record
 

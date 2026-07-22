@@ -4,28 +4,35 @@
     "title": "中华人民共和国个人信息保护法",
     "publisher": "中国人大网",
     "url": "http://www.npc.gov.cn/npc/c2/c30834/202108/t20210820_313088.html",
-    "allowed_host": "www.npc.gov.cn"
+    "allowed_host": "www.npc.gov.cn",
+    "content_selector": "#Zoom",
+    "expected_sha256": "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca"
   },
   {
     "id": "data_security_law",
     "title": "中华人民共和国数据安全法",
     "publisher": "中国人大网",
     "url": "http://www.npc.gov.cn/npc/c2/c30834/202106/t20210610_311888.html",
-    "allowed_host": "www.npc.gov.cn"
+    "allowed_host": "www.npc.gov.cn",
+    "content_selector": "#Zoom",
+    "expected_sha256": "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed"
   },
   {
     "id": "generative_ai_interim_measures",
     "title": "生成式人工智能服务管理暂行办法",
     "publisher": "国家互联网信息办公室",
     "url": "https://www.cac.gov.cn/2023-07/13/c_1690898327029107.htm",
-    "allowed_host": "www.cac.gov.cn"
+    "allowed_host": "www.cac.gov.cn",
+    "content_selector": "#BodyLabel",
+    "expected_sha256": "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5"
   },
   {
     "id": "network_data_security_regulations",
     "title": "网络数据安全管理条例",
     "publisher": "中国政府网",
     "url": "https://www.gov.cn/zhengce/content/202409/content_6977766.htm",
-    "allowed_host": "www.gov.cn"
+    "allowed_host": "www.gov.cn",
+    "content_selector": "#UCAP-CONTENT",
+    "expected_sha256": "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e"
   }
 ]
-

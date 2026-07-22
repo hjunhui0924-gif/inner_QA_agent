@@ -38,7 +38,11 @@ def _validate_source(item: dict[str, str], final_url: str) -> None:
         )
 
 
-def _extract_text(html: str, expected_title: str) -> str:
+def _extract_text(
+    html: str,
+    expected_title: str,
+    content_selector: str = "",
+) -> str:
     # Some gov.cn pages contain markup that lxml repairs by discarding the
     # article body. The standard parser is slower but preserves those pages.
     soup = BeautifulSoup(html, "html.parser")
@@ -47,14 +51,26 @@ def _extract_text(html: str, expected_title: str) -> str:
 
     selectors = (
         "#Zoom",
+        "#BodyLabel",
+        "#UCAP-CONTENT",
         ".TRS_Editor",
         ".pages_content",
         ".article-content",
         ".article",
         "main",
     )
-    candidates = [soup.select_one(selector) for selector in selectors]
-    candidates.extend(soup.find_all(["article", "section", "div"]))
+    candidates = []
+    if content_selector:
+        selected = soup.select_one(content_selector)
+        if selected is None:
+            raise ValueError(
+                f"Configured article selector not found for {expected_title}: "
+                f"{content_selector}"
+            )
+        candidates.append(selected)
+    else:
+        candidates = [soup.select_one(selector) for selector in selectors]
+        candidates.extend(soup.find_all(["article", "section", "div"]))
     text_candidates: list[str] = []
     for candidate in candidates:
         if candidate is None:
@@ -72,6 +88,22 @@ def _extract_text(html: str, expected_title: str) -> str:
         if not line or line in cleaned[-2:]:
             continue
         cleaned.append(line)
+    trailing_boilerplate = {
+        "关闭",
+        "解读",
+        "登录",
+        "注册",
+        "×",
+        "相关文章",
+        "<< 返回首页",
+        "网络数据安全管理条例",
+    }
+    while cleaned and (
+        cleaned[-1] in trailing_boilerplate
+        or cleaned[-1].startswith("编 辑：")
+        or cleaned[-1].startswith("责 编：")
+    ):
+        cleaned.pop()
     normalized = "\n".join(cleaned)
     title_position = normalized.find(expected_title)
     if title_position >= 0:
@@ -81,6 +113,23 @@ def _extract_text(html: str, expected_title: str) -> str:
             f"Extracted body for {expected_title} is suspiciously short: {len(normalized)}"
         )
     return normalized
+
+
+def _verify_cached_snapshot(
+    body: str,
+    previous: dict[str, Any],
+    source_id: str,
+) -> str:
+    """Return the checksum or reject a cache changed since provenance capture."""
+
+    actual = hashlib.sha256(body.encode("utf-8")).hexdigest()
+    expected = str(previous.get("content_sha256", ""))
+    if expected and actual != expected:
+        raise ValueError(
+            f"Cached corpus snapshot changed for {source_id}; "
+            "run with --refresh to restore the official source"
+        )
+    return actual
 
 
 def download_corpus(*, refresh: bool = False) -> list[dict[str, Any]]:
@@ -110,6 +159,7 @@ def download_corpus(*, refresh: bool = False) -> list[dict[str, Any]]:
             previous = previous_by_id.get(item["id"], {})
             if target.exists() and not refresh:
                 body = target.read_text(encoding="utf-8")
+                content_sha256 = _verify_cached_snapshot(body, previous, item["id"])
                 final_url = str(previous.get("final_url", item["url"]))
                 status_code = int(previous.get("http_status", 200))
                 retrieved_at = str(
@@ -121,7 +171,11 @@ def download_corpus(*, refresh: bool = False) -> list[dict[str, Any]]:
                 _validate_source(item, str(response.url))
                 if len(response.content) > 5_000_000:
                     raise ValueError(f"Source response is unexpectedly large: {item['id']}")
-                body_text = _extract_text(response.text, item["title"])
+                body_text = _extract_text(
+                    response.text,
+                    item["title"],
+                    item.get("content_selector", ""),
+                )
                 body = (
                     f"# {item['title']}\n\n"
                     f"发布机构：{item['publisher']}\n\n"
@@ -132,16 +186,22 @@ def download_corpus(*, refresh: bool = False) -> list[dict[str, Any]]:
                 final_url = str(response.url)
                 status_code = response.status_code
                 retrieved_at = datetime.now(timezone.utc).isoformat()
+                content_sha256 = hashlib.sha256(body.encode("utf-8")).hexdigest()
+
+            pinned_sha256 = str(item.get("expected_sha256", ""))
+            if pinned_sha256 and content_sha256 != pinned_sha256:
+                raise ValueError(
+                    f"Official snapshot digest changed for {item['id']}; "
+                    "review the source before updating expected_sha256"
+                )
 
             provenance.append(
                 {
                     **item,
                     "final_url": final_url,
                     "http_status": status_code,
-                    "local_path": str(target.relative_to(BASE_DIR)),
-                    "content_sha256": hashlib.sha256(
-                        body.encode("utf-8")
-                    ).hexdigest(),
+                    "local_path": target.relative_to(BASE_DIR).as_posix(),
+                    "content_sha256": content_sha256,
                     "content_length": len(body),
                     "retrieved_at": retrieved_at,
                 }

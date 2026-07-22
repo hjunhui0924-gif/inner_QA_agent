@@ -157,7 +157,9 @@ DELETE /chat/session/{user_id}/{session_id}
 - [生成式人工智能服务管理暂行办法](https://www.cac.gov.cn/2023-07/13/c_1690898327029107.htm)（国家互联网信息办公室）
 - [网络数据安全管理条例](https://www.gov.cn/zhengce/content/202409/content_6977766.htm)（中国政府网）
 
-下载器会校验最终域名、正文长度并记录来源 URL、抓取时间和 SHA-256：
+下载器会校验最终域名、正文长度和人工固定的 SHA-256，并记录来源 URL 与抓取时间。
+两个人大网页面当前只提供 HTTP，固定摘要可以发现内容变化，但不能替代 HTTPS
+传输安全：
 
 ```bash
 python scripts/download_eval_corpus.py
@@ -167,6 +169,14 @@ python scripts/download_eval_corpus.py
 
 ```bash
 python scripts/run_retrieval_benchmark.py --top-k 5
+```
+
+使用真实 DashScope 凭证验证 Embedding 与 Rerank 请求/响应契约：
+
+```bash
+# PowerShell
+$env:RUN_LIVE_RAG_TESTS="1"
+python -m unittest tests.test_live_contracts -v
 ```
 
 当前 34 条评测包含 30 条可回答问题和 4 条无答案问题；四份法规主题高度相似，
