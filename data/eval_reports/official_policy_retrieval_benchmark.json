@@ -1,14 +1,24 @@
 {
-  "generated_at": "2026-07-22T12:00:34.729863+00:00",
-  "git_commit": "9b80be40a1f725f2841670fe6cfc118374134719",
+  "generated_at": "2026-07-22T12:16:39.552953+00:00",
+  "git_commit": "aea47784ace2958bfc6e769f471bcc66be2bf4a7",
   "git_dirty": false,
   "python_version": "3.13.0",
+  "package_versions": {
+    "langchain": "1.2.18",
+    "langchain-chroma": "1.1.0",
+    "chromadb": "1.5.9",
+    "langchain-openai": "1.2.1",
+    "httpx": "0.28.1",
+    "pydantic": "2.13.4",
+    "beautifulsoup4": "4.12.3",
+    "filelock": "3.17.0"
+  },
   "hosted_model_results_are_time_variant": true,
   "eval_file": "data\\evals\\official_policy_retrieval_eval.json",
   "provenance_file": "data\\eval_corpus\\provenance.json",
   "top_k": 5,
-  "corpus_identity": "7567f01ab01d45111142931e680fc5eb15e4998a5f9eeee831fc10fa4e429af1",
-  "collection_name": "official-7567f01ab0-92718f17bd40",
+  "corpus_identity": "8714c13da8f988f0cc8b673b2b03ff0a088420c3ee11a8ea43e426d4f44760da",
+  "collection_name": "official-8714c13da8-92718f17bd40",
   "document_count": 4,
   "chunk_count": 46,
   "embedding_provider": "dashscope",
@@ -39,8 +49,8 @@
       "ndcg_at_k": 0.9630929753571458,
       "evidence_recall_at_k": 1.0,
       "full_evidence_hit_rate": 1.0,
-      "latency_p50_ms": 725.8583501679823,
-      "latency_p95_ms": 828.9503899868575,
+      "latency_p50_ms": 725.0757500296459,
+      "latency_p95_ms": 1043.7582249403927,
       "rerank_degradation_count": 0,
       "answerable_min_top_rerank_score": 0.18208469773811622,
       "no_answer_max_top_rerank_score": 0.20914806400421188,
@@ -69,7 +79,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10"
           ],
           "top_rerank_score": 0.18665062912893457,
-          "latency_ms": 724.5040000416338,
+          "latency_ms": 719.2373001016676,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -97,7 +107,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:1"
           ],
           "top_rerank_score": 0.700937241337531,
-          "latency_ms": 754.9689000006765,
+          "latency_ms": 729.4642000924796,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -125,7 +135,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:1"
           ],
           "top_rerank_score": 0.5820300779037386,
-          "latency_ms": 714.398100040853,
+          "latency_ms": 844.5445001125336,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -153,7 +163,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:4"
           ],
           "top_rerank_score": 0.18951186489319233,
-          "latency_ms": 661.2698999233544,
+          "latency_ms": 603.8929999340326,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -180,8 +190,8 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:14",
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:0"
           ],
-          "top_rerank_score": 0.3358124813446078,
-          "latency_ms": 774.9159999657422,
+          "top_rerank_score": 0.33624562804910213,
+          "latency_ms": 909.8276000004262,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -208,8 +218,8 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:1",
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:3"
           ],
-          "top_rerank_score": 0.19469775332941294,
-          "latency_ms": 782.9832001589239,
+          "top_rerank_score": 0.19477682505992114,
+          "latency_ms": 681.1253000050783,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -236,8 +246,8 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5",
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:1"
           ],
-          "top_rerank_score": 0.4178367714218588,
-          "latency_ms": 768.8344998750836,
+          "top_rerank_score": 0.4176352341597188,
+          "latency_ms": 711.3990997895598,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -265,7 +275,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:11"
           ],
           "top_rerank_score": 0.7839986935925497,
-          "latency_ms": 872.7444000542164,
+          "latency_ms": 638.1717000622302,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -293,7 +303,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:15"
           ],
           "top_rerank_score": 0.3185909739460237,
-          "latency_ms": 594.0040000714362,
+          "latency_ms": 639.7384000010788,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -320,8 +330,8 @@
             "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4",
             "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:8"
           ],
-          "top_rerank_score": 0.7957490496266483,
-          "latency_ms": 667.2333998139948,
+          "top_rerank_score": 0.7961069583453873,
+          "latency_ms": 598.2116998638958,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -349,7 +359,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6"
           ],
           "top_rerank_score": 0.4996413998178624,
-          "latency_ms": 726.3647001236677,
+          "latency_ms": 682.1584000717849,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -377,7 +387,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:3"
           ],
           "top_rerank_score": 0.18208469773811622,
-          "latency_ms": 789.6104999817908,
+          "latency_ms": 638.511500088498,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -404,8 +414,8 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:12",
             "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:0"
           ],
-          "top_rerank_score": 0.32820953896869215,
-          "latency_ms": 745.4961999319494,
+          "top_rerank_score": 0.32842736294059105,
+          "latency_ms": 821.4469999074936,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -432,8 +442,8 @@
             "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:6",
             "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4"
           ],
-          "top_rerank_score": 0.4103526085652476,
-          "latency_ms": 731.8967999890447,
+          "top_rerank_score": 0.41014955826194166,
+          "latency_ms": 597.3916000220925,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -461,7 +471,7 @@
             "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:2"
           ],
           "top_rerank_score": 0.32581117503014556,
-          "latency_ms": 767.1672001015395,
+          "latency_ms": 634.2853999231011,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -488,8 +498,8 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2"
           ],
-          "top_rerank_score": 0.8504599141840773,
-          "latency_ms": 755.2076999563724,
+          "top_rerank_score": 0.850189457290451,
+          "latency_ms": 720.6872999668121,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -516,8 +526,8 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5"
           ],
-          "top_rerank_score": 0.6799932929520713,
-          "latency_ms": 805.3689999505877,
+          "top_rerank_score": 0.6810419167444481,
+          "latency_ms": 650.1799998804927,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -545,7 +555,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3"
           ],
           "top_rerank_score": 0.44524979839937423,
-          "latency_ms": 573.8554999697953,
+          "latency_ms": 674.7337998822331,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -573,7 +583,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3"
           ],
           "top_rerank_score": 0.7219094184390603,
-          "latency_ms": 611.5331000182778,
+          "latency_ms": 752.5887000374496,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -601,7 +611,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1"
           ],
           "top_rerank_score": 0.6918848746170291,
-          "latency_ms": 774.5474001858383,
+          "latency_ms": 804.5797999948263,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -628,8 +638,8 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:11",
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:12"
           ],
-          "top_rerank_score": 0.40750620785654273,
-          "latency_ms": 734.211300034076,
+          "top_rerank_score": 0.40730258928969265,
+          "latency_ms": 730.7037999853492,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -657,7 +667,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5"
           ],
           "top_rerank_score": 0.6328127547316077,
-          "latency_ms": 563.0913998465985,
+          "latency_ms": 611.5162000060081,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -685,7 +695,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:11"
           ],
           "top_rerank_score": 0.8133062429608491,
-          "latency_ms": 583.3813999779522,
+          "latency_ms": 755.9285000897944,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -712,8 +722,8 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:1"
           ],
-          "top_rerank_score": 0.5810606373393494,
-          "latency_ms": 636.7750999052078,
+          "top_rerank_score": 0.5807371234407793,
+          "latency_ms": 1217.6614999771118,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -740,8 +750,8 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:3",
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8"
           ],
-          "top_rerank_score": 0.4495457718310868,
-          "latency_ms": 672.7227999363095,
+          "top_rerank_score": 0.44935094854857777,
+          "latency_ms": 734.3950001522899,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -768,8 +778,8 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:3",
             "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4"
           ],
-          "top_rerank_score": 0.40669149064201776,
-          "latency_ms": 792.8090000059456,
+          "top_rerank_score": 0.40709893022351856,
+          "latency_ms": 767.7867999300361,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -796,8 +806,8 @@
             "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3",
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6"
           ],
-          "top_rerank_score": 0.5649926358805748,
-          "latency_ms": 589.2431999091059,
+          "top_rerank_score": 0.5643274416083762,
+          "latency_ms": 949.9858000781387,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -824,8 +834,8 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
             "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:0"
           ],
-          "top_rerank_score": 0.30426130985008093,
-          "latency_ms": 611.0969998408109,
+          "top_rerank_score": 0.30448283271054605,
+          "latency_ms": 1378.2075000926852,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -852,8 +862,8 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:11",
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0"
           ],
-          "top_rerank_score": 0.25863820859839004,
-          "latency_ms": 803.3002999145538,
+          "top_rerank_score": 0.2588660033596415,
+          "latency_ms": 950.1179999206215,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -880,8 +890,8 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5",
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:6"
           ],
-          "top_rerank_score": 0.7515739832958932,
-          "latency_ms": 911.3054000772536,
+          "top_rerank_score": 0.7513614362949974,
+          "latency_ms": 584.8949998617172,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -909,7 +919,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:10"
           ],
           "top_rerank_score": 0.08351528826843457,
-          "latency_ms": 609.9247001111507,
+          "latency_ms": 736.8625998497009,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -937,7 +947,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:3"
           ],
           "top_rerank_score": 0.005949579483329656,
-          "latency_ms": 577.5238000787795,
+          "latency_ms": 596.2435000110418,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -965,7 +975,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5"
           ],
           "top_rerank_score": 0.18072215126668004,
-          "latency_ms": 725.3520002122968,
+          "latency_ms": 735.6609001290053,
           "rerank_used": true,
           "degraded_reason": null
         },
@@ -993,7 +1003,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:11"
           ],
           "top_rerank_score": 0.20914806400421188,
-          "latency_ms": 699.6594998054206,
+          "latency_ms": 772.4830999504775,
           "rerank_used": true,
           "degraded_reason": null
         }
@@ -1008,8 +1018,8 @@
       "ndcg_at_k": 0.9543643251190486,
       "evidence_recall_at_k": 0.9666666666666667,
       "full_evidence_hit_rate": 0.9666666666666667,
-      "latency_p50_ms": 203.72634986415505,
-      "latency_p95_ms": 411.5184800350107,
+      "latency_p50_ms": 256.27649994567037,
+      "latency_p95_ms": 352.1405750303529,
       "rerank_degradation_count": 0,
       "answerable_min_top_rerank_score": null,
       "no_answer_max_top_rerank_score": null,
@@ -1038,7 +1048,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9"
           ],
           "top_rerank_score": null,
-          "latency_ms": 387.2530001681298,
+          "latency_ms": 154.72450014203787,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1066,7 +1076,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9"
           ],
           "top_rerank_score": null,
-          "latency_ms": 201.67939993552864,
+          "latency_ms": 152.95809996314347,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1094,7 +1104,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 213.90970004722476,
+          "latency_ms": 273.66189984604716,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1122,7 +1132,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:8"
           ],
           "top_rerank_score": null,
-          "latency_ms": 429.3841999024153,
+          "latency_ms": 315.50020002759993,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1150,7 +1160,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:14"
           ],
           "top_rerank_score": null,
-          "latency_ms": 203.34249990992248,
+          "latency_ms": 319.916500011459,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1178,7 +1188,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9"
           ],
           "top_rerank_score": null,
-          "latency_ms": 417.4639000557363,
+          "latency_ms": 153.96260004490614,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1206,7 +1216,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:3"
           ],
           "top_rerank_score": null,
-          "latency_ms": 208.29079998657107,
+          "latency_ms": 355.4663001559675,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1234,7 +1244,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:12"
           ],
           "top_rerank_score": null,
-          "latency_ms": 408.3171000238508,
+          "latency_ms": 193.27869988046587,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1262,7 +1272,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:15"
           ],
           "top_rerank_score": null,
-          "latency_ms": 295.89129984378815,
+          "latency_ms": 178.34009998477995,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1290,7 +1300,7 @@
             "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:1"
           ],
           "top_rerank_score": null,
-          "latency_ms": 164.63020001538098,
+          "latency_ms": 328.11659993603826,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1318,7 +1328,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6"
           ],
           "top_rerank_score": null,
-          "latency_ms": 298.79620019346476,
+          "latency_ms": 169.48079993017018,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1346,7 +1356,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6"
           ],
           "top_rerank_score": null,
-          "latency_ms": 172.57290007546544,
+          "latency_ms": 315.20409998483956,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1374,7 +1384,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6"
           ],
           "top_rerank_score": null,
-          "latency_ms": 184.32980007492006,
+          "latency_ms": 146.46339998580515,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1402,7 +1412,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0"
           ],
           "top_rerank_score": null,
-          "latency_ms": 274.4815000332892,
+          "latency_ms": 350.3497999627143,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1430,7 +1440,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:7"
           ],
           "top_rerank_score": null,
-          "latency_ms": 156.23140009120107,
+          "latency_ms": 346.89210006035864,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1458,7 +1468,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1"
           ],
           "top_rerank_score": null,
-          "latency_ms": 305.90720009058714,
+          "latency_ms": 321.52670016512275,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1486,7 +1496,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 348.5962001141161,
+          "latency_ms": 289.6717998664826,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1514,7 +1524,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0"
           ],
           "top_rerank_score": null,
-          "latency_ms": 319.0115001052618,
+          "latency_ms": 356.58659995533526,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1542,7 +1552,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3"
           ],
           "top_rerank_score": null,
-          "latency_ms": 297.97019995748997,
+          "latency_ms": 192.14519998058677,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1570,7 +1580,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1"
           ],
           "top_rerank_score": null,
-          "latency_ms": 183.54859994724393,
+          "latency_ms": 157.26859983988106,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1598,7 +1608,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:12"
           ],
           "top_rerank_score": null,
-          "latency_ms": 165.91580002568662,
+          "latency_ms": 189.38899994827807,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1626,7 +1636,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3"
           ],
           "top_rerank_score": null,
-          "latency_ms": 348.41690002940595,
+          "latency_ms": 173.6095999367535,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1654,7 +1664,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6"
           ],
           "top_rerank_score": null,
-          "latency_ms": 308.50759986788034,
+          "latency_ms": 152.60350005701184,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1682,7 +1692,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:11"
           ],
           "top_rerank_score": null,
-          "latency_ms": 204.11019981838763,
+          "latency_ms": 279.0060001425445,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1710,7 +1720,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 160.82289977930486,
+          "latency_ms": 335.3611999191344,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1738,7 +1748,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 275.20369994454086,
+          "latency_ms": 173.69200009852648,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1766,7 +1776,7 @@
             "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4"
           ],
           "top_rerank_score": null,
-          "latency_ms": 160.64410004764795,
+          "latency_ms": 280.7520998176187,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1794,7 +1804,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 179.38180011697114,
+          "latency_ms": 238.89110004529357,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1822,7 +1832,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 151.35050006210804,
+          "latency_ms": 303.29330009408295,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1850,7 +1860,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 171.84439999982715,
+          "latency_ms": 308.4400000516325,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1878,7 +1888,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:13"
           ],
           "top_rerank_score": null,
-          "latency_ms": 184.0455001220107,
+          "latency_ms": 160.06140015088022,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1906,7 +1916,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 160.32640007324517,
+          "latency_ms": 165.6834001187235,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1934,7 +1944,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1"
           ],
           "top_rerank_score": null,
-          "latency_ms": 162.25890000350773,
+          "latency_ms": 291.7365999892354,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -1962,7 +1972,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:11"
           ],
           "top_rerank_score": null,
-          "latency_ms": 160.17620009370148,
+          "latency_ms": 144.66300001367927,
           "rerank_used": false,
           "degraded_reason": null
         }
@@ -1977,8 +1987,8 @@
       "ndcg_at_k": 0.9382904104792485,
       "evidence_recall_at_k": 0.8666666666666667,
       "full_evidence_hit_rate": 0.8666666666666667,
-      "latency_p50_ms": 284.00570002850145,
-      "latency_p95_ms": 318.9298200653866,
+      "latency_p50_ms": 187.0617000386119,
+      "latency_p95_ms": 339.8494449211284,
       "rerank_degradation_count": 0,
       "answerable_min_top_rerank_score": null,
       "no_answer_max_top_rerank_score": null,
@@ -2007,7 +2017,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0"
           ],
           "top_rerank_score": null,
-          "latency_ms": 189.79589990340173,
+          "latency_ms": 172.8393998928368,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2035,7 +2045,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 286.2678000237793,
+          "latency_ms": 189.8179000709206,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2063,7 +2073,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:4"
           ],
           "top_rerank_score": null,
-          "latency_ms": 186.65089993737638,
+          "latency_ms": 199.2407999932766,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2091,7 +2101,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:1"
           ],
           "top_rerank_score": null,
-          "latency_ms": 289.66169990599155,
+          "latency_ms": 184.3055000063032,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2119,7 +2129,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:13"
           ],
           "top_rerank_score": null,
-          "latency_ms": 222.29270008392632,
+          "latency_ms": 150.14240005984902,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2147,7 +2157,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10"
           ],
           "top_rerank_score": null,
-          "latency_ms": 318.3925000485033,
+          "latency_ms": 150.461700046435,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2175,7 +2185,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 290.17069982364774,
+          "latency_ms": 148.9324001595378,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2203,7 +2213,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:12"
           ],
           "top_rerank_score": null,
-          "latency_ms": 166.17119987495244,
+          "latency_ms": 258.6741999257356,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2231,7 +2241,7 @@
             "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3"
           ],
           "top_rerank_score": null,
-          "latency_ms": 149.5797000825405,
+          "latency_ms": 173.5093998722732,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2259,7 +2269,7 @@
             "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 281.74360003322363,
+          "latency_ms": 276.16110001690686,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2287,7 +2297,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6"
           ],
           "top_rerank_score": null,
-          "latency_ms": 306.50750012136996,
+          "latency_ms": 292.193999979645,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2315,7 +2325,7 @@
             "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:8"
           ],
           "top_rerank_score": null,
-          "latency_ms": 288.88499992899597,
+          "latency_ms": 157.69810019992292,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2343,7 +2353,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:7"
           ],
           "top_rerank_score": null,
-          "latency_ms": 183.4460999816656,
+          "latency_ms": 353.17130014300346,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2371,7 +2381,7 @@
             "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:6"
           ],
           "top_rerank_score": null,
-          "latency_ms": 160.91590002179146,
+          "latency_ms": 147.2515999339521,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2399,7 +2409,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 343.1145001668483,
+          "latency_ms": 307.47899995185435,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2427,7 +2437,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1"
           ],
           "top_rerank_score": null,
-          "latency_ms": 305.665299994871,
+          "latency_ms": 167.24330000579357,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2455,7 +2465,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 296.4784000068903,
+          "latency_ms": 153.47760007716715,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2483,7 +2493,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0"
           ],
           "top_rerank_score": null,
-          "latency_ms": 270.47240012325346,
+          "latency_ms": 267.9568000603467,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2511,7 +2521,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 178.40840015560389,
+          "latency_ms": 149.51219991780818,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2539,7 +2549,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0"
           ],
           "top_rerank_score": null,
-          "latency_ms": 163.71700004674494,
+          "latency_ms": 199.3211000226438,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2567,7 +2577,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 163.65540004335344,
+          "latency_ms": 350.51509994082153,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2595,7 +2605,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1"
           ],
           "top_rerank_score": null,
-          "latency_ms": 310.0707000121474,
+          "latency_ms": 170.85590003989637,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2623,7 +2633,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:14"
           ],
           "top_rerank_score": null,
-          "latency_ms": 319.9277000967413,
+          "latency_ms": 252.7306000702083,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2651,7 +2661,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:15"
           ],
           "top_rerank_score": null,
-          "latency_ms": 314.112399937585,
+          "latency_ms": 296.4527001604438,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2679,7 +2689,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 314.3863999284804,
+          "latency_ms": 152.99399988725781,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2707,7 +2717,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:3"
           ],
           "top_rerank_score": null,
-          "latency_ms": 225.63040000386536,
+          "latency_ms": 149.81580013409257,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2735,7 +2745,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:7"
           ],
           "top_rerank_score": null,
-          "latency_ms": 273.3740999829024,
+          "latency_ms": 334.1063999105245,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2763,7 +2773,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 188.17169987596571,
+          "latency_ms": 292.4875000026077,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2791,7 +2801,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 313.36929998360574,
+          "latency_ms": 195.39739983156323,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2819,7 +2829,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 300.4451000597328,
+          "latency_ms": 168.6634998768568,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2847,7 +2857,7 @@
             "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:7"
           ],
           "top_rerank_score": null,
-          "latency_ms": 306.8176000379026,
+          "latency_ms": 290.2424999047071,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2875,7 +2885,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:15"
           ],
           "top_rerank_score": null,
-          "latency_ms": 177.71179997362196,
+          "latency_ms": 164.75030011497438,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2903,7 +2913,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 265.0472999084741,
+          "latency_ms": 275.4838999826461,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -2931,7 +2941,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9"
           ],
           "top_rerank_score": null,
-          "latency_ms": 301.8720999825746,
+          "latency_ms": 158.8757000863552,
           "rerank_used": false,
           "degraded_reason": null
         }
@@ -2946,8 +2956,8 @@
       "ndcg_at_k": 0.937697658452382,
       "evidence_recall_at_k": 0.8666666666666667,
       "full_evidence_hit_rate": 0.8666666666666667,
-      "latency_p50_ms": 1.3584501575678587,
-      "latency_p95_ms": 2.263799996580928,
+      "latency_p50_ms": 2.0817499607801437,
+      "latency_p95_ms": 3.0175349675118923,
       "rerank_degradation_count": 0,
       "answerable_min_top_rerank_score": null,
       "no_answer_max_top_rerank_score": null,
@@ -2976,7 +2986,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9"
           ],
           "top_rerank_score": null,
-          "latency_ms": 2.3418001364916563,
+          "latency_ms": 1.6634000930935144,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3004,7 +3014,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:11"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.2487000785768032,
+          "latency_ms": 1.7587000038474798,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3032,7 +3042,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.4285000506788492,
+          "latency_ms": 2.4355000350624323,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3060,7 +3070,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.2022999580949545,
+          "latency_ms": 1.8825000151991844,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3088,7 +3098,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:14"
           ],
           "top_rerank_score": null,
-          "latency_ms": 2.5671999901533127,
+          "latency_ms": 2.4502999149262905,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3116,7 +3126,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.568799838423729,
+          "latency_ms": 3.011199878528714,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3144,7 +3154,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.5102000907063484,
+          "latency_ms": 2.2825999185442924,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3172,7 +3182,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.7914001364260912,
+          "latency_ms": 2.1092998795211315,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3200,7 +3210,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.0118999052792788,
+          "latency_ms": 1.1823999229818583,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3228,7 +3238,7 @@
             "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:7"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.8187999483197927,
+          "latency_ms": 1.0119001381099224,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3256,7 +3266,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.8384000286459923,
+          "latency_ms": 1.5452001243829727,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3284,7 +3294,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:3"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.2531999964267015,
+          "latency_ms": 1.928800018504262,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3312,7 +3322,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:11"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.3723000884056091,
+          "latency_ms": 2.654199954122305,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3340,7 +3350,7 @@
             "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:1"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.607599901035428,
+          "latency_ms": 4.0738999377936125,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3368,7 +3378,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.245100051164627,
+          "latency_ms": 2.054200042039156,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3396,7 +3406,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 2.0776998717337847,
+          "latency_ms": 1.6125000547617674,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3424,7 +3434,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.6794998664408922,
+          "latency_ms": 2.316600177437067,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3452,7 +3462,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.3830000534653664,
+          "latency_ms": 2.3990001063793898,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3480,7 +3490,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.6243001446127892,
+          "latency_ms": 1.7961999401450157,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3508,7 +3518,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.1934000067412853,
+          "latency_ms": 1.6417999286204576,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3536,7 +3546,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.9909998625516891,
+          "latency_ms": 1.7148000188171864,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3564,7 +3574,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.3163001276552677,
+          "latency_ms": 2.6000000070780516,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3592,7 +3602,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:1"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.0377999860793352,
+          "latency_ms": 1.6895001754164696,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3620,7 +3630,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:3"
           ],
           "top_rerank_score": null,
-          "latency_ms": 0.8010000456124544,
+          "latency_ms": 1.3666001614183187,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3648,7 +3658,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.4955999795347452,
+          "latency_ms": 2.226599957793951,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3676,7 +3686,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.651400001719594,
+          "latency_ms": 2.9461998492479324,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3704,7 +3714,7 @@
             "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.1833000462502241,
+          "latency_ms": 2.6012000162154436,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3732,7 +3742,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 2.221799921244383,
+          "latency_ms": 3.029300132766366,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3760,7 +3770,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.083899987861514,
+          "latency_ms": 2.7001001872122288,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3788,7 +3798,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.7228999640792608,
+          "latency_ms": 2.643599873408675,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3816,7 +3826,7 @@
             "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.0176999494433403,
+          "latency_ms": 1.0290001519024372,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3844,7 +3854,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:3"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.3446002267301083,
+          "latency_ms": 0.8425000123679638,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3872,7 +3882,7 @@
             "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.2515000998973846,
+          "latency_ms": 1.8347001168876886,
           "rerank_used": false,
           "degraded_reason": null
         },
@@ -3900,7 +3910,7 @@
             "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:2"
           ],
           "top_rerank_score": null,
-          "latency_ms": 1.2326999567449093,
+          "latency_ms": 2.263499889522791,
           "rerank_used": false,
           "degraded_reason": null
         }
