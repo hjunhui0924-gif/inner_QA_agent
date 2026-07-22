@@ -57,7 +57,7 @@ class AnswerEvaluationTests(unittest.TestCase):
         )
 
         self.assertEqual(result.numeric_match_rate, 0.0)
-        self.assertEqual(result.failure_type, "generation_error")
+        self.assertEqual(result.failure_type, "gold_phrase_mismatch")
 
     def test_scores_supported_abstention_for_no_answer_case(self) -> None:
         result = evaluate_answer(

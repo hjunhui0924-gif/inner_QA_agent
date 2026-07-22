@@ -22,7 +22,9 @@ class Settings(BaseSettings):
 
     dashscope_api_key: str = Field(default="", validation_alias="DASHSCOPE_API_KEY")
     dashscope_base_url: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-    model_name: str = "qwen-plus"
+    model_name: str = "qwen3.6-plus"
+    judge_model_name: str = "qwen3.6-plus"
+    qwen_enable_thinking: bool = False
     chroma_persist_dir: str = str(BASE_DIR / "data" / "chroma_db")
     sqlite_db_path: str = str(BASE_DIR / "data" / "memory.db")
     knowledge_base_path: str = str(BASE_DIR / "data" / "knowledge_base.json")
@@ -75,6 +77,14 @@ class Settings(BaseSettings):
         normalized = value.strip().lower()
         if normalized not in {"dashscope", "hashing"}:
             raise ValueError("EMBEDDING_PROVIDER must be dashscope or hashing.")
+        return normalized
+
+    @field_validator("model_name", "judge_model_name")
+    @classmethod
+    def validate_model_name(cls, value: str) -> str:
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("MODEL_NAME and JUDGE_MODEL_NAME must not be empty.")
         return normalized
 
     @field_validator("retrieval_strategy")

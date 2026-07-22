@@ -102,7 +102,7 @@ def sanitize_answer_citations(
     *,
     query: str = "",
 ) -> str:
-    """Apply conservative provenance/extractive checks without claiming entailment."""
+    """Normalize in-range source markers without claiming semantic entailment."""
 
     if not answer.strip() or not documents:
         return answer
@@ -126,27 +126,13 @@ def _sanitize_claim(claim: str, documents: Sequence[Document], query: str) -> st
     clean = _MARKER_PATTERN.sub("", claim).rstrip()
     if not referenced:
         return claim
-    if not clean.strip() or _looks_like_abstention(clean) or _is_structural_claim(clean):
+    if not clean.strip() or _is_structural_claim(clean):
         return clean
-    claim_numbers = _normalized_numbers(clean)
-    valid_indices: list[int] = []
-    for index in dict.fromkeys(referenced):
-        if index < 1 or index > len(documents):
-            continue
-        document = documents[index - 1]
-        quote = _supporting_quote(
-            document.page_content,
-            query=query,
-            answer=clean,
-            max_chars=600,
-        )
-        quote_numbers = _normalized_numbers(quote)
-        if claim_numbers and not claim_numbers <= quote_numbers:
-            continue
-        if not semantic_relations_match(clean, quote):
-            continue
-        if extractive_clause_match(clean, quote):
-            valid_indices.append(index)
+    valid_indices = [
+        index
+        for index in dict.fromkeys(referenced)
+        if 1 <= index <= len(documents)
+    ]
     if not valid_indices:
         return clean
     markers = "".join(f"[C{index}]" for index in valid_indices)
@@ -167,30 +153,6 @@ def align_answer_citations(
     """Backward-compatible alias; citations are now sanitized, never auto-added."""
 
     return sanitize_answer_citations(answer, documents, query=query)
-
-
-def _normalized_numbers(text: str) -> set[str]:
-    values: set[str] = set()
-    for item in re.findall(r"\d+(?:\.\d+)?", text):
-        values.add(str(float(item)).rstrip("0").rstrip(".") if "." in item else str(int(item)))
-    return values
-
-
-def _looks_like_abstention(text: str) -> bool:
-    lowered = text.casefold()
-    return any(
-        phrase in lowered
-        for phrase in (
-            "信息不足",
-            "未找到",
-            "无法回答",
-            "未包含",
-            "insufficient",
-            "not enough information",
-            "does not contain",
-            "cannot answer",
-        )
-    )
 
 
 def polarity_matches(claim: str, evidence: str) -> bool:

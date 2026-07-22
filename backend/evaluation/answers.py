@@ -22,6 +22,7 @@ FailureType = Literal[
     "retrieval_miss",
     "ranking_error",
     "generation_error",
+    "gold_phrase_mismatch",
     "citation_error",
     "abstention_error",
 ]
@@ -115,7 +116,7 @@ def evaluate_answer(
     elif case.answerable and (
         gold_phrase_match_rate < 1.0 or numeric_accuracy < 1.0
     ):
-        failure = "generation_error"
+        failure = "gold_phrase_mismatch"
     elif case.answerable and (
         citation_provenance_accuracy < 1.0 or citation_completeness < 1.0
     ):

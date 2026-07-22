@@ -19,6 +19,7 @@ if str(BASE_DIR) not in sys.path:
 from langchain_core.messages import HumanMessage
 
 from backend.agent.nodes import generate
+from backend.config import settings
 from backend.evaluation.answers import AnswerEvalCase, evaluate_answer
 from scripts.run_retrieval_benchmark import (
     EVAL_PATH,
@@ -144,6 +145,10 @@ async def run_answer_benchmark(*, top_k: int = 5, limit: int | None = None) -> d
         "top_k": top_k,
         "dataset_role": "development_set",
         "pipeline_scope": "retrieval_plus_single_generation",
+        "generation_model": settings.model_name,
+        "production_judge_model": settings.judge_model_name,
+        "judge_model_used_in_this_benchmark": None,
+        "evaluation_mode": "automatic_deterministic_proxies",
         "case_count": len(results),
         "answerable_count": len(answerable_results),
         "no_answer_count": len(no_answer_results),

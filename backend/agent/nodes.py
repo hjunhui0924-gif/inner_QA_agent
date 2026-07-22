@@ -32,19 +32,27 @@ class _RouteDecision(dict):
     """Tiny helper type for JSON parsing."""
 
 
-def _build_model(temperature: float = 0.2) -> ChatOpenAI:
+def _build_model(
+    temperature: float = 0.2,
+    *,
+    model_name: str | None = None,
+) -> ChatOpenAI:
     """Create the Qwen model configured through DashScope."""
 
     if not settings.dashscope_api_key:
         raise RuntimeError(
             "DASHSCOPE_API_KEY is not set. Configure it in .env before running the model."
         )
+    selected_model = settings.model_name if model_name is None else model_name.strip()
+    if not selected_model:
+        raise RuntimeError("Configured model name must not be empty.")
     return ChatOpenAI(
-        model=settings.model_name,
+        model=selected_model,
         api_key=settings.dashscope_api_key,
         base_url=settings.dashscope_base_url,
         temperature=temperature,
         streaming=True,
+        extra_body={"enable_thinking": settings.qwen_enable_thinking},
     )
 
 
@@ -372,7 +380,10 @@ async def check_hallucination(state: AgentState) -> dict[str, Any]:
 
     pass_check = False
     try:
-        model = _build_model(temperature=0)
+        model = _build_model(
+            temperature=0,
+            model_name=settings.judge_model_name,
+        )
         response = await model.ainvoke([SystemMessage(content=prompt)])
         parsed = _extract_json_object(_as_text(response))
         candidate = parsed.get("hallucination_pass")

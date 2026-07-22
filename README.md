@@ -60,6 +60,9 @@ pip install -r requirements.txt
 
 ```env
 DASHSCOPE_API_KEY=你的DashScopeKey
+MODEL_NAME=qwen3.6-plus
+JUDGE_MODEL_NAME=qwen3.6-plus
+QWEN_ENABLE_THINKING=false
 EMBEDDING_PROVIDER=dashscope
 EMBEDDING_MODEL=text-embedding-v3
 EMBEDDING_DIMENSIONS=1024
@@ -74,6 +77,8 @@ RERANKER_ENABLED=true
 RERANKER_MODEL=gte-rerank-v2
 RERANKER_API_STYLE=native
 ```
+
+回答生成默认使用 `qwen3.6-plus`，并关闭思考模式，以提高抽取式回答和 JSON Judge 的指令稳定性。自动语义校验通过 `JUDGE_MODEL_NAME` 独立配置；当前同样设为 `qwen3.6-plus`，后续可以切换成不同模型做交叉评判。评测执行和指标计算全自动运行；现有 34 题保留为开发集，后续新增样本采用模型生成、原文包含校验和冲突样本自动剔除，尽量不引入逐题人工标注。
 
 默认使用 DashScope `text-embedding-v3` 作为中文语义检索模型。Embedding
 提供方、模型、维度或索引版本发生变化时，系统会自动使用新的 Chroma
@@ -210,7 +215,7 @@ python scripts/run_answer_benchmark.py --top-k 5
 
 完整运行会把报告写入 `data/eval_reports/official_policy_answer_benchmark.json`。这 34 题参与过提示词与规则迭代，属于开发集而非独立留出测试集。报告中的 Gold Phrase、数字、引用出处、引用完整性和抽取重合均为确定性代理指标，不应表述为人工验证的“回答准确率”或“忠实度”。只有 `verification_status=provenance_only` 的引用出处可以被确定性验证；语义支持需要独立 Judge/NLI 或人工标注集。
 
-仓库不提交凭证配额耗尽、样本数不足或中途失败的答案报告。生成失败会记录为 `generation_error`，不会把安全拒答或回显的 Top-K 文档误算成正确答案。
+仓库不提交凭证配额耗尽、样本数不足或中途失败的答案报告。模型调用失败记录为 `generation_error`；调用成功但保守代理没有匹配 Gold Phrase 时记录为 `gold_phrase_mismatch`，不会混为一类，也不会把安全拒答或回显的 Top-K 文档误算成正确答案。
 
 旧版东山精密 8 题脚本仍保留为单文档回归检查，可运行 `python scripts/run_rag_eval.py`。其字符串包含指标不再作为正式回答准确率依据。
 
