@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -37,6 +37,10 @@ class Settings(BaseSettings):
     backend_port: int = 8000
     max_retrieval_retries: int = 2
     max_hallucination_retries: int = 1
+    conversation_token_budget: int = 12_000
+    conversation_summary_trigger_tokens: int = 10_000
+    conversation_summary_target_tokens: int = 1_500
+    conversation_recent_turns: int = 4
     retrieval_top_k: int = 4
     retrieval_strategy: str = "rerank"
     retrieval_dense_candidate_k: int = 20
@@ -113,12 +117,33 @@ class Settings(BaseSettings):
         "max_archive_uncompressed_bytes",
         "trace_max_bytes",
         "trace_backup_count",
+        "conversation_token_budget",
+        "conversation_summary_trigger_tokens",
+        "conversation_summary_target_tokens",
+        "conversation_recent_turns",
     )
     @classmethod
     def validate_positive_limits(cls, value: int | float) -> int | float:
         if value <= 0:
-            raise ValueError("Upload, extraction, page, archive, and lock limits must be positive.")
+            raise ValueError("Configured size, count, timeout, and token limits must be positive.")
         return value
+
+    @model_validator(mode="after")
+    def validate_conversation_window(self) -> "Settings":
+        if self.conversation_summary_trigger_tokens > self.conversation_token_budget:
+            raise ValueError(
+                "CONVERSATION_SUMMARY_TRIGGER_TOKENS must not exceed "
+                "CONVERSATION_TOKEN_BUDGET."
+            )
+        if (
+            self.conversation_summary_target_tokens
+            >= self.conversation_summary_trigger_tokens
+        ):
+            raise ValueError(
+                "CONVERSATION_SUMMARY_TARGET_TOKENS must be smaller than the "
+                "summary trigger."
+            )
+        return self
 
 
 settings = Settings()

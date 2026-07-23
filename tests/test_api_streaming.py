@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import unittest
 
-from backend.api.routes import _answer_chunks
+from pydantic import ValidationError
+
+from backend.api.routes import ChatRequest, _answer_chunks
 
 
 class ValidatedStreamingTests(unittest.TestCase):
@@ -19,6 +21,10 @@ class ValidatedStreamingTests(unittest.TestCase):
     def test_invalid_chunk_size_is_rejected(self) -> None:
         with self.assertRaisesRegex(ValueError, "positive"):
             _answer_chunks("answer", chunk_size=0)
+
+    def test_single_message_cannot_exceed_conversation_budget(self) -> None:
+        with self.assertRaises(ValidationError):
+            ChatRequest(message="测" * 11_000)
 
 
 if __name__ == "__main__":

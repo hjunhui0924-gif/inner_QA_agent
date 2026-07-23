@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import operator
 from typing import Annotated, Literal, TypedDict
 
 from langchain_core.documents import Document
@@ -20,6 +19,7 @@ class AgentState(TypedDict, total=False):
     session_id: str
     trace_id: str
     query: str
+    conversation_summary: str
     rewritten_query: str
     retrieved_docs: list[Document]
     is_relevant: bool
@@ -32,4 +32,4 @@ class AgentState(TypedDict, total=False):
     hallucination_retry_count: int
     route: Literal["rag", "tool_call", "direct"]
     tool_output: str
-    status_events: Annotated[list[str], operator.add]
+    status_events: list[str]

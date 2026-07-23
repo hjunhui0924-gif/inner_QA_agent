@@ -11,7 +11,7 @@
 - 企业内部知识问答
 - 文件上传并写入知识库
 - RAG 检索与回答校验
-- 会话历史管理
+- 有界多轮会话、自动摘要与完整会话删除
 - SSE 流式输出
 - 知识库两层去重
   - 精确去重：内容指纹
@@ -66,6 +66,10 @@ DASHSCOPE_API_KEY=你的DashScopeKey
 MODEL_NAME=qwen3.6-plus
 JUDGE_MODEL_NAME=qwen3.6-plus
 QWEN_ENABLE_THINKING=false
+CONVERSATION_TOKEN_BUDGET=12000
+CONVERSATION_SUMMARY_TRIGGER_TOKENS=10000
+CONVERSATION_SUMMARY_TARGET_TOKENS=1500
+CONVERSATION_RECENT_TURNS=4
 EMBEDDING_PROVIDER=dashscope
 EMBEDDING_MODEL=text-embedding-v3
 EMBEDDING_DIMENSIONS=1024
@@ -80,6 +84,16 @@ RERANKER_ENABLED=true
 RERANKER_MODEL=gte-rerank-v2
 RERANKER_API_STYLE=native
 ```
+
+会话上下文使用保守的中英文混合 Token 估算。达到 10000 Token 时，系统使用
+`qwen3.6-plus` 将较早对话压缩到约 1500 Token，保留最近 4 轮和当前问题；如果
+最近对话本身过长，会继续压缩更早轮次以满足 12000 Token 的会话预算。摘要模型
+不可用时会退化为确定性截断。现有路由器会利用摘要判断短追问是否仍需进入 RAG；
+检索失败后，`rewrite_query` 会结合摘要和最近对话补全追问中的指代，再重新检索。
+删除会话时同时删除业务聊天记录和对应 LangGraph
+Checkpoint，因此复用原会话 ID 也不会恢复旧上下文。同一会话的流式回答与删除在
+当前进程内串行执行，避免删除完成后正在运行的回答重新写回会话；单条用户消息如果
+已经超过为当前问题预留的会话预算，会在进入 Agent 前被拒绝。
 
 回答生成默认使用 `qwen3.6-plus`，并关闭思考模式，以提高抽取式回答和 JSON Judge 的指令稳定性。自动语义校验通过 `JUDGE_MODEL_NAME` 独立配置；当前同样设为 `qwen3.6-plus`，后续可以切换成不同模型做交叉评判。评测执行和指标计算全自动运行；现有 34 题保留为开发集，后续新增样本采用模型生成、原文包含校验和冲突样本自动剔除，尽量不引入逐题人工标注。
 

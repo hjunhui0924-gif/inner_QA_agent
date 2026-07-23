@@ -15,6 +15,7 @@ from backend.agent.nodes import (
     fallback_answer,
     generate,
     grade_documents,
+    manage_conversation_context,
     retrieve,
     route_query,
     rewrite_query,
@@ -27,6 +28,7 @@ def build_graph(checkpointer: AsyncSqliteSaver):
     """Compile the LangGraph workflow."""
 
     builder = StateGraph(AgentState)
+    builder.add_node("manage_conversation_context", manage_conversation_context)
     builder.add_node("route_query", route_query)
     builder.add_node("retrieve", retrieve)
     builder.add_node("grade_documents", grade_documents)
@@ -36,7 +38,8 @@ def build_graph(checkpointer: AsyncSqliteSaver):
     builder.add_node("generate", generate)
     builder.add_node("check_hallucination", check_hallucination)
 
-    builder.add_edge(START, "route_query")
+    builder.add_edge(START, "manage_conversation_context")
+    builder.add_edge("manage_conversation_context", "route_query")
     builder.add_conditional_edges("route_query", route_after_routing)
     builder.add_edge("retrieve", "grade_documents")
     builder.add_conditional_edges("grade_documents", route_after_grading)

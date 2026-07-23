@@ -26,6 +26,7 @@ async def lifespan(app: FastAPI):
 
     async with AsyncSqliteSaver.from_conn_string(settings.sqlite_db_path) as checkpointer:
         await checkpointer.setup()
+        app.state.checkpointer = checkpointer
         app.state.graph = build_graph(checkpointer)
         yield
 

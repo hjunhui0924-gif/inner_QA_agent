@@ -36,6 +36,14 @@ class ModelConfigurationTests(unittest.TestCase):
         with self.assertRaises(ValidationError):
             Settings(_env_file=None, judge_model_name=" ")
 
+    def test_summary_trigger_cannot_exceed_conversation_budget(self) -> None:
+        with self.assertRaises(ValidationError):
+            Settings(
+                _env_file=None,
+                conversation_token_budget=100,
+                conversation_summary_trigger_tokens=101,
+            )
+
 
 class JudgeRoutingTests(unittest.IsolatedAsyncioTestCase):
     async def test_hallucination_check_uses_the_independent_judge_model(self) -> None:

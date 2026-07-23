@@ -10,18 +10,23 @@ from pathlib import Path
 
 from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field
-from langchain_core.messages import HumanMessage
+from pydantic import BaseModel, Field, field_validator
 
 from backend.agent.memory import (
     add_knowledge_record,
     append_chat_message,
-    delete_chat_session,
     extract_document_from_upload,
     list_knowledge_records,
     list_chat_sessions,
     load_chat_messages,
     save_uploaded_file,
+)
+from backend.agent.conversation import estimate_text_tokens
+from backend.agent.sessions import (
+    create_turn_state,
+    delete_session_completely,
+    session_operation,
+    thread_id_for,
 )
 from backend.config import settings
 from backend.observability.tracing import build_trace, record_trace
@@ -30,6 +35,7 @@ from backend.observability.tracing import build_trace, record_trace
 router = APIRouter()
 
 NODE_STATUS_MESSAGES = {
+    "manage_conversation_context": "正在整理会话上下文",
     "inject_memory": "正在读取用户偏好",
     "route_query": "正在判断路由",
     "retrieve": "正在检索知识库",
@@ -48,6 +54,20 @@ class ChatRequest(BaseModel):
     message: str = Field(min_length=1)
     user_id: str = Field(default="user_001")
     session_id: str = Field(default="session_default")
+
+    @field_validator("message")
+    @classmethod
+    def validate_message_budget(cls, value: str) -> str:
+        estimated = estimate_text_tokens(value) + 4
+        available = (
+            settings.conversation_token_budget
+            - settings.conversation_summary_target_tokens
+        )
+        if estimated > available:
+            raise ValueError(
+                "Message exceeds the configured conversation token budget."
+            )
+        return value
 
 
 def _ingest_uploaded_file(
@@ -126,24 +146,32 @@ def _answer_chunks(answer: str, chunk_size: int = 80) -> list[str]:
 
 
 async def _stream_graph(request: Request, payload: ChatRequest) -> AsyncIterator[str]:
+    """Serialize one session while its graph run and history writes complete."""
+
+    thread_id = thread_id_for(payload.user_id, payload.session_id)
+    async with session_operation(thread_id):
+        async for event in _stream_graph_unlocked(request, payload):
+            yield event
+
+
+async def _stream_graph_unlocked(
+    request: Request,
+    payload: ChatRequest,
+) -> AsyncIterator[str]:
     """Run the graph and emit SSE events."""
 
     graph = getattr(request.app.state, "graph", None)
     if graph is None:
         raise HTTPException(status_code=503, detail="Graph is not initialized.")
 
-    thread_id = f"{payload.user_id}_{payload.session_id}"
+    thread_id = thread_id_for(payload.user_id, payload.session_id)
     trace_id = str(uuid.uuid4())
-    graph_input = {
-        "messages": [HumanMessage(content=payload.message)],
-        "query": payload.message,
-        "user_id": payload.user_id,
-        "session_id": payload.session_id,
-        "trace_id": trace_id,
-        "retrieval_retry_count": 0,
-        "hallucination_retry_count": 0,
-        "status_events": [],
-    }
+    graph_input = create_turn_state(
+        message=payload.message,
+        user_id=payload.user_id,
+        session_id=payload.session_id,
+        trace_id=trace_id,
+    )
     config = {"configurable": {"thread_id": thread_id}}
     current_node = ""
     assistant_text = ""
@@ -298,10 +326,21 @@ async def chat_history(user_id: str, session_id: str) -> dict[str, object]:
 
 
 @router.delete("/chat/session/{user_id}/{session_id}")
-async def delete_session(user_id: str, session_id: str) -> dict[str, str]:
-    """Delete one chat session and its messages."""
+async def delete_session(
+    request: Request,
+    user_id: str,
+    session_id: str,
+) -> dict[str, str]:
+    """Delete visible history and the corresponding LangGraph thread."""
 
-    await delete_chat_session(user_id, session_id)
+    checkpointer = getattr(request.app.state, "checkpointer", None)
+    if checkpointer is None:
+        raise HTTPException(status_code=503, detail="Checkpointer is not initialized.")
+    await delete_session_completely(
+        user_id=user_id,
+        session_id=session_id,
+        checkpointer=checkpointer,
+    )
     return {"message": "会话已删除。"}
 
 
