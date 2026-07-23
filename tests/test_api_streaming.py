@@ -6,7 +6,7 @@ import unittest
 
 from pydantic import ValidationError
 
-from backend.api.routes import ChatRequest, _answer_chunks
+from backend.api.routes import ChatRequest, _answer_chunks, health
 
 
 class ValidatedStreamingTests(unittest.TestCase):
@@ -25,6 +25,13 @@ class ValidatedStreamingTests(unittest.TestCase):
     def test_single_message_cannot_exceed_conversation_budget(self) -> None:
         with self.assertRaises(ValidationError):
             ChatRequest(message="测" * 11_000)
+
+    def test_health_contract_exposes_runtime_configuration(self) -> None:
+        payload = health()
+
+        self.assertEqual(payload["status"], "ok")
+        self.assertTrue(payload["model"])
+        self.assertIn(payload["retrieval_strategy"], {"dense", "lexical", "fusion", "rerank"})
 
 
 if __name__ == "__main__":

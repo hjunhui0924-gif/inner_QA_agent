@@ -70,6 +70,17 @@ class ChatRequest(BaseModel):
         return value
 
 
+@router.get("/health")
+def health() -> dict[str, str]:
+    """Expose a minimal frontend readiness contract."""
+
+    return {
+        "status": "ok",
+        "model": settings.model_name,
+        "retrieval_strategy": settings.retrieval_strategy,
+    }
+
+
 def _ingest_uploaded_file(
     filename: str,
     raw_bytes: bytes,
@@ -258,6 +269,9 @@ async def _stream_graph_unlocked(
             session_id=payload.session_id,
             role="assistant",
             content=final_answer,
+            citations=(
+                trace["citations"] if isinstance(trace["citations"], list) else []
+            ),
         )
         for chunk in _answer_chunks(final_answer):
             yield _sse_event({"type": "token", "content": chunk})

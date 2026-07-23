@@ -74,7 +74,7 @@ SHA-256（文本换行统一为 LF），并与人工核验后固定在 manifest 
 
 检索命中不等于回答可信。生成阶段把每个候选 Chunk 标记为 `[C1]`、`[C2]`，要求事实、数字、日期和规则逐句引用；生成完成后只做保守的编号范围、数字/关系冲突和近逐字子句检查。系统不会为无引用断言自动补造或重分配引用，但这些确定性检查仍不等同于语义蕴含证明；缺少有效出处或未通过独立幻觉检查的 RAG 回答会失败关闭。
 
-结构化引用包含 `document_id`、标题、来源、原始文件名、页码、章节、`chunk_id`、逐字原文摘录和 `verification_status=provenance_only`。它只证明引文出处，不宣称原文蕴含回答；语义支持由独立幻觉检查节点判断，校验模型不可用时关闭放行。PDF 解析按页保存 Segment，Markdown 与 DOCX 按标题保存 Section；Segment 在切块和向量持久化后仍保留位置元数据。SSE 的 `result` 事件返回最终答案、引用、Trace ID 和运行时失败类型，Streamlit 仅增加折叠式来源展示，仍定位为演示前端。
+结构化引用包含 `document_id`、标题、来源、原始文件名、页码、章节、`chunk_id`、逐字原文摘录和 `verification_status=provenance_only`。它只证明引文出处，不宣称原文蕴含回答；语义支持由独立幻觉检查节点判断，校验模型不可用时关闭放行。PDF 解析按页保存 Segment，Markdown 与 DOCX 按标题保存 Section；Segment 在切块和向量持久化后仍保留位置元数据。SSE 的 `result` 事件返回最终答案、引用、Trace ID 和运行时失败类型。Vue 3 + Vite + TypeScript 工作台已接入真实 SSE、结构化引用、会话生命周期、文件上传和知识库接口，是项目唯一 Web 前端。
 
 ## 答案级评测与失败闭环
 

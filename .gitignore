@@ -19,12 +19,12 @@ env/
 # Environment files
 .env
 
-# Streamlit
-.streamlit/secrets.toml
 
 # Build artifacts
 build/
 dist/
+node_modules/
+work/
 *.egg-info/
 
 # Logs

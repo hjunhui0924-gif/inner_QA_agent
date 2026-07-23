@@ -74,6 +74,7 @@ class Settings(BaseSettings):
     max_document_pages: int = 500
     max_archive_uncompressed_bytes: int = 100 * 1024 * 1024
     backend_url: str = "http://localhost:8000"
+    frontend_origins: str = "http://127.0.0.1:5173,http://localhost:5173"
 
     @field_validator("embedding_provider")
     @classmethod

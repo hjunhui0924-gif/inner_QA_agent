@@ -28,6 +28,28 @@ from backend.api.routes import delete_session
 
 
 class CompleteSessionDeletionTests(unittest.IsolatedAsyncioTestCase):
+    async def test_assistant_citations_survive_history_reload(self) -> None:
+        citation = {
+            "citation_id": "C1",
+            "title": "Travel policy",
+            "quote": "Expenses above 5000 require approval.",
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            database = Path(directory) / "memory.db"
+            with patch("backend.agent.memory.settings.sqlite_db_path", str(database)):
+                await ensure_user_memory_db(database)
+                await append_chat_message(
+                    "user-1",
+                    "session-1",
+                    "assistant",
+                    "See the policy [C1].",
+                    citations=[citation],
+                )
+
+                history = await load_chat_messages("user-1", "session-1")
+
+        self.assertEqual(history[0]["citations"], [citation])
+
     async def test_delete_removes_history_and_langgraph_checkpoint(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             database = Path(directory) / "memory.db"

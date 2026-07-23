@@ -239,10 +239,19 @@ async def ensure_user_memory_db(db_path: str | Path) -> None:
                 session_id TEXT NOT NULL,
                 role TEXT NOT NULL,
                 content TEXT NOT NULL,
+                citations_json TEXT NOT NULL DEFAULT '[]',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             """
         )
+        cursor = await db.execute("PRAGMA table_info(chat_messages)")
+        columns = {str(row[1]) for row in await cursor.fetchall()}
+        await cursor.close()
+        if "citations_json" not in columns:
+            await db.execute(
+                "ALTER TABLE chat_messages "
+                "ADD COLUMN citations_json TEXT NOT NULL DEFAULT '[]'"
+            )
         await db.commit()
 
 
@@ -285,6 +294,7 @@ async def append_chat_message(
     session_id: str,
     role: str,
     content: str,
+    citations: list[dict[str, Any]] | None = None,
 ) -> None:
     """Append one chat message and touch its session."""
 
@@ -300,10 +310,18 @@ async def append_chat_message(
     async with aiosqlite.connect(settings.sqlite_db_path) as db:
         await db.execute(
             """
-            INSERT INTO chat_messages (user_id, session_id, role, content)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO chat_messages (
+                user_id, session_id, role, content, citations_json
+            )
+            VALUES (?, ?, ?, ?, ?)
             """,
-            (user_id, session_id, role, clean_content),
+            (
+                user_id,
+                session_id,
+                role,
+                clean_content,
+                json.dumps(citations or [], ensure_ascii=False),
+            ),
         )
         await db.execute(
             """
@@ -355,13 +373,13 @@ async def list_chat_sessions(user_id: str) -> list[dict[str, Any]]:
     ]
 
 
-async def load_chat_messages(user_id: str, session_id: str) -> list[dict[str, str]]:
+async def load_chat_messages(user_id: str, session_id: str) -> list[dict[str, Any]]:
     """Return chat messages for one session."""
 
     async with aiosqlite.connect(settings.sqlite_db_path) as db:
         cursor = await db.execute(
             """
-            SELECT role, content
+            SELECT role, content, citations_json
             FROM chat_messages
             WHERE user_id = ? AND session_id = ?
             ORDER BY id ASC
@@ -371,7 +389,20 @@ async def load_chat_messages(user_id: str, session_id: str) -> list[dict[str, st
         rows = await cursor.fetchall()
         await cursor.close()
 
-    return [{"role": row[0], "content": row[1]} for row in rows]
+    result: list[dict[str, Any]] = []
+    for role, content, citations_json in rows:
+        try:
+            citations = json.loads(citations_json or "[]")
+        except (json.JSONDecodeError, TypeError):
+            citations = []
+        result.append(
+            {
+                "role": role,
+                "content": content,
+                "citations": citations if isinstance(citations, list) else [],
+            }
+        )
+    return result
 
 
 async def delete_chat_session(user_id: str, session_id: str) -> None:

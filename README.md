@@ -1,6 +1,6 @@
 # 企业内部知识助手
 
-一个基于 `LangGraph + Qwen + FastAPI + Streamlit` 的企业内部知识问答项目，用于将企业制度、流程、合同、财务、人事等内部文档接入知识库，并通过 RAG 提供可检索、可追溯的问答能力。
+一个基于 `LangGraph + Qwen + FastAPI + Vue 3` 的企业内部知识问答项目，用于将企业制度、流程、合同、财务、人事等内部文档接入知识库，并通过 RAG 提供可检索、可追溯的问答能力。
 
 ## 项目简介
 
@@ -13,12 +13,14 @@
 - RAG 检索与回答校验
 - 有界多轮会话、自动摘要与完整会话删除
 - SSE 流式输出
+- Vue 3 企业知识工作台（已完成 FastAPI 接口集成）
 - 知识库两层去重
   - 精确去重：内容指纹
   - 近似去重：文本相似度阈值
 
 完整的项目建设顺序、技术选型依据、评测过程和失败闭环见
 [《企业内部知识助手：从原型到可评测 RAG 系统的建设思路》](docs/企业内部知识助手_项目建设思路.md)。
+Vue 前端的设计系统、目录和当前接入边界见 [frontend/README.md](frontend/README.md)。
 
 ## 技术栈
 
@@ -26,7 +28,7 @@
 - `LangChain`：消息、文档、工具与模型接口
 - `Qwen / DashScope`：大模型调用
 - `FastAPI`：后端接口
-- `Streamlit`：前端页面
+- `Vue 3 + Vite + TypeScript`：默认 Web 前端
 - `SQLite`：用户记忆、会话历史
 - `Chroma`：向量检索库
 
@@ -39,7 +41,12 @@ backend/
   config.py
   main.py
 frontend/
-  streamlit_app.py
+  src/
+    components/
+    views/
+    styles/
+  package.json
+  vite.config.ts
 data/
   knowledge_base.json
 requirements.txt
@@ -50,11 +57,19 @@ README.md
 
 - Python 3.11+
 - Conda 环境即可，不要求额外创建虚拟环境
+- Node.js 20+ 与 npm
 
 ## 安装依赖
 
 ```bash
 pip install -r requirements.txt
+```
+
+安装 Vue 前端依赖：
+
+```bash
+cd frontend
+npm install
 ```
 
 ## 环境变量
@@ -123,11 +138,27 @@ RRF 结果，不中断问答。Rerank 模型与端点均可配置，模型说明
 uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-启动前端：
+启动 Vue 前端：
 
 ```bash
-streamlit run frontend/streamlit_app.py
+cd frontend
+npm run dev
 ```
+
+浏览器访问 `http://127.0.0.1:5173`。Vite 开发服务器已预留 `/api` 到
+`http://127.0.0.1:8000` 的本地代理。
+
+执行前端类型检查和生产构建：
+
+```bash
+cd frontend
+npm run typecheck
+npm run build
+```
+
+Vue 是项目唯一前端，已接入真实 SSE 问答、Agent 节点状态、会话历史与删除、结构化
+引用、知识文件上传和知识库列表。前端通过 Vite 的 `/api` 代理访问 FastAPI；直接跨域
+开发时，后端也允许 `.env` 中 `FRONTEND_ORIGINS` 配置的来源。
 
 ## 主要接口
 
@@ -168,6 +199,12 @@ GET /chat/sessions/{user_id}
 
 ```http
 DELETE /chat/session/{user_id}/{session_id}
+```
+
+### 6. 健康检查
+
+```http
+GET /health
 ```
 
 ## 官方文档检索 Benchmark
@@ -270,7 +307,7 @@ python scripts/run_answer_benchmark.py --top-k 5
 - 更高质量的语义去重
 - 文档版本管理
 - 更细粒度的权限控制
-- 前后端分离界面
+- 用户登录、部门级权限和知识库隔离
 
 ## License
 
