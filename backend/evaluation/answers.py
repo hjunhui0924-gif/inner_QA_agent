@@ -265,11 +265,26 @@ def _citation_completeness(answer: str) -> float:
 
 
 def _claims(answer: str) -> list[str]:
-    return [
-        item.strip()
-        for item in re.split(r"(?<=[。！？.!?])\s*", answer)
-        if item.strip()
-    ]
+    claims: list[str] = []
+    for raw_line in answer.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        line = re.sub(r"^(?:[-*]\s+|\d+[.、)]\s*)", "", line).strip()
+        if not line or line.endswith(("：", ":")):
+            continue
+        chinese_parts = [
+            item.strip()
+            for item in re.findall(r"[^。！？!?]+[。！？!?]?", line)
+            if item.strip()
+        ]
+        for part in chinese_parts:
+            claims.extend(
+                item.strip()
+                for item in re.split(r"(?<=[.!?])\s+", part)
+                if item.strip()
+            )
+    return claims
 
 
 def _claim_supported(claim: str, quote: str) -> bool:

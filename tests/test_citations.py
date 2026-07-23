@@ -143,5 +143,13 @@ class CitationTests(unittest.TestCase):
 
         self.assertNotIn("[C9]", answer)
 
+    def test_sanitizer_removes_irrelevant_marker_from_abstention(self) -> None:
+        answer = sanitize_answer_citations(
+            "检索到的知识未包含该问题的答案 [C1]。",
+            [Document(page_content="unrelated", metadata={})],
+        )
+
+        self.assertNotIn("[C1]", answer)
+
 if __name__ == "__main__":
     unittest.main()

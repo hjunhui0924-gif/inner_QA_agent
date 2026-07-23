@@ -1,0 +1,1969 @@
+{
+  "generated_at": "2026-07-23T07:34:29.450745+00:00",
+  "git_commit": "9a6be63d1577305f1f50ebaeed460609911acbf4",
+  "git_dirty": true,
+  "python_version": "3.13.0",
+  "package_versions": {
+    "langchain": "1.2.18",
+    "langchain-chroma": "1.1.0",
+    "chromadb": "1.5.9",
+    "langchain-openai": "1.2.1",
+    "httpx": "0.28.1",
+    "pydantic": "2.13.4",
+    "beautifulsoup4": "4.12.3",
+    "filelock": "3.17.0"
+  },
+  "hosted_model_results_are_time_variant": true,
+  "eval_file": "data\\evals\\official_policy_retrieval_eval.json",
+  "provenance_file": "data\\eval_corpus\\provenance.json",
+  "top_k": 5,
+  "dataset_role": "development_set",
+  "pipeline_scope": "retrieval_plus_single_generation",
+  "generation_model": "qwen3.6-plus",
+  "production_judge_model": "qwen3.6-plus",
+  "judge_model_used_in_this_benchmark": "qwen3.6-plus",
+  "evaluation_mode": "automatic_deterministic_plus_llm_judge",
+  "case_count": 34,
+  "answerable_count": 30,
+  "no_answer_count": 4,
+  "corpus_identity": "8714c13da8f988f0cc8b673b2b03ff0a088420c3ee11a8ea43e426d4f44760da",
+  "collection_name": "official-8714c13da8-92718f17bd40",
+  "document_count": 4,
+  "chunk_count": 46,
+  "embedding_provider": "dashscope",
+  "embedding_model": "text-embedding-v3",
+  "embedding_dimensions": 1024,
+  "embedding_index_version": "v3-chunk800-overlap120",
+  "chunk_size": 800,
+  "chunk_overlap": 120,
+  "retrieval_config": {
+    "dense_candidate_k": 20,
+    "lexical_candidate_k": 20,
+    "rerank_candidate_k": 12,
+    "rrf_k": 60,
+    "dense_weight": 0.5,
+    "lexical_weight": 0.5
+  },
+  "reranker_model": "gte-rerank-v2",
+  "reranker_endpoint": "https://dashscope.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank",
+  "reranker_api_style": "native",
+  "reranker_timeout_seconds": 10.0,
+  "summary": {
+    "gold_phrase_match_rate": 0.7,
+    "numeric_match_rate": 1.0,
+    "citation_provenance_accuracy": 1.0,
+    "citation_completeness": 1.0,
+    "extractive_overlap_rate": 0.21666666666666667,
+    "abstention_accuracy": 1.0
+  },
+  "metric_scope": {
+    "abstention_accuracy": "all_cases",
+    "other_summary_metrics": "answerable_cases_only"
+  },
+  "metric_limitations": "Quote provenance proves source location only. Extractive overlap is not a human or NLI entailment judgment.",
+  "no_answer_accuracy": 1.0,
+  "failure_counts": {
+    "gold_phrase_mismatch": 10,
+    "none": 24
+  },
+  "automatic_judge_summary": {
+    "available_count": 34,
+    "answer_correct_rate": 1.0,
+    "grounded_rate": 0.9411764705882353,
+    "citation_support_rate": 0.9411764705882353,
+    "abstention_correct_rate": 1.0,
+    "overall_pass_rate": 0.9411764705882353
+  },
+  "results": [
+    {
+      "id": "pipl_01",
+      "category": "date",
+      "question": "个人信息保护法从哪一天开始施行？",
+      "answerable": true,
+      "expected_facts": [
+        "本法自2021年11月1日起施行"
+      ],
+      "retrieved_chunk_ids": [
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:14",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:0",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:11",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "《中华人民共和国个人信息保护法》自2021年11月1日起施行 [C1]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C1",
+          "document_id": "personal_information_protection_law",
+          "title": "中华人民共和国个人信息保护法",
+          "source": "中国人大网",
+          "filename": "personal_information_protection_law-5df36ddf7668.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:14",
+          "quote": "第七十四条 本法自2021年11月1日起施行。",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 0.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "gold_phrase_mismatch"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "答案准确陈述了施行日期，与参考事实一致。引用原文直接支持该断言，且无超出引用的事实扩展。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 4145.7696000579745
+    },
+    {
+      "id": "pipl_02",
+      "category": "condition",
+      "question": "处理敏感个人信息需要取得哪种同意？",
+      "answerable": true,
+      "expected_facts": [
+        "处理敏感个人信息应当取得个人的单独同意"
+      ],
+      "retrieved_chunk_ids": [
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:5",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:4",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:4",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:2",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:1"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "处理敏感个人信息应当取得个人的单独同意 [C1]。若法律、行政法规规定应当取得书面同意的，则需从其规定 [C1]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C1",
+          "document_id": "personal_information_protection_law",
+          "title": "中华人民共和国个人信息保护法",
+          "source": "中国人大网",
+          "filename": "personal_information_protection_law-5df36ddf7668.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:5",
+          "quote": "第二十九条 处理敏感个人信息应当取得个人的单独同意； 法律、行政法规规定处理敏感个人信息应当取得书面同意的，从其规定。",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 1.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.5,
+        "abstention_accuracy": 1.0,
+        "failure_type": "none"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "答案准确覆盖了参考事实，且所有断言均得到引用原文的直接支持，无事实性扩展或矛盾。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 3795.938399853185
+    },
+    {
+      "id": "pipl_03",
+      "category": "condition",
+      "question": "处理不满十四周岁未成年人的个人信息应取得谁的同意？",
+      "answerable": true,
+      "expected_facts": [
+        "未成年人的父母或者其他监护人的同意"
+      ],
+      "retrieved_chunk_ids": [
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:4",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:5",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:4",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:2",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:1"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "处理不满十四周岁未成年人的个人信息，应当取得未成年人的父母或者其他监护人的同意 [C1]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C1",
+          "document_id": "network_data_security_regulations",
+          "title": "网络数据安全管理条例",
+          "source": "中国政府网",
+          "filename": "network_data_security_regulations-3c39f15bff9e.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:4",
+          "quote": "（三）处理不满十四周岁未成年人个人信息的，应当取得未成年人的父母或者其他监护人的同意；",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 1.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "none"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "答案准确覆盖了参考事实，且与引用原文完全一致，语义支持充分。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 3421.6799999121577
+    },
+    {
+      "id": "pipl_04",
+      "category": "exact_rule",
+      "question": "个人信息的保存期限原则上应当多长？",
+      "answerable": true,
+      "expected_facts": [
+        "实现处理目的所必要的最短时间"
+      ],
+      "retrieved_chunk_ids": [
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:3",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:4"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "除法律、行政法规另有规定外，个人信息的保存期限应当为实现处理目的所必要的最短时间 [C2]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C2",
+          "document_id": "personal_information_protection_law",
+          "title": "中华人民共和国个人信息保护法",
+          "source": "中国人大网",
+          "filename": "personal_information_protection_law-5df36ddf7668.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:3",
+          "quote": "第十九条 除法律、行政法规另有规定外，个人信息的保存期限应当为实现处理目的所必要的最短时间。",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 1.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 1.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "none"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "答案准确覆盖了参考事实，且引用原文直接支持该断言。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 3789.586199913174
+    },
+    {
+      "id": "pipl_05",
+      "category": "number",
+      "question": "严重违反个人信息保护法时，最高罚款金额或营业额比例是多少？",
+      "answerable": true,
+      "expected_facts": [
+        "五千万元以下或者上一年度营业额百分之五以下罚款"
+      ],
+      "retrieved_chunk_ids": [
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:13",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:13",
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:8",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:14",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:0"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "严重违反《中华人民共和国个人信息保护法》时，最高罚款金额为五千万元以下或者上一年度营业额百分之五以下 [C1]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C1",
+          "document_id": "personal_information_protection_law",
+          "title": "中华人民共和国个人信息保护法",
+          "source": "中国人大网",
+          "filename": "personal_information_protection_law-5df36ddf7668.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:13",
+          "quote": "有前款规定的违法行为，情节严重的，由省级以上履行个人信息保护职责的部门责令改正，没收违法所得，并处五千万元以下或者上一年度营业额百分之五以下罚款，并可以责令暂停相关业务或者停业整顿、通报有关主管部门吊销相关业务许可或者吊销营业执照；",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 0.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "gold_phrase_mismatch"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "答案准确提取了参考事实中的罚款金额和比例，且引用原文直接支持该断言。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 3743.217999814078
+    },
+    {
+      "id": "pipl_06",
+      "category": "definition",
+      "question": "个人信息的定义是否包括匿名化处理后的信息？",
+      "answerable": true,
+      "expected_facts": [
+        "不包括匿名化处理后的信息"
+      ],
+      "retrieved_chunk_ids": [
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:0",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:14",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:1",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:3"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "个人信息的定义不包括匿名化处理后的信息 [C1]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C1",
+          "document_id": "personal_information_protection_law",
+          "title": "中华人民共和国个人信息保护法",
+          "source": "中国人大网",
+          "filename": "personal_information_protection_law-5df36ddf7668.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:0",
+          "quote": "第四条 个人信息是以电子或者其他方式记录的与已识别或者可识别的自然人有关的各种信息，不包括匿名化处理后的信息。",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 1.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "none"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "答案准确反映了参考事实，且引用原文直接支持该断言。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 3344.731600023806
+    },
+    {
+      "id": "pipl_07",
+      "category": "condition",
+      "question": "使用个人信息进行自动化决策时需要保证什么？",
+      "answerable": true,
+      "expected_facts": [
+        "决策的透明度和结果公平、公正",
+        "不得对个人在交易价格等交易条件上实行不合理的差别待遇"
+      ],
+      "retrieved_chunk_ids": [
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:4",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:14",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:1"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "使用个人信息进行自动化决策时，应当保证决策的透明度和结果公平、公正 [C1]。不得对个人在交易价格等交易条件上实行不合理的差别待遇 [C1]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C1",
+          "document_id": "personal_information_protection_law",
+          "title": "中华人民共和国个人信息保护法",
+          "source": "中国人大网",
+          "filename": "personal_information_protection_law-5df36ddf7668.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:4",
+          "quote": "第二十四条 个人信息处理者利用个人信息进行自动化决策，应当保证决策的透明度和结果公平、公正，不得对个人在交易价格等交易条件上实行不合理的差别待遇。",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 0.5,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.5,
+        "abstention_accuracy": 1.0,
+        "failure_type": "gold_phrase_mismatch"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "答案完整覆盖了参考事实中的两个要点（透明度/公平公正是、禁止不合理差别待遇），且均正确引用了支持原文，无事实性扩展或矛盾。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 4228.356799809262
+    },
+    {
+      "id": "pipl_08",
+      "category": "retention",
+      "question": "个人信息保护影响评估报告和处理情况记录至少保存几年？",
+      "answerable": true,
+      "expected_facts": [
+        "至少保存三年"
+      ],
+      "retrieved_chunk_ids": [
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:0",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:11"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "个人信息保护影响评估报告和处理情况记录应当至少保存三年 [C1]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C1",
+          "document_id": "personal_information_protection_law",
+          "title": "中华人民共和国个人信息保护法",
+          "source": "中国人大网",
+          "filename": "personal_information_protection_law-5df36ddf7668.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10",
+          "quote": "个人信息保护影响评估报告和处理情况记录应当至少保存三年。",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 1.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 1.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "none"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "答案准确覆盖了参考事实，且与引用原文完全一致，无超出范围的内容。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 4686.794699868187
+    },
+    {
+      "id": "dsl_01",
+      "category": "date",
+      "question": "数据安全法自何时起施行？",
+      "answerable": true,
+      "expected_facts": [
+        "本法自2021年9月1日起施行"
+      ],
+      "retrieved_chunk_ids": [
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:0",
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:8",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:1",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:15"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "《中华人民共和国数据安全法》自2021年9月1日起施行 [C2]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C2",
+          "document_id": "data_security_law",
+          "title": "中华人民共和国数据安全法",
+          "source": "中国人大网",
+          "filename": "data_security_law-787f56fac07e.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:8",
+          "quote": "第七章 附 则 第五十三条 开展涉及国家秘密的数据处理活动，适用《中华人民共和国保守国家秘密法》等法律、行政法规的规定。 在统计、档案工作中开展数据处理活动，开展涉及个人信息的数据处理活动，还应当遵守有关法律、行政法规的规定。 第五十四条 军事数据安全保护的办法，由中央军事委员会依据本法另行制定。 第五十五条 本法自2021年9月1日起施行。",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 0.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "gold_phrase_mismatch"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "答案准确陈述了施行日期，且引用原文第五十五条明确支持该事实。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 3280.3397001698613
+    },
+    {
+      "id": "dsl_02",
+      "category": "definition",
+      "question": "数据安全法所称的数据是什么？",
+      "answerable": true,
+      "expected_facts": [
+        "任何以电子或者其他方式对信息的记录"
+      ],
+      "retrieved_chunk_ids": [
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:0",
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:1",
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3",
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4",
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:8"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "《中华人民共和国数据安全法》所称数据，是指任何以电子或者其他方式对信息的记录 [C1]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C1",
+          "document_id": "data_security_law",
+          "title": "中华人民共和国数据安全法",
+          "source": "中国人大网",
+          "filename": "data_security_law-787f56fac07e.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:0",
+          "quote": "第三条 本法所称数据，是指任何以电子或者其他方式对信息的记录。",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 1.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "none"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "答案准确复述了参考事实，且引用原文直接支持该定义，无额外扩展或矛盾。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 4244.660200085491
+    },
+    {
+      "id": "dsl_03",
+      "category": "exact_rule",
+      "question": "国家依据什么因素对数据实行分类分级保护？",
+      "answerable": true,
+      "expected_facts": [
+        "数据在经济社会发展中的重要程度",
+        "造成的危害程度"
+      ],
+      "retrieved_chunk_ids": [
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3",
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:2",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:1",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "国家根据数据在经济社会发展中的重要程度，以及一旦遭到篡改、破坏、泄露或者非法获取、非法利用，对国家安全、公共利益或者个人、组织合法权益造成的危害程度，对数据实行分类分级保护 [C1]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C1",
+          "document_id": "data_security_law",
+          "title": "中华人民共和国数据安全法",
+          "source": "中国人大网",
+          "filename": "data_security_law-787f56fac07e.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3",
+          "quote": "济社会发展中的重要程度，以及一旦遭到篡改、破坏、泄露或者非法获取、非法利用，对国家安全、公共利益或者个人、组织合法权益造成的危害程度，对数据实行分类分级保护。",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 1.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 1.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "none"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "答案完整覆盖了参考事实中的两个关键因素（重要程度和危害程度），且所有断言均有引用原文支持，语义一致，无幻觉或矛盾。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 4560.321099823341
+    },
+    {
+      "id": "dsl_04",
+      "category": "condition",
+      "question": "数据安全审查决定是否还可以继续申诉，法律如何表述？",
+      "answerable": true,
+      "expected_facts": [
+        "依法作出的安全审查决定为最终决定"
+      ],
+      "retrieved_chunk_ids": [
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:0",
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:12",
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:1",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:3"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "依法作出的安全审查决定为最终决定 [C2]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C2",
+          "document_id": "data_security_law",
+          "title": "中华人民共和国数据安全法",
+          "source": "中国人大网",
+          "filename": "data_security_law-787f56fac07e.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3",
+          "quote": "依法作出的安全审查决定为最终决定。",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 1.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 1.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "none"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "答案准确引用了参考事实，表明安全审查决定为最终决定，隐含不可继续申诉的意思，且引用原文完全支持该断言。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 3844.408500008285
+    },
+    {
+      "id": "dsl_05",
+      "category": "incident",
+      "question": "发生数据安全事件时，数据处理者要采取哪些动作？",
+      "answerable": true,
+      "expected_facts": [
+        "立即采取处置措施",
+        "及时告知用户并向有关主管部门报告"
+      ],
+      "retrieved_chunk_ids": [
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:12",
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:0"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "发生数据安全事件时，数据处理者应当立即采取处置措施 [C1]。同时，需按照规定及时告知用户并向有关主管部门报告 [C1]。网络数据处理者还应当立即启动应急预案，采取措施防止危害扩大并消除安全隐患 [C2]。若事件对个人或组织合法权益造成危害，应及时将安全事件和风险情况、危害后果及已采取的补救措施通知利害关系人 [C2]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C1",
+          "document_id": "data_security_law",
+          "title": "中华人民共和国数据安全法",
+          "source": "中国人大网",
+          "filename": "data_security_law-787f56fac07e.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4",
+          "quote": "发生数据安全事件时，应当立即采取处置措施，按照规定及时告知用户并向有关主管部门报告。",
+          "verification_status": "provenance_only"
+        },
+        {
+          "citation_id": "C2",
+          "document_id": "network_data_security_regulations",
+          "title": "网络数据安全管理条例",
+          "source": "中国政府网",
+          "filename": "network_data_security_regulations-3c39f15bff9e.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+          "quote": "第十一条 网络数据处理者应当建立健全网络数据安全事件应急预案，发生网络数据安全事件时，应当立即启动预案，采取措施防止危害扩大，消除安全隐患，并按照规定向有关主管部门报告。 网络数据安全事件对个人、组织合法权益造成危害的，网络数据处理者应当及时将安全事件和风险情况、危害后果、已经采取的补救措施等，以电话、短信、即时通信工具、电子邮件或者公告等方式通知利害关系人；",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 1.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "none"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "模型答案完整覆盖了参考事实中的'立即采取处置措施'和'及时告知用户并向有关主管部门报告'。所有断言均有对应的引用原文支持，且语义一致，无超出引用的事实性扩展。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 5153.60219986178
+    },
+    {
+      "id": "dsl_06",
+      "category": "jurisdiction",
+      "question": "在境外开展数据处理活动损害中国国家安全时是否会被追责？",
+      "answerable": true,
+      "expected_facts": [
+        "在中华人民共和国境外开展数据处理活动",
+        "依法追究法律责任"
+      ],
+      "retrieved_chunk_ids": [
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:0",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:6",
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "在中华人民共和国境外开展数据处理活动，若损害中华人民共和国国家安全、公共利益或者公民、组织合法权益的，将依法追究法律责任 [C1]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C1",
+          "document_id": "data_security_law",
+          "title": "中华人民共和国数据安全法",
+          "source": "中国人大网",
+          "filename": "data_security_law-787f56fac07e.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:0",
+          "quote": "在中华人民共和国境外开展数据处理活动，损害中华人民共和国国家安全、公共利益或者公民、组织合法权益的，依法追究法律责任。",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 1.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "none"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "答案准确涵盖了参考事实，且与引用原文完全一致，语义支持充分。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 3731.74239997752
+    },
+    {
+      "id": "dsl_07",
+      "category": "condition",
+      "question": "重要数据处理者需要设置哪些数据安全岗位或机构？",
+      "answerable": true,
+      "expected_facts": [
+        "明确数据安全负责人和管理机构"
+      ],
+      "retrieved_chunk_ids": [
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:7",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:2"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "重要数据的处理者应当明确网络数据安全负责人和网络数据安全管理机构 [C1]。网络数据安全负责人由网络数据处理者管理层成员担任，并应当具备网络数据安全专业知识和相关管理工作经历 [C1]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C1",
+          "document_id": "network_data_security_regulations",
+          "title": "网络数据安全管理条例",
+          "source": "中国政府网",
+          "filename": "network_data_security_regulations-3c39f15bff9e.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+          "quote": "网络数据安全负责人应当具备网络数据安全专业知识和相关管理工作经历，由网络数据处理者管理层成员担任，有权直接向有关主管部门报告网络数据安全情况。",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 0.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "gold_phrase_mismatch"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": false,
+        "citation_support": false,
+        "abstention_correct": true,
+        "overall_pass": false,
+        "reason": "答案中关于'应当明确网络数据安全负责人和网络数据安全管理机构'的断言在引用原文中未找到支持，原文仅描述了负责人的资质和职权，未提及需要设立管理机构或明确该机构的要求。因此，虽然答案符合参考事实，但缺乏引用支持且存在超出引用的事实性扩展。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 4530.159000074491
+    },
+    {
+      "id": "genai_01",
+      "category": "date",
+      "question": "生成式人工智能服务管理暂行办法何时施行？",
+      "answerable": true,
+      "expected_facts": [
+        "本办法自2023年8月15日起施行"
+      ],
+      "retrieved_chunk_ids": [
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "《生成式人工智能服务管理暂行办法》自2023年8月15日起施行 [C1]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C1",
+          "document_id": "generative_ai_interim_measures",
+          "title": "生成式人工智能服务管理暂行办法",
+          "source": "国家互联网信息办公室",
+          "filename": "generative_ai_interim_measures-b912b7f48655.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+          "quote": "htm 生成式人工智能服务管理暂行办法》已经2023年5月23日国家互联网信息办公室2023年第12次室务会会议审议通过，并经国家发展和改革委员会、教育部、科学技术部、工业和信息化部、公安部、国家广播电视总局同意，现予公布，自2023年8月15日起施行。",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 0.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "gold_phrase_mismatch"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "答案准确提取了参考事实中的施行日期，且引用原文直接支持该断言。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 4584.750999929383
+    },
+    {
+      "id": "genai_02",
+      "category": "scope",
+      "question": "仅研发生成式人工智能但未向境内公众提供服务，是否适用暂行办法？",
+      "answerable": true,
+      "expected_facts": [
+        "未向境内公众提供生成式人工智能服务的，不适用本办法的规定"
+      ],
+      "retrieved_chunk_ids": [
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "仅研发生成式人工智能技术但未向境内公众提供生成式人工智能服务的，不适用《生成式人工智能服务管理暂行办法》的规定 [C1]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C1",
+          "document_id": "generative_ai_interim_measures",
+          "title": "生成式人工智能服务管理暂行办法",
+          "source": "国家互联网信息办公室",
+          "filename": "generative_ai_interim_measures-b912b7f48655.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+          "quote": "生成式人工智能技术，未向境内公众提供生成式人工智能服务的，不适用本办法的规定。",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 0.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "gold_phrase_mismatch"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "答案准确反映了参考事实，即未向境内公众提供服务则不适用该办法。引用原文直接支持了这一断言，且答案没有超出引用范围或产生矛盾。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 4286.4064001478255
+    },
+    {
+      "id": "genai_03",
+      "category": "training_data",
+      "question": "生成式人工智能训练数据涉及个人信息时需要满足什么条件？",
+      "answerable": true,
+      "expected_facts": [
+        "应当取得个人同意或者符合法律、行政法规规定的其他情形"
+      ],
+      "retrieved_chunk_ids": [
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "生成式人工智能训练数据涉及个人信息时，应当取得个人同意或者符合法律、行政法规规定的其他情形 [C1]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C1",
+          "document_id": "generative_ai_interim_measures",
+          "title": "生成式人工智能服务管理暂行办法",
+          "source": "国家互联网信息办公室",
+          "filename": "generative_ai_interim_measures-b912b7f48655.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+          "quote": "（三）涉及个人信息的，应当取得个人同意或者符合法律、行政法规规定的其他情形；",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 1.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "none"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "答案准确覆盖了参考事实，且与引用原文完全一致，语义支持充分。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 3599.7662998270243
+    },
+    {
+      "id": "genai_04",
+      "category": "fairness",
+      "question": "生成式人工智能服务应防止产生哪些方面的歧视？",
+      "answerable": true,
+      "expected_facts": [
+        "民族、信仰、国别、地域、性别、年龄、职业、健康等歧视"
+      ],
+      "retrieved_chunk_ids": [
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "生成式人工智能服务应防止产生民族、信仰、国别、地域、性别、年龄、职业、健康等方面的歧视 [C1]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C1",
+          "document_id": "generative_ai_interim_measures",
+          "title": "生成式人工智能服务管理暂行办法",
+          "source": "国家互联网信息办公室",
+          "filename": "generative_ai_interim_measures-b912b7f48655.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+          "quote": "（二）在算法设计、训练数据选择、模型生成和优化、提供服务等过程中，采取有效措施防止产生民族、信仰、国别、地域、性别、年龄、职业、健康等歧视；",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 0.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "gold_phrase_mismatch"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "答案完整覆盖了参考事实中的所有歧视类型，且与引用原文完全一致，语义支持充分。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 3785.882099997252
+    },
+    {
+      "id": "genai_05",
+      "category": "minor",
+      "question": "提供者应如何防范未成年人沉迷生成式人工智能服务？",
+      "answerable": true,
+      "expected_facts": [
+        "防范未成年人用户过度依赖或者沉迷生成式人工智能服务"
+      ],
+      "retrieved_chunk_ids": [
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "提供者应当采取有效措施防范未成年人用户过度依赖或者沉迷生成式人工智能服务 [C1]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C1",
+          "document_id": "generative_ai_interim_measures",
+          "title": "生成式人工智能服务管理暂行办法",
+          "source": "国家互联网信息办公室",
+          "filename": "generative_ai_interim_measures-b912b7f48655.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3",
+          "quote": "第十条 提供者应当明确并公开其服务的适用人群、场合、用途，指导使用者科学理性认识和依法使用生成式人工智能技术，采取有效措施防范未成年人用户过度依赖或者沉迷生成式人工智能服务。",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 1.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "none"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "模型答案准确覆盖了参考事实，且完全基于引用原文，无事实性扩展或矛盾。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 3775.861999951303
+    },
+    {
+      "id": "genai_06",
+      "category": "incident",
+      "question": "提供者发现违法生成内容后应当如何处理？",
+      "answerable": true,
+      "expected_facts": [
+        "停止生成、停止传输、消除等处置措施",
+        "向有关主管部门报告"
+      ],
+      "retrieved_chunk_ids": [
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:11",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:12"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "提供者发现违法内容时，应当及时采取停止生成、停止传输、消除等处置措施 [C1]。同时需采取模型优化训练等措施进行整改，并向有关主管部门报告 [C1]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C1",
+          "document_id": "generative_ai_interim_measures",
+          "title": "生成式人工智能服务管理暂行办法",
+          "source": "国家互联网信息办公室",
+          "filename": "generative_ai_interim_measures-b912b7f48655.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:3",
+          "quote": "第十四条 提供者发现违法内容的，应当及时采取停止生成、停止传输、消除等处置措施，采取模型优化训练等措施进行整改，并向有关主管部门报告。",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 1.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "none"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "答案涵盖了参考事实中的'停止生成、停止传输、消除等处置措施'和'向有关主管部门报告'，且无矛盾。所有断言均有引用支持，且引用原文确实包含这些内容以及额外的'模型优化训练'措施，因此答案 grounded 且 citation_support 为真。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 4781.47629997693
+    },
+    {
+      "id": "genai_07",
+      "category": "compliance",
+      "question": "哪类生成式人工智能服务需要开展安全评估并履行算法备案？",
+      "answerable": true,
+      "expected_facts": [
+        "具有舆论属性或者社会动员能力的生成式人工智能服务",
+        "开展安全评估"
+      ],
+      "retrieved_chunk_ids": [
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "提供具有舆论属性或者社会动员能力的生成式人工智能服务，应当按照国家有关规定开展安全评估，并履行算法备案和变更、注销备案手续 [C1]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C1",
+          "document_id": "generative_ai_interim_measures",
+          "title": "生成式人工智能服务管理暂行办法",
+          "source": "国家互联网信息办公室",
+          "filename": "generative_ai_interim_measures-b912b7f48655.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+          "quote": "第十七条 提供具有舆论属性或者社会动员能力的生成式人工智能服务的，应当按照国家有关规定开展安全评估，并按照《互联网信息服务算法推荐管理规定》履行算法备案和变更、注销备案手续。",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 1.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "none"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "答案准确识别了需要开展安全评估并履行算法备案的服务类型（具有舆论属性或者社会动员能力的生成式人工智能服务），且所有事实性断言均有引用原文支持，语义一致。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 6454.185800161213
+    },
+    {
+      "id": "nds_01",
+      "category": "date",
+      "question": "网络数据安全管理条例从什么时候开始施行？",
+      "answerable": true,
+      "expected_facts": [
+        "本条例自2025年1月1日起施行"
+      ],
+      "retrieved_chunk_ids": [
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:15",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:1",
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:0",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:11"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "《网络数据安全管理条例》自2025年1月1日起施行 [C1]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C1",
+          "document_id": "network_data_security_regulations",
+          "title": "网络数据安全管理条例",
+          "source": "中国政府网",
+          "filename": "network_data_security_regulations-3c39f15bff9e.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+          "quote": "htm 网络数据安全管理条例》已经2024年8月30日国务院第40次常务会议通过，现予公布，自2025年1月1日起施行。",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 0.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "gold_phrase_mismatch"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "答案准确陈述了施行日期，与参考事实一致；引用原文直接支持该断言；无超出引用的扩展；未错误拒答。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 3967.6879001781344
+    },
+    {
+      "id": "nds_02",
+      "category": "definition",
+      "question": "网络数据安全管理条例如何定义网络数据？",
+      "answerable": true,
+      "expected_facts": [
+        "通过网络处理和产生的各种电子数据"
+      ],
+      "retrieved_chunk_ids": [
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:14",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:11",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:1"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "根据《网络数据安全管理条例》，网络数据是指通过网络处理和产生的各种电子数据 [C2]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C2",
+          "document_id": "network_data_security_regulations",
+          "title": "网络数据安全管理条例",
+          "source": "中国政府网",
+          "filename": "network_data_security_regulations-3c39f15bff9e.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:14",
+          "quote": "第九章 附 则 第六十二条 本条例下列用语的含义： （一）网络数据，是指通过网络处理和产生的各种电子数据。",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 1.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "none"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "答案准确复述了参考事实，且引用原文直接支持该定义，无超出范围的内容。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 4256.837699795142
+    },
+    {
+      "id": "nds_03",
+      "category": "retention",
+      "question": "委托处理个人信息和重要数据的处理情况记录至少保存多久？",
+      "answerable": true,
+      "expected_facts": [
+        "处理情况记录，应当至少保存3年"
+      ],
+      "retrieved_chunk_ids": [
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:9",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:3",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "委托处理个人信息和重要数据的处理情况记录应当至少保存3年 [C1]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C1",
+          "document_id": "network_data_security_regulations",
+          "title": "网络数据安全管理条例",
+          "source": "中国政府网",
+          "filename": "network_data_security_regulations-3c39f15bff9e.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+          "quote": "向其他网络数据处理者提供、委托处理个人信息和重要数据的处理情况记录，应当至少保存3年。",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 1.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 1.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "none"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "答案准确提取了参考事实中的保存期限（3年），且引用原文完整支持该断言，涵盖了委托处理个人信息和重要数据的场景。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 3941.1521998699754
+    },
+    {
+      "id": "nds_04",
+      "category": "number",
+      "question": "处理多少人以上个人信息的处理者还要遵守重要数据处理者的有关规定？",
+      "answerable": true,
+      "expected_facts": [
+        "处理1000万人以上个人信息"
+      ],
+      "retrieved_chunk_ids": [
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:3",
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "网络数据处理者处理1000万人以上个人信息的，还应当遵守对处理重要数据的网络数据处理者作出的规定 [C1]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C1",
+          "document_id": "network_data_security_regulations",
+          "title": "网络数据安全管理条例",
+          "source": "中国政府网",
+          "filename": "network_data_security_regulations-3c39f15bff9e.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+          "quote": "第二十八条 网络数据处理者处理1000万人以上个人信息的，还应当遵守本条例第三十条、第三十二条对处理重要数据的网络数据处理者（以下简称重要数据的处理者）作出的规定。",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 1.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "none"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "答案准确提取了参考事实中的关键数值（1000万人），且与引用原文语义一致，无事实性扩展或矛盾。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 3872.9881001636386
+    },
+    {
+      "id": "nds_05",
+      "category": "incident",
+      "question": "发生网络数据安全事件时应急预案和报告要求是什么？",
+      "answerable": true,
+      "expected_facts": [
+        "立即启动预案",
+        "向有关主管部门报告"
+      ],
+      "retrieved_chunk_ids": [
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:1",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:11",
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:3",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "发生网络数据安全事件时，应当立即启动应急预案，采取措施防止危害扩大、消除安全隐患，并按规定向有关主管部门报告 [C1]。若事件涉及危害国家安全或公共利益，还应当在24小时内向有关主管部门报告 [C2]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C1",
+          "document_id": "network_data_security_regulations",
+          "title": "网络数据安全管理条例",
+          "source": "中国政府网",
+          "filename": "network_data_security_regulations-3c39f15bff9e.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:2",
+          "quote": "第十一条 网络数据处理者应当建立健全网络数据安全事件应急预案，发生网络数据安全事件时，应当立即启动预案，采取措施防止危害扩大，消除安全隐患，并按照规定向有关主管部门报告。",
+          "verification_status": "provenance_only"
+        },
+        {
+          "citation_id": "C2",
+          "document_id": "network_data_security_regulations",
+          "title": "网络数据安全管理条例",
+          "source": "中国政府网",
+          "filename": "network_data_security_regulations-3c39f15bff9e.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:1",
+          "quote": "涉及危害国家安全、公共利益的，网络数据处理者还应当在24小时内向有关主管部门报告。",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 0.5,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "gold_phrase_mismatch"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "答案完整覆盖了参考事实中的'立即启动预案'和'向有关主管部门报告'，且所有断言均有对应的引用原文支持，语义一致，无幻觉或矛盾。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 4427.475899923593
+    },
+    {
+      "id": "nds_06",
+      "category": "governance",
+      "question": "重要数据处理者应设置什么安全负责人和机构？",
+      "answerable": true,
+      "expected_facts": [
+        "明确网络数据安全负责人和网络数据安全管理机构"
+      ],
+      "retrieved_chunk_ids": [
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:4",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:7",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:0"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "重要数据的处理者应当明确网络数据安全负责人和网络数据安全管理机构 [C2]。网络数据安全负责人应当具备网络数据安全专业知识和相关管理工作经历，由网络数据处理者管理层成员担任 [C2]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C2",
+          "document_id": "network_data_security_regulations",
+          "title": "网络数据安全管理条例",
+          "source": "中国政府网",
+          "filename": "network_data_security_regulations-3c39f15bff9e.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:6",
+          "quote": "网络数据安全负责人应当具备网络数据安全专业知识和相关管理工作经历，由网络数据处理者管理层成员担任，有权直接向有关主管部门报告网络数据安全情况。",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 1.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.5,
+        "abstention_accuracy": 1.0,
+        "failure_type": "none"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": false,
+        "citation_support": false,
+        "abstention_correct": true,
+        "overall_pass": false,
+        "reason": "答案的第一句正确回答了问题，但第二句关于负责人资质的断言在引用原文中找不到支持（原文仅提及资质要求，未提及‘重要数据处理者’这一特定主体的额外强制要求或该断言与问题的直接关联），且第一句的核心事实‘明确网络数据安全负责人和机构’在提供的引用原文片段中并未直接出现，引用原文主要描述的是负责人的资格和权利，而非设立义务本身。因此，虽然答案事实可能正确，但基于给定的引用原文，它缺乏对核心断言的直接支持，且包含了引用未完全覆盖的扩展信息。严格来说，C2不支持‘应当明确...’这一义务性陈述，只支持‘负责人应当具备...’。由于问题问的是‘应设置什么’，答案给出了正确对象，但引用未能支撑‘应设置’这一动作的来源，且答案添加了引用未明确关联到‘重要数据处理者’这一特定语境的额外细节。不过，最关键的失败在于citation_support：第一句断言没有对应的原文支持（原文没说要设置，只说了设置的人要什么样）；第二句断言虽然有原文，但原文并未限定于‘重要数据处理者’，属于过度推断或无关引用。综合判定为citation_support false, grounded false.",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 8391.741500003263
+    },
+    {
+      "id": "nds_07",
+      "category": "number",
+      "question": "大型网络平台的注册用户数或月活跃用户数门槛是多少？",
+      "answerable": true,
+      "expected_facts": [
+        "注册用户5000万以上或者月活跃用户1000万以上"
+      ],
+      "retrieved_chunk_ids": [
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:15",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:10",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:11",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:0"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "大型网络平台是指注册用户5000万以上或者月活跃用户1000万以上的网络平台 [C1]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C1",
+          "document_id": "network_data_security_regulations",
+          "title": "网络数据安全管理条例",
+          "source": "中国政府网",
+          "filename": "network_data_security_regulations-3c39f15bff9e.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:15",
+          "quote": "（八）大型网络平台，是指注册用户5000万以上或者月活跃用户1000万以上，业务类型复杂，网络数据处理活动对国家安全、经济运行、国计民生等具有重要影响的网络平台。 第六十三条 开展核心数据的网络数据处理活动，按照国家有关规定执行。 自然人因个人或者家庭事务处理个人信息的，不适用本条例。 开展涉及国家秘密、工作秘密的网络数据处理活动，适用《中华人民共和国保守国家秘密法》等法律、行政法规的规定。 第六十四条 本条例自2025年1月1日起施行。",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 1.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "none"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "模型答案准确提取了参考事实中的关键数值门槛（注册用户5000万以上或月活跃用户1000万以上），且该信息在引用原文[C1]中有明确支持。答案无矛盾，未超出引用范围，且正确回答了问题。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 4585.103799821809
+    },
+    {
+      "id": "nds_08",
+      "category": "cross_border",
+      "question": "网络数据处理者向境外提供个人信息可以通过哪些合规路径？",
+      "answerable": true,
+      "expected_facts": [
+        "数据出境安全评估",
+        "个人信息保护认证",
+        "个人信息出境标准合同"
+      ],
+      "retrieved_chunk_ids": [
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:9",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:7",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:5",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:6"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "网络数据处理者向境外提供个人信息的合规路径包括：通过国家网信部门组织的数据出境安全评估 ；按照国家网信部门的规定经专业机构进行个人信息保护认证 ；符合国家网信部门制定的关于个人信息出境标准合同的规定 ；为订立、履行个人作为一方当事人的合同，确需向境外提供个人信息 ；按照依法制定的劳动规章制度和依法签订的集体合同实施跨境人力资源管理，确需向境外提供员工个人信息 ；为履行法定职责或者法定义务，确需向境外提供个人信息 ；紧急情况下为保护自然人的生命健康和财产安全，确需向境外提供个人信息 ；以及法律、行政法规或者国家网信部门规定的其他条件 [C2][C1]。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [
+        {
+          "citation_id": "C1",
+          "document_id": "network_data_security_regulations",
+          "title": "网络数据安全管理条例",
+          "source": "中国政府网",
+          "filename": "network_data_security_regulations-3c39f15bff9e.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:9",
+          "quote": "（五）按照依法制定的劳动规章制度和依法签订的集体合同实施跨境人力资源管理，确需向境外提供员工个人信息； （六）为履行法定职责或者法定义务，确需向境外提供个人信息； （七）紧急情况下为保护自然人的生命健康和财产安全，确需向境外提供个人信息; （八）法律、行政法规或者国家网信部门规定的其他条件。",
+          "verification_status": "provenance_only"
+        },
+        {
+          "citation_id": "C2",
+          "document_id": "network_data_security_regulations",
+          "title": "网络数据安全管理条例",
+          "source": "中国政府网",
+          "filename": "network_data_security_regulations-3c39f15bff9e.md",
+          "page": null,
+          "section": "",
+          "chunk_id": "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:8",
+          "quote": "第三十五条 符合下列条件之一的，网络数据处理者可以向境外提供个人信息： （一）通过国家网信部门组织的数据出境安全评估； （二）按照国家网信部门的规定经专业机构进行个人信息保护认证； （三）符合国家网信部门制定的关于个人信息出境标准合同的规定； （四）为订立、履行个人作为一方当事人的合同，确需向境外提供个人信息； （五）按照依法制定的劳动规章制度和依法签订的集体合同实施跨境人力资源管理，确需向境外提供员工个人信息； （六）为履行法定职责或者法定义务，确需向境外提供个人信息； （七）紧急情况下为保护自然人的生命健康和财产安全，确需向境外提供个人信息;",
+          "verification_status": "provenance_only"
+        }
+      ],
+      "metrics": {
+        "gold_phrase_match_rate": 1.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 1.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "none"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "模型答案完整覆盖了参考事实中的三条核心路径（安全评估、认证、标准合同），并补充了引用原文中列出的其他豁免情形。所有陈述均有对应的引用支持，且语义与引用原文一致，无事实性扩展或矛盾。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 6750.638999976218
+    },
+    {
+      "id": "no_answer_01",
+      "category": "no_answer",
+      "question": "员工国内出差住宿费每天最多报销多少元？",
+      "answerable": false,
+      "expected_facts": [],
+      "retrieved_chunk_ids": [
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:8",
+        "787f56fac07e0b6812c670be9dc5f3d830a32b965b0ef1b4c6bf9963192e87ed:7",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:9",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:14",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:10"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "检索到的知识未包含该问题的答案。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [],
+      "metrics": {
+        "gold_phrase_match_rate": 1.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 0.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "none"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "问题被标记为不可回答且参考事实为空，模型正确拒答，符合无答案题的处理规范。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 3491.4484000764787
+    },
+    {
+      "id": "no_answer_02",
+      "category": "no_answer",
+      "question": "公司会议室需要提前几天预约？",
+      "answerable": false,
+      "expected_facts": [],
+      "retrieved_chunk_ids": [
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:10",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:3",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:2",
+        "3c39f15bff9e105e5cf42a7d6de0f998acb231703884c0b248463b7f859f870e:3"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "检索到的知识未包含该问题的答案。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [],
+      "metrics": {
+        "gold_phrase_match_rate": 1.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 0.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "none"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "问题被标记为不可回答，参考事实为空。模型正确识别出知识缺失并明确拒答，符合无答案题的处理规范。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 3651.8695999402553
+    },
+    {
+      "id": "no_answer_03",
+      "category": "no_answer",
+      "question": "这些法规要求生成式人工智能模型至少具有多少亿参数？",
+      "answerable": false,
+      "expected_facts": [],
+      "retrieved_chunk_ids": [
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:2",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:1",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:0",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:4",
+        "b912b7f48655c60ded33c08aac747bbc2a081555594c8613c2947acb23b2b4c5:5"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "检索到的知识未包含该问题的答案。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [],
+      "metrics": {
+        "gold_phrase_match_rate": 1.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 0.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "none"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "参考事实为空，表明该问题在给定上下文中无答案。模型正确识别并明确拒答，符合无答案题的处理规范。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 3584.214499918744
+    },
+    {
+      "id": "no_answer_04",
+      "category": "no_answer",
+      "question": "个人信息保护法由哪一家律师事务所出具法律意见？",
+      "answerable": false,
+      "expected_facts": [],
+      "retrieved_chunk_ids": [
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:0",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:1",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:10",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:13",
+        "5df36ddf766880ce913ef94a4ed46e5d442b7f098cf280523c91c8a416426aca:11"
+      ],
+      "retrieval_hit": true,
+      "ranking_hit": true,
+      "answer": "检索到的知识未包含该问题的答案。",
+      "generation_error": "",
+      "generation_attempts": 1,
+      "citations": [],
+      "metrics": {
+        "gold_phrase_match_rate": 1.0,
+        "numeric_match_rate": 1.0,
+        "citation_provenance_accuracy": 0.0,
+        "citation_completeness": 1.0,
+        "extractive_overlap_rate": 0.0,
+        "abstention_accuracy": 1.0,
+        "failure_type": "none"
+      },
+      "automatic_judge": {
+        "available": true,
+        "answer_correct": true,
+        "grounded": true,
+        "citation_support": true,
+        "abstention_correct": true,
+        "overall_pass": true,
+        "reason": "参考事实为空，表明该问题无答案或无法从给定上下文中回答。模型正确识别并明确拒答，符合无答案题的处理规范。",
+        "error": ""
+      },
+      "judge_attempts": 1,
+      "latency_ms": 3583.8188000489026
+    }
+  ],
+  "publishable": true
+}

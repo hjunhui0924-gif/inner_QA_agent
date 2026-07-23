@@ -6,10 +6,23 @@ import unittest
 
 from langchain_core.documents import Document
 
-from backend.evaluation.answers import AnswerEvalCase, evaluate_answer
+from backend.evaluation.answers import (
+    AnswerEvalCase,
+    _citation_completeness,
+    evaluate_answer,
+)
 
 
 class AnswerEvaluationTests(unittest.TestCase):
+    def test_citation_completeness_ignores_list_heading_and_number_tokens(self) -> None:
+        answer = (
+            "可通过以下合规路径：\n\n"
+            "1. 通过数据出境安全评估 [C1]。\n"
+            "2. 通过个人信息保护认证 [C1]。"
+        )
+
+        self.assertEqual(_citation_completeness(answer), 1.0)
+
     def setUp(self) -> None:
         self.document = Document(
             page_content="The policy takes effect on 2025-01-01 and records are kept for 3 years.",

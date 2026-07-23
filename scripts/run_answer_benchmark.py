@@ -21,6 +21,7 @@ from langchain_core.messages import HumanMessage
 from backend.agent.nodes import generate
 from backend.config import settings
 from backend.evaluation.answers import AnswerEvalCase, evaluate_answer
+from backend.evaluation.judge import AutomaticJudgeResult, evaluate_with_judge
 from scripts.run_retrieval_benchmark import (
     EVAL_PATH,
     PROVENANCE_PATH,
@@ -34,7 +35,12 @@ from scripts.run_retrieval_benchmark import (
 REPORT_PATH = BASE_DIR / "data" / "eval_reports" / "official_policy_answer_benchmark.json"
 
 
-async def run_answer_benchmark(*, top_k: int = 5, limit: int | None = None) -> dict[str, Any]:
+async def run_answer_benchmark(
+    *,
+    top_k: int = 5,
+    limit: int | None = None,
+    enable_judge: bool = True,
+) -> dict[str, Any]:
     """Generate and score answers for the authoritative policy dataset."""
 
     provenance = _load_json(PROVENANCE_PATH)
@@ -98,6 +104,21 @@ async def run_answer_benchmark(*, top_k: int = 5, limit: int | None = None) -> d
             citations,
             retrieved,
         )
+        judge_result: AutomaticJudgeResult | None = None
+        judge_attempts = 0
+        if enable_judge:
+            for attempt in range(3):
+                judge_attempts = attempt + 1
+                judge_result = await evaluate_with_judge(
+                    question=question,
+                    answer=answer,
+                    answerable=answerable,
+                    expected_facts=expected_facts,
+                    citations=citations,
+                )
+                if judge_result.available:
+                    break
+                await asyncio.sleep(2**attempt)
         results.append(
             {
                 "id": str(raw_case.get("id", "")),
@@ -115,6 +136,10 @@ async def run_answer_benchmark(*, top_k: int = 5, limit: int | None = None) -> d
                 "generation_attempts": generation_attempts,
                 "citations": citations,
                 "metrics": asdict(metrics),
+                "automatic_judge": (
+                    asdict(judge_result) if judge_result is not None else None
+                ),
+                "judge_attempts": judge_attempts,
                 "latency_ms": (time.perf_counter() - started) * 1000,
             }
         )
@@ -138,6 +163,23 @@ async def run_answer_benchmark(*, top_k: int = 5, limit: int | None = None) -> d
             else 0.0
         )
     failure_counts = Counter(result["metrics"]["failure_type"] for result in results)
+    judged_results = [
+        result["automatic_judge"]
+        for result in results
+        if isinstance(result.get("automatic_judge"), dict)
+        and result["automatic_judge"].get("available") is True
+    ]
+    automatic_judge_summary = {
+        "available_count": len(judged_results),
+        "answer_correct_rate": _judge_rate(judged_results, "answer_correct"),
+        "grounded_rate": _judge_rate(judged_results, "grounded"),
+        "citation_support_rate": _judge_rate(judged_results, "citation_support"),
+        "abstention_correct_rate": _judge_rate(
+            judged_results,
+            "abstention_correct",
+        ),
+        "overall_pass_rate": _judge_rate(judged_results, "overall_pass"),
+    }
     report = {
         **_run_identity(),
         "eval_file": str(EVAL_PATH.relative_to(BASE_DIR)),
@@ -147,8 +189,14 @@ async def run_answer_benchmark(*, top_k: int = 5, limit: int | None = None) -> d
         "pipeline_scope": "retrieval_plus_single_generation",
         "generation_model": settings.model_name,
         "production_judge_model": settings.judge_model_name,
-        "judge_model_used_in_this_benchmark": None,
-        "evaluation_mode": "automatic_deterministic_proxies",
+        "judge_model_used_in_this_benchmark": (
+            settings.judge_model_name if enable_judge else None
+        ),
+        "evaluation_mode": (
+            "automatic_deterministic_plus_llm_judge"
+            if enable_judge
+            else "automatic_deterministic_proxies"
+        ),
         "case_count": len(results),
         "answerable_count": len(answerable_results),
         "no_answer_count": len(no_answer_results),
@@ -169,12 +217,14 @@ async def run_answer_benchmark(*, top_k: int = 5, limit: int | None = None) -> d
             else None
         ),
         "failure_counts": dict(sorted(failure_counts.items())),
+        "automatic_judge_summary": automatic_judge_summary,
         "results": results,
     }
     report["publishable"] = (
         limit is None
         and len(results) == 34
         and all(not result["generation_error"] for result in results)
+        and (not enable_judge or len(judged_results) == len(results))
     )
     if report["publishable"]:
         REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -185,17 +235,31 @@ async def run_answer_benchmark(*, top_k: int = 5, limit: int | None = None) -> d
     return report
 
 
+def _judge_rate(results: list[dict[str, Any]], key: str) -> float | None:
+    if not results:
+        return None
+    return sum(1 for result in results if result.get(key) is True) / len(results)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--top-k", type=int, default=5)
     parser.add_argument("--limit", type=int)
+    parser.add_argument("--disable-judge", action="store_true")
     args = parser.parse_args()
-    report = asyncio.run(run_answer_benchmark(top_k=args.top_k, limit=args.limit))
+    report = asyncio.run(
+        run_answer_benchmark(
+            top_k=args.top_k,
+            limit=args.limit,
+            enable_judge=not args.disable_judge,
+        )
+    )
     print(json.dumps({
         "case_count": report["case_count"],
         "summary": report["summary"],
         "no_answer_accuracy": report["no_answer_accuracy"],
         "failure_counts": report["failure_counts"],
+        "automatic_judge_summary": report["automatic_judge_summary"],
     }, ensure_ascii=False, indent=2))
     if report["publishable"]:
         print(f"Report written to: {REPORT_PATH}")

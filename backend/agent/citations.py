@@ -126,7 +126,7 @@ def _sanitize_claim(claim: str, documents: Sequence[Document], query: str) -> st
     clean = _MARKER_PATTERN.sub("", claim).rstrip()
     if not referenced:
         return claim
-    if not clean.strip() or _is_structural_claim(clean):
+    if not clean.strip() or _is_structural_claim(clean) or _is_abstention_claim(clean):
         return clean
     valid_indices = [
         index
@@ -242,6 +242,22 @@ def _is_structural_claim(text: str) -> bool:
     if re.fullmatch(r"(?:[-*]|\d+|[（(]?[一二三四五六七八九十]+[）)]?)[.、:]?", plain):
         return True
     return plain.endswith(("：", ":")) and len(plain) <= 40
+
+
+def _is_abstention_claim(text: str) -> bool:
+    lowered = text.casefold()
+    return any(
+        phrase in lowered
+        for phrase in (
+            "未包含该问题的答案",
+            "未找到足够",
+            "信息不足",
+            "无法可靠作答",
+            "does not contain the answer",
+            "not enough information",
+            "cannot reliably answer",
+        )
+    )
 
 
 def _supporting_quote(text: str, *, query: str, answer: str, max_chars: int) -> str:
