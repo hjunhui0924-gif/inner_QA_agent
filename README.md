@@ -160,6 +160,9 @@ Vue 是项目唯一前端，已接入真实 SSE 问答、Agent 节点状态、�
 引用、知识文件上传和知识库列表。前端通过 Vite 的 `/api` 代理访问 FastAPI；直接跨域
 开发时，后端也允许 `.env` 中 `FRONTEND_ORIGINS` 配置的来源。
 
+仓库不再包含旧 Streamlit 入口及其 Python 依赖。请统一使用上述 Vue/Vite 命令启动前端；
+历史命令 `streamlit run frontend/streamlit_app.py` 已失效。
+
 ## 主要接口
 
 ### 1. 对话流式接口
