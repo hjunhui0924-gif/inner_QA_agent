@@ -2,7 +2,7 @@
   color-scheme: light;
   --paper: #f4f1ea;
   --paper-deep: #eae5da;
-  --surface: #fbfaf6;
+  --surface: #ffffff;
   --surface-strong: #ffffff;
   --ink: #17211d;
   --ink-soft: #52605a;
@@ -19,7 +19,7 @@
   --shadow-raised: 0 18px 50px rgb(23 33 29 / 10%);
   --radius-panel: 14px;
   --radius-control: 8px;
-  --sidebar-width: 272px;
+  --sidebar-width: 260px;
   --evidence-width: 350px;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --font-display: Georgia, "Songti SC", "STSong", serif;

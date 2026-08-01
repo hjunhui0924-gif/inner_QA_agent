@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
+import { Connection, Collection, ArrowUp, Search } from '@element-plus/icons-vue'
 
 import AgentProgress from '../components/AgentProgress.vue'
 import EvidencePanel from '../components/EvidencePanel.vue'
@@ -16,10 +17,12 @@ const {
   sending,
   loadingHistory,
   sendMessage,
+  chatMode,
+  webSearchEnabled,
   cancelMessage,
   showCitations,
 } = useWorkspace()
-const evidenceOpen = ref(window.matchMedia('(min-width: 901px)').matches)
+const evidenceOpen = ref(false)
 const draft = ref('')
 const composer = ref<HTMLTextAreaElement | null>(null)
 const conversation = ref<HTMLElement | null>(null)
@@ -30,6 +33,11 @@ const prompts = [
   '查询制度中的具体金额与日期',
 ]
 const canSend = computed(() => draft.value.trim().length > 0 && !sending.value)
+const modeLocked = computed(() => messages.value.length > 0 || loadingHistory.value)
+const modes = [
+  { id: 'knowledge' as const, label: '知识库', description: '只基于企业知识库回答', icon: Collection },
+  { id: 'general' as const, label: '通用模式', description: '开放问答，可连接互联网', icon: Connection },
+]
 
 watch(
   () => [messages.value.length, messages.value.at(-1)?.content],
@@ -56,6 +64,11 @@ function openCitations(citations: Citation[]) {
   showCitations(citations)
   evidenceOpen.value = true
 }
+
+function selectMode(mode: 'knowledge' | 'general') {
+  if (sending.value || modeLocked.value) return
+  chatMode.value = mode
+}
 </script>
 
 <template>
@@ -63,7 +76,7 @@ function openCitations(citations: Citation[]) {
     <section class="chat-surface">
       <header class="workspace-header">
         <div>
-          <p class="eyebrow">KNOWLEDGE CONVERSATION</p>
+          <div class="brand-heading"><img src="/knowledge-assistant.png" alt="" /><p class="eyebrow">KNOWLEDGE ASSISTANT</p></div>
           <h1>{{ activeSessionTitle }}</h1>
         </div>
         <button class="secondary-button" type="button" @click="evidenceOpen = !evidenceOpen">
@@ -76,10 +89,8 @@ function openCitations(citations: Citation[]) {
         <div v-if="loadingHistory" class="view-loading">正在加载会话记录…</div>
         <div v-else-if="messages.length === 0" class="chat-empty">
           <span class="chapter-mark">01 / ASK</span>
-          <h2>让制度回答，<br />有据可查。</h2>
-          <p>
-            查询内部制度、流程、审批规则与合同规范。每一条关键结论，都可以回到原始文档。
-          </p>
+          <h2>{{ chatMode === 'knowledge' ? '让制度回答，有据可查。' : '想知道什么，直接问我。' }}</h2>
+          <p>{{ chatMode === 'knowledge' ? '查询内部制度、流程、审批规则与合同规范。每一条关键结论，都可以回到原始文档。' : '处理开放性问题，通用模式可在需要时连接互联网获取最新信息。' }}</p>
           <div v-if="!backendOnline" class="offline-banner">
             知识服务当前离线。启动 FastAPI 后即可开始问答。
           </div>
@@ -136,27 +147,55 @@ function openCitations(citations: Citation[]) {
       </div>
 
       <div class="composer-wrap">
+        <div v-if="!modeLocked" class="mode-switcher" role="tablist" aria-label="对话模式">
+          <span class="mode-slider" :class="{ general: chatMode === 'general' }" aria-hidden="true" />
+          <button
+            v-for="mode in modes"
+            :key="mode.id"
+            class="mode-option"
+            :class="{ active: chatMode === mode.id }"
+            type="button"
+            role="tab"
+            :aria-selected="chatMode === mode.id"
+            :disabled="sending"
+            @click="selectMode(mode.id)"
+          >
+            <el-icon><component :is="mode.icon" /></el-icon>
+            <span>{{ mode.label }}</span>
+            <small>{{ mode.description }}</small>
+          </button>
+        </div>
         <AgentProgress :steps="agentSteps" :active="sending" />
         <form class="composer" @submit.prevent="submit">
-          <label for="question">向企业知识库提问</label>
+          <label for="question">{{ chatMode === 'knowledge' ? '向企业知识库提问' : '向通用助手提问' }}</label>
           <textarea
             id="question"
             ref="composer"
             v-model="draft"
             rows="2"
             maxlength="12000"
-            placeholder="例如：差旅报销超过 5000 元需要谁审批？"
+            :placeholder="chatMode === 'knowledge' ? '例如：差旅报销超过 5000 元需要谁审批？' : '例如：帮我整理一份产品发布会清单。'"
             :disabled="sending"
             @keydown.ctrl.enter.prevent="submit"
             @keydown.meta.enter.prevent="submit"
           />
           <div class="composer-footer">
-            <span>{{ draft.length }} 字 · Ctrl / ⌘ + Enter 发送</span>
+            <div class="composer-tools">
+              <button
+                v-if="chatMode === 'general'"
+                type="button"
+                class="search-toggle"
+                :class="{ active: webSearchEnabled }"
+                :disabled="sending"
+                @click="webSearchEnabled = !webSearchEnabled"
+              ><el-icon><Search /></el-icon> 联网搜索</button>
+              <span>{{ draft.length }} 字 · Ctrl / ⌘ + Enter 发送</span>
+            </div>
             <button v-if="sending" class="secondary-button" type="button" @click="cancelMessage">
               取消请求
             </button>
             <button v-else class="primary-button" type="submit" :disabled="!canSend">
-              发送问题
+              <el-icon><ArrowUp /></el-icon> 发送
             </button>
           </div>
         </form>

@@ -7,9 +7,12 @@ import json
 import uuid
 from collections.abc import AsyncIterator
 from pathlib import Path
+from typing import Literal
 
 from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import StreamingResponse
+from langchain_core.messages import SystemMessage
+from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field, field_validator
 
 from backend.agent.memory import (
@@ -18,8 +21,11 @@ from backend.agent.memory import (
     extract_document_from_upload,
     list_knowledge_records,
     list_chat_sessions,
+    list_session_title_candidates,
     load_chat_messages,
     save_uploaded_file,
+    update_chat_session_title,
+    upsert_chat_session,
 )
 from backend.agent.conversation import estimate_text_tokens
 from backend.agent.sessions import (
@@ -33,6 +39,7 @@ from backend.observability.tracing import build_trace, record_trace
 
 
 router = APIRouter()
+_TITLE_REFRESH_ATTEMPTED_USERS: set[str] = set()
 
 NODE_STATUS_MESSAGES = {
     "manage_conversation_context": "正在整理会话上下文",
@@ -54,6 +61,8 @@ class ChatRequest(BaseModel):
     message: str = Field(min_length=1)
     user_id: str = Field(default="user_001")
     session_id: str = Field(default="session_default")
+    mode: Literal["knowledge", "general"] = "knowledge"
+    web_search: bool = False
 
     @field_validator("message")
     @classmethod
@@ -182,6 +191,8 @@ async def _stream_graph_unlocked(
         user_id=payload.user_id,
         session_id=payload.session_id,
         trace_id=trace_id,
+        mode=payload.mode,
+        web_search=payload.web_search,
     )
     config = {"configurable": {"thread_id": thread_id}}
     current_node = ""
@@ -258,6 +269,33 @@ async def _stream_graph_unlocked(
             except Exception:
                 pass
 
+        existing_sessions = await list_chat_sessions(payload.user_id)
+        is_new_session = not any(
+            item.get("session_id") == payload.session_id for item in existing_sessions
+        )
+        if is_new_session and settings.dashscope_api_key:
+            try:
+                title_model = ChatOpenAI(
+                    model=settings.model_name,
+                    api_key=settings.dashscope_api_key,
+                    base_url=settings.dashscope_base_url,
+                    temperature=0,
+                    max_tokens=24,
+                    timeout=10,
+                    extra_body={"enable_thinking": False},
+                )
+                title_response = await title_model.ainvoke([
+                    SystemMessage(content=(
+                        "请把用户的提问概括成一个简短会话标题。只返回标题本身，中文，"
+                        "不超过12个字，不要标点，不要解释。\n用户提问：" + payload.message
+                    ))
+                ])
+                generated_title = str(getattr(title_response, "content", "")).strip()[:24]
+                if generated_title:
+                    await upsert_chat_session(payload.user_id, payload.session_id, generated_title)
+            except Exception:
+                pass
+
         await append_chat_message(
             user_id=payload.user_id,
             session_id=payload.session_id,
@@ -329,6 +367,38 @@ async def chat_stream(request: Request, payload: ChatRequest) -> StreamingRespon
 async def chat_sessions(user_id: str) -> dict[str, object]:
     """List chat sessions for one user."""
 
+    if user_id not in _TITLE_REFRESH_ATTEMPTED_USERS and settings.dashscope_api_key:
+        _TITLE_REFRESH_ATTEMPTED_USERS.add(user_id)
+        candidates = await list_session_title_candidates(user_id)
+        async def refresh_title(candidate: dict[str, str]) -> None:
+            try:
+                title_model = ChatOpenAI(
+                    model=settings.model_name,
+                    api_key=settings.dashscope_api_key,
+                    base_url=settings.dashscope_base_url,
+                    temperature=0,
+                    max_tokens=24,
+                    timeout=10,
+                    extra_body={"enable_thinking": False},
+                )
+                response = await asyncio.wait_for(
+                    title_model.ainvoke([
+                        SystemMessage(content=(
+                            "根据用户第一次提问生成一个能概括会话主题的一句话标题。"
+                            "只返回标题，不超过12个汉字，不要引号、标点或解释。\n"
+                            f"第一次提问：{candidate['first_question']}"
+                        ))
+                    ]),
+                    timeout=12,
+                )
+                title = str(getattr(response, "content", "")).strip()
+                if title:
+                    await update_chat_session_title(
+                        user_id, candidate["session_id"], title
+                    )
+            except Exception:
+                return
+        await asyncio.gather(*(refresh_title(candidate) for candidate in candidates))
     return {"items": await list_chat_sessions(user_id)}
 
 

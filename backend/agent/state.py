@@ -18,6 +18,8 @@ class AgentState(TypedDict, total=False):
     user_id: str
     session_id: str
     trace_id: str
+    mode: Literal["knowledge", "general"]
+    web_search: bool
     query: str
     conversation_summary: str
     rewritten_query: str

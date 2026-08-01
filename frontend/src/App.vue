@@ -28,8 +28,7 @@ watch(
       <button class="text-button mobile-menu" type="button" @click="sidebarOpen = true">
         导航
       </button>
-      <span class="mobile-title">企业知识</span>
-      <span class="live-tag">LIVE</span>
+      <span class="mobile-title"><img src="/knowledge-assistant.png" alt="" /> 知识助手</span>
     </div>
 
     <main class="workspace">

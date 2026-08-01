@@ -18,6 +18,7 @@ import type {
   ToastMessage,
   UiMessage,
   UploadResponse,
+  ChatMode,
 } from '../types/api'
 
 const userId = 'user_001'
@@ -33,10 +34,28 @@ const loadingSessions = ref(false)
 const loadingHistory = ref(false)
 const loadingKnowledge = ref(false)
 const sending = ref(false)
+const chatMode = ref<ChatMode>('knowledge')
+const webSearchEnabled = ref(false)
 const uploading = ref(false)
 const toasts = ref<ToastMessage[]>([])
 let activeController: AbortController | null = null
 let historyRequestGeneration = 0
+const sessionModeStorageKey = 'enterprise-assistant-session-modes'
+
+function readSessionModes(): Record<string, ChatMode> {
+  try {
+    return JSON.parse(localStorage.getItem(sessionModeStorageKey) || '{}') as Record<string, ChatMode>
+  } catch {
+    return {}
+  }
+}
+
+function rememberSessionMode(targetSessionId: string, mode: ChatMode): void {
+  localStorage.setItem(
+    sessionModeStorageKey,
+    JSON.stringify({ ...readSessionModes(), [targetSessionId]: mode }),
+  )
+}
 
 const activeSession = computed(
   () => sessions.value.find((item) => item.session_id === sessionId.value) ?? null,
@@ -113,6 +132,8 @@ function newSession(): void {
   messages.value = []
   agentSteps.value = []
   activeCitations.value = []
+  chatMode.value = 'knowledge'
+  webSearchEnabled.value = false
 }
 
 async function openSession(targetSessionId: string): Promise<void> {
@@ -123,6 +144,8 @@ async function openSession(targetSessionId: string): Promise<void> {
     const history = await fetchHistory(userId, targetSessionId)
     if (requestGeneration !== historyRequestGeneration) return
     sessionId.value = targetSessionId
+    chatMode.value = readSessionModes()[targetSessionId] ?? 'knowledge'
+    webSearchEnabled.value = false
     messages.value = history.map((message) => ({
       ...message,
       id: createId(message.role),
@@ -193,11 +216,18 @@ async function sendMessage(rawMessage: string): Promise<void> {
   agentSteps.value = []
   activeCitations.value = []
   sending.value = true
+  rememberSessionMode(sessionId.value, chatMode.value)
   activeController = new AbortController()
 
   try {
     await streamChat(
-      { message: content, user_id: userId, session_id: sessionId.value },
+      {
+        message: content,
+        user_id: userId,
+        session_id: sessionId.value,
+        mode: chatMode.value,
+        web_search: webSearchEnabled.value,
+      },
       (event) => applyStreamEvent(event, assistant),
       activeController.signal,
     )
@@ -267,6 +297,8 @@ export function useWorkspace() {
     loadingHistory,
     loadingKnowledge,
     sending,
+    chatMode,
+    webSearchEnabled,
     uploading,
     toasts,
     initialize,

@@ -37,7 +37,7 @@ from backend.agent.memory import (
     search_documents,
 )
 from backend.agent.state import AgentState
-from backend.agent.tools import get_current_time, search_knowledge_base
+from backend.agent.tools import get_current_time, search_knowledge_base, search_web
 
 
 class _RouteDecision(dict):
@@ -212,6 +212,13 @@ def _heuristic_route(query: str) -> Literal["rag", "tool_call", "direct"]:
     return "direct"
 
 
+def _looks_like_web_query(query: str) -> bool:
+    return any(keyword in query.casefold() for keyword in [
+        "联网", "新闻", "最新", "实时", "网页", "搜索", "网上", "天气", "股价",
+        "news", "latest", "search", "weather",
+    ])
+
+
 def _looks_like_contextual_follow_up(query: str) -> bool:
     normalized = "".join(query.split())
     return len(normalized) <= 40 and any(
@@ -287,6 +294,7 @@ async def route_query(state: AgentState) -> dict[str, Any]:
     query = state.get("query") or latest_user_text(state.get("messages", []))
     conversation_summary = state.get("conversation_summary", "").strip()
     recent_conversation = render_messages(list(state.get("messages", [])))
+    mode = state.get("mode", "knowledge")
     prompt = (
         "你是一个企业内部知识助手的路由器。请仅返回JSON对象，不要输出多余文字。\n"
         "可选路由：\n"
@@ -298,19 +306,29 @@ async def route_query(state: AgentState) -> dict[str, Any]:
         f"会话摘要：\n{conversation_summary or '无'}\n"
         f"最近对话：\n{recent_conversation or '无'}\n"
         f"当前用户问题：{query}\n"
+        f"当前模式：{mode}。knowledge 模式只能使用企业知识库，general 模式可直接回答开放问题。\n"
     )
 
     heuristic_input = query
     if _looks_like_contextual_follow_up(query):
         heuristic_input = f"{conversation_summary}\n{recent_conversation}\n{query}"
     route = _heuristic_route(heuristic_input)
+    if mode == "general":
+        if state.get("web_search"):
+            route = "tool_call"
+        else:
+            route = "tool_call" if _looks_like_web_query(heuristic_input) else "direct"
+    elif mode == "knowledge" and route == "direct":
+        route = "rag"
     try:
         model = _build_model(temperature=0)
         response = await model.ainvoke([SystemMessage(content=prompt)])
         parsed = _extract_json_object(_as_text(response))
         candidate = str(parsed.get("route", "")).strip()
-        if candidate in {"rag", "tool_call", "direct"}:
-            route = candidate  # type: ignore[assignment]
+        if candidate in {"rag", "tool_call", "direct"} and mode == "general":
+            route = "tool_call" if state.get("web_search") or candidate == "tool_call" or _looks_like_web_query(heuristic_input) else "direct"
+        elif candidate in {"rag", "tool_call", "direct"} and mode == "knowledge":
+            route = "tool_call" if candidate == "tool_call" else "rag"
     except Exception:
         pass
 
@@ -439,8 +457,10 @@ async def fallback_answer(state: AgentState) -> dict[str, Any]:
     """Return a safe fallback answer when retrieval fails."""
 
     answer = (
-        "我没有在企业内部知识库中找到足够相关的信息。"
-        "请补充更具体的制度名称、流程名称或部门信息，我再继续检索。"
+        "这个问题不属于当前知识问答模式的企业知识范围。"
+        "我只能依据企业知识库回答；如需开放问答，请切换到通用模式。"
+        if state.get("mode", "knowledge") == "knowledge" and not state.get("retrieved_docs")
+        else "我没有在企业内部知识库中找到足够相关的信息。请补充更具体的制度名称、流程名称或部门信息，我再继续检索。"
     )
     if state.get("generation_error"):
         fallback_reason = "generation_error"
@@ -460,7 +480,11 @@ async def fallback_answer(state: AgentState) -> dict[str, Any]:
     }
 
 
-def _choose_tool_output(query: str) -> str:
+def _choose_tool_output(
+    query: str,
+    mode: str = "knowledge",
+    web_search: bool = False,
+) -> str:
     """Pick the most suitable tool based on the query."""
 
     lowered = query.lower()
@@ -469,6 +493,8 @@ def _choose_tool_output(query: str) -> str:
         for keyword in ["时间", "几点", "日期", "today", "now", "current time"]
     ):
         return get_current_time.invoke({})
+    if mode == "general" and (web_search or _looks_like_web_query(query)):
+        return search_web.invoke({"query": query})
     return search_knowledge_base.invoke({"query": query})
 
 
@@ -477,7 +503,12 @@ async def tool_executor(state: AgentState) -> dict[str, Any]:
 
     query = state.get("query") or latest_user_text(state.get("messages", []))
     try:
-        tool_output = await asyncio.to_thread(_choose_tool_output, query)
+        tool_output = await asyncio.to_thread(
+            _choose_tool_output,
+            query,
+            state.get("mode", "knowledge"),
+            bool(state.get("web_search")),
+        )
     except Exception as exc:
         tool_output = f"工具调用失败：{exc}"
     return {
@@ -494,11 +525,18 @@ async def generate(state: AgentState) -> dict[str, Any]:
     tool_output = state.get("tool_output", "")
     route = state.get("route", "direct")
     conversation_summary = state.get("conversation_summary", "").strip()
+    mode = state.get("mode", "knowledge")
+    mode_instructions = (
+        "当前是知识问答模式：只能依据企业知识库证据回答。若问题与企业知识无关，明确拒答，并建议用户切换到通用模式。"
+        if mode == "knowledge"
+        else "当前是通用模式：可以回答开放问题；需要实时信息时使用联网工具结果。没有工具结果时不要伪造已联网或来源。"
+    )
 
     system_prompt = (
         "你是企业内部知识助手。你的职责是基于企业内部制度、流程、规范和文档回答问题。\n"
         "请用中文回答，语气自然、专业、简洁。\n"
         "你面向企业内部员工，主要支持制度查询、流程说明、审批规则、合同与法务、财务与人事等内部事务。\n"
+        f"{mode_instructions}\n"
         "回答时聚焦企业内部知识，不要主动扩展到无关主题。\n"
         "如果知识依据不足，不要臆测，直接说明信息不足并指出建议补充的信息。\n"
         "较早对话摘要只用于理解用户指代和连续意图，不是企业知识证据；RAG 回答仍只能使用检索原文。\n"

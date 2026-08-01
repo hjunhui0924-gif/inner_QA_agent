@@ -5,6 +5,7 @@ import type {
   SessionSummary,
   StreamEvent,
   UploadResponse,
+  ChatMode,
 } from '../types/api'
 
 const configuredBase = import.meta.env.VITE_API_BASE_URL?.trim()
@@ -85,14 +86,14 @@ export function uploadKnowledge(
 }
 
 export async function streamChat(
-  payload: { message: string; user_id: string; session_id: string },
+  payload: { message: string; user_id: string; session_id: string; mode?: ChatMode; web_search?: boolean },
   onEvent: (event: StreamEvent) => void,
   signal?: AbortSignal,
 ): Promise<void> {
   const response = await fetch(`${API_BASE}/chat/stream`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({ ...payload, mode: payload.mode ?? 'knowledge', web_search: payload.web_search ?? false }),
     signal,
   })
   if (!response.ok) {

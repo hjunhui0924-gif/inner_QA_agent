@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { Document, Plus, Delete, ChatDotRound } from '@element-plus/icons-vue'
 
 import { useWorkspace } from '../composables/useWorkspace'
 import type { SessionSummary } from '../types/api'
@@ -49,30 +50,24 @@ async function confirmDelete() {
   <div class="sidebar-scrim" :class="{ visible: open }" @click="emit('close')" />
   <aside class="app-sidebar" :class="{ open }" aria-label="主导航">
     <header class="wordmark">
-      <div>
-        <p class="eyebrow">ENTERPRISE KNOWLEDGE</p>
-        <strong>企业内部知识助手</strong>
+      <div class="brand-new-chat">
+        <img src="/knowledge-assistant.png" alt="" class="brand-icon" />
+        <span>内部知识助手</span>
       </div>
-        <span class="live-tag">LIVE</span>
     </header>
 
+    <button class="start-chat-button" type="button" :disabled="sending" @click="startSession">
+      <el-icon><Plus /></el-icon><span>开启新对话</span>
+    </button>
+
     <nav class="primary-nav" aria-label="工作区">
-      <RouterLink to="/chat">
-        <span class="nav-index">01</span>
-        <span>知识问答</span>
-      </RouterLink>
-      <RouterLink to="/knowledge">
-        <span class="nav-index">02</span>
-        <span>知识库</span>
-      </RouterLink>
+      <RouterLink to="/chat"><el-icon><ChatDotRound /></el-icon><span>对话</span></RouterLink>
+      <RouterLink to="/knowledge"><el-icon><Document /></el-icon><span>知识库</span></RouterLink>
     </nav>
 
     <section class="session-section" aria-labelledby="session-heading">
       <div class="section-heading">
         <h2 id="session-heading">会话记录</h2>
-        <button class="compact-button" type="button" :disabled="sending" @click="startSession">
-          新建
-        </button>
       </div>
 
       <div v-if="loadingSessions" class="session-empty">正在读取会话…</div>
@@ -93,7 +88,6 @@ async function confirmDelete() {
             @click="selectSession(session.session_id)"
           >
             <span class="session-title">{{ session.title || '新会话' }}</span>
-            <span class="session-meta">{{ session.last_message || '暂无消息' }}</span>
           </button>
           <button
             class="session-delete"
@@ -102,7 +96,7 @@ async function confirmDelete() {
             :aria-label="`删除会话：${session.title || '新会话'}`"
             @click="pendingDelete = session"
           >
-            删除
+            <el-icon><Delete /></el-icon>
           </button>
         </div>
       </div>

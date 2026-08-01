@@ -279,7 +279,8 @@ async def upsert_chat_session(
             VALUES (?, ?, ?, CURRENT_TIMESTAMP)
             ON CONFLICT(user_id, session_id) DO UPDATE SET
                 title = CASE
-                    WHEN excluded.title <> '' THEN excluded.title
+                    WHEN chat_sessions.title IN ('', '新会话') AND excluded.title <> ''
+                    THEN excluded.title
                     ELSE chat_sessions.title
                 END,
                 updated_at = CURRENT_TIMESTAMP
@@ -371,6 +372,63 @@ async def list_chat_sessions(user_id: str) -> list[dict[str, Any]]:
         }
         for row in rows
     ]
+
+
+async def list_session_title_candidates(user_id: str) -> list[dict[str, str]]:
+    """Return sessions whose title still mirrors their first user question."""
+
+    async with aiosqlite.connect(settings.sqlite_db_path) as db:
+        cursor = await db.execute(
+            """
+            SELECT s.session_id, s.title,
+                   COALESCE((
+                       SELECT m.content FROM chat_messages m
+                       WHERE m.user_id = s.user_id
+                         AND m.session_id = s.session_id
+                         AND m.role = 'user'
+                       ORDER BY m.id ASC LIMIT 1
+                   ), '')
+            FROM chat_sessions s
+            WHERE s.user_id = ?
+              AND EXISTS (
+                  SELECT 1 FROM chat_messages raw_title
+                  WHERE raw_title.user_id = s.user_id
+                    AND raw_title.session_id = s.session_id
+                    AND raw_title.role = 'user'
+                    AND substr(trim(raw_title.content), 1, 24) = trim(s.title)
+              )
+            """,
+            (user_id,),
+        )
+        rows = await cursor.fetchall()
+        await cursor.close()
+    candidates: list[dict[str, str]] = []
+    for session_id, title, first_question in rows:
+        clean_question = str(first_question).strip()
+        clean_title = str(title).strip()
+        if clean_question and clean_title:
+            candidates.append(
+                {"session_id": str(session_id), "first_question": clean_question}
+            )
+    return candidates
+
+
+async def update_chat_session_title(
+    user_id: str,
+    session_id: str,
+    title: str,
+) -> None:
+    """Replace one session title with a generated summary."""
+
+    clean_title = " ".join(title.strip().split())[:24]
+    if not clean_title:
+        return
+    async with aiosqlite.connect(settings.sqlite_db_path) as db:
+        await db.execute(
+            "UPDATE chat_sessions SET title = ? WHERE user_id = ? AND session_id = ?",
+            (clean_title, user_id, session_id),
+        )
+        await db.commit()
 
 
 async def load_chat_messages(user_id: str, session_id: str) -> list[dict[str, Any]]:

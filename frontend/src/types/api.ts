@@ -19,6 +19,8 @@ export interface SessionSummary {
   last_message: string
 }
 
+export type ChatMode = 'knowledge' | 'general'
+
 export interface ChatHistoryItem {
   role: 'user' | 'assistant'
   content: string

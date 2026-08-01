@@ -60,6 +60,8 @@ def create_turn_state(
     user_id: str,
     session_id: str,
     trace_id: str,
+    mode: str = "knowledge",
+    web_search: bool = False,
 ) -> dict[str, Any]:
     """Create one turn input while preserving only checkpointed conversation memory."""
 
@@ -69,6 +71,8 @@ def create_turn_state(
         "user_id": user_id,
         "session_id": session_id,
         "trace_id": trace_id,
+        "mode": mode if mode in {"knowledge", "general"} else "knowledge",
+        "web_search": web_search,
         "rewritten_query": "",
         "retrieved_docs": [],
         "answer": "",
