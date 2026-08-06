@@ -22,7 +22,15 @@ import type {
 } from '../types/api'
 
 const userId = 'user_001'
-const sessionId = ref<string>(crypto.randomUUID())
+
+function generateUuid(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`
+}
+
+const sessionId = ref<string>(generateUuid())
 const sessions = ref<SessionSummary[]>([])
 const messages = ref<UiMessage[]>([])
 const knowledgeRecords = ref<KnowledgeRecord[]>([])
@@ -63,7 +71,7 @@ const activeSession = computed(
 const activeSessionTitle = computed(() => activeSession.value?.title || '新会话')
 
 function createId(prefix: string): string {
-  return `${prefix}-${crypto.randomUUID()}`
+  return `${prefix}-${generateUuid()}`
 }
 
 function notify(
@@ -128,7 +136,7 @@ function newSession(): void {
   if (sending.value) return
   historyRequestGeneration += 1
   loadingHistory.value = false
-  sessionId.value = crypto.randomUUID()
+  sessionId.value = generateUuid()
   messages.value = []
   agentSteps.value = []
   activeCitations.value = []
