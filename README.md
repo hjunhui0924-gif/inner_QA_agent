@@ -79,17 +79,17 @@ npm install
 
 ```env
 DASHSCOPE_API_KEY=你的DashScopeKey
-MODEL_NAME=qwen3.6-plus
-JUDGE_MODEL_NAME=qwen3.6-plus
+MODEL_NAME=qwen3.7-flash
+JUDGE_MODEL_NAME=qwen3.7-flash
 QWEN_ENABLE_THINKING=false
 CONVERSATION_TOKEN_BUDGET=12000
 CONVERSATION_SUMMARY_TRIGGER_TOKENS=10000
 CONVERSATION_SUMMARY_TARGET_TOKENS=1500
 CONVERSATION_RECENT_TURNS=4
 EMBEDDING_PROVIDER=dashscope
-EMBEDDING_MODEL=text-embedding-v3
+EMBEDDING_MODEL=qwen3.7-text-embedding
 EMBEDDING_DIMENSIONS=1024
-EMBEDDING_INDEX_VERSION=v3
+EMBEDDING_INDEX_VERSION=v4
 RETRIEVAL_STRATEGY=rerank
 RETRIEVAL_DENSE_CANDIDATE_K=20
 RETRIEVAL_LEXICAL_CANDIDATE_K=20
@@ -105,7 +105,7 @@ TRACE_RETENTION_DAYS=30
 ```
 
 会话上下文使用保守的中英文混合 Token 估算。达到 10000 Token 时，系统使用
-`qwen3.6-plus` 将较早对话压缩到约 1500 Token，保留最近 4 轮和当前问题；如果
+`qwen3.7-flash` 将较早对话压缩到约 1500 Token，保留最近 4 轮和当前问题；如果
 最近对话本身过长，会继续压缩更早轮次以满足 12000 Token 的会话预算。摘要模型
 不可用时会退化为确定性截断。现有路由器会利用摘要判断短追问是否仍需进入 RAG；
 检索失败后，`rewrite_query` 会结合摘要和最近对话补全追问中的指代，再重新检索。
@@ -122,13 +122,16 @@ Checkpoint，因此复用原会话 ID 也不会恢复旧上下文。同一会话
 简短会话标题；标题只依据第一问生成，后续消息不会覆盖。旧版直接使用问题文本作为
 标题的会话，会在首次读取会话列表时尝试批量回填模型摘要标题。
 
-回答生成默认使用 `qwen3.6-plus`，并关闭思考模式，以提高抽取式回答和 JSON Judge 的指令稳定性。自动语义校验通过 `JUDGE_MODEL_NAME` 独立配置；当前同样设为 `qwen3.6-plus`，后续可以切换成不同模型做交叉评判。评测执行和指标计算全自动运行；原有 34 题继续作为法规开发集，同时新增企业制度分层评测集。
+回答生成默认使用 `qwen3.7-flash`，并关闭思考模式，以提高抽取式回答和 JSON Judge 的指令稳定性。自动语义校验通过 `JUDGE_MODEL_NAME` 独立配置；当前同样设为 `qwen3.7-flash`，后续可以切换成不同模型做交叉评判。评测执行和指标计算全自动运行；原有 34 题继续作为法规开发集，同时新增企业制度分层评测集。
 
-默认使用 DashScope `text-embedding-v3` 作为中文语义检索模型。Embedding
+默认使用 DashScope `qwen3.7-text-embedding` 作为中文语义检索模型。Embedding
 提供方、模型、维度或索引版本发生变化时，系统会自动使用新的 Chroma
 collection，避免新旧向量混用。无网络的本地开发可显式设置
 `EMBEDDING_PROVIDER=hashing`，但该模式仅提供词法检索能力，不应作为生产配置或
 正式评测结果。
+
+本次 Embedding 模型切换将索引版本提升为 `v4`；首次启动或执行入库时会创建新的
+collection 并重新生成向量，不会复用旧的 `text-embedding-v3` 向量。
 
 知识库去重不再使用语义向量：完全重复使用规范化内容指纹，近重复使用保守的字符
 shingle 重合率。这样可以跳过格式略有差异的文件副本，同时保留主题相似但规则不同
@@ -285,14 +288,13 @@ python -m unittest tests.test_live_contracts -v
 
 | 策略 | Source Hit@5 | MRR@5 | 证据召回@5 | 完整证据命中率 | P50 延迟 |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| 向量检索 | 100.00% | 91.78% | 86.67% | 86.67% | 245 ms |
-| BM25 式词法检索 | 96.67% | 92.78% | 86.67% | 86.67% | 0.6 ms |
-| BM25 + 向量 + RRF | 100.00% | 93.89% | 96.67% | 96.67% | 183 ms |
-| BM25 + 向量 + RRF + Rerank | 100.00% | 95.00% | 100.00% | 100.00% | 671 ms |
+| 向量检索 | 100.00% | 91.11% | 96.67% | 96.67% | 192 ms |
+| BM25 式词法检索 | 96.67% | 92.78% | 86.67% | 86.67% | 0.5 ms |
+| BM25 + 向量 + RRF | 100.00% | 92.78% | 90.00% | 90.00% | 205 ms |
+| BM25 + 向量 + RRF + Rerank | 100.00% | 95.00% | 100.00% | 100.00% | 1470 ms |
 
-完整报告位于 `data/eval_reports/official_policy_retrieval_benchmark.json`；报告中的
-`offline=true` 表示使用 hashing embedding 和确定性 reranker，不能与在线模型结果直接比较。历史
-在线运行结果如下。Rerank
+完整报告位于 `data/eval_reports/official_policy_retrieval_benchmark.json`。以上为使用
+`qwen3.7-text-embedding` 和在线 `gte-rerank-v2` 的当前结果。Rerank
 分数在可回答与无答案样本之间仍有重叠，因此项目没有根据这 34 条数据硬编码拒答阈值；
 无答案识别需要独立校准集和证据充分性判别，不能由 Top-K 命中率替代。
 
@@ -317,11 +319,11 @@ python scripts/run_enterprise_rag_benchmark.py --split held_out --top-k 5
 `data/eval_reports/enterprise_rag_benchmark.json`；指定 `--split` 时会分别写入带 split 后缀的报告。
 离线报告中的 `no_answer_evidence_proxy_accuracy` 只表示 gold evidence 支持度代理，
 不是模型真实拒答准确率，也不代表生产模型已经具备可靠的开放域拒答能力；
-不代表生产模型已经具备可靠的开放域拒答能力；线上回答评测仍需显式提供 API key 并单独运行。
+线上回答评测仍需显式提供 API key 并单独运行。
 
 ## RAG 回答、引用与失败评估
 
-答案层开发基准复用上面的 4 份权威法规和 34 个问题，其中 30 个可回答、4 个无答案。它运行 BM25 + 向量检索 + RRF + Rerank、一次 `qwen3.6-plus` 生成和一次自动 Judge，用来快速迭代生成与引用协议；不经过路由、查询改写、生产幻觉重试和安全 fallback，不能替代完整 Agent 的端到端验收。
+答案层开发基准复用上面的 4 份权威法规和 34 个问题，其中 30 个可回答、4 个无答案。它运行 BM25 + 向量检索 + RRF + Rerank、一次 `qwen3.7-flash` 生成和一次自动 Judge，用来快速迭代生成与引用协议；不经过路由、查询改写、生产幻觉重试和安全 fallback，不能替代完整 Agent 的端到端验收。
 
 - Gold Evidence Phrase 是否近逐字出现在回答中；
 - 数字与日期是否匹配；
@@ -336,20 +338,20 @@ python scripts/run_answer_benchmark.py --top-k 5
 
 完整运行会把报告写入 `data/eval_reports/official_policy_answer_benchmark.json`。这 34 题参与过提示词与规则迭代，属于开发集而非独立留出测试集。报告中的 Gold Phrase、数字、引用出处、引用完整性和抽取重合均为确定性代理指标，不应表述为人工验证的“回答准确率”或“忠实度”。只有 `verification_status=provenance_only` 的引用出处可以被确定性验证；语义支持需要独立 Judge/NLI 或人工标注集。
 
-历史 `qwen3.6-plus` 完整自动评测结果（非本次离线实现重跑）：
+当前使用 `qwen3.7-flash` 生成与 Judge、`qwen3.7-text-embedding` 检索的完整自动评测结果：
 
 | 指标 | 结果 | 样本数 |
 | --- | ---: | ---: |
-| 自动 Judge 回答正确 | 100.00% | 34/34 |
-| 自动 Judge Grounded | 94.12% | 32/34 |
+| 自动 Judge 回答正确 | 94.12% | 32/34 |
+| 自动 Judge Grounded | 100.00% | 34/34 |
 | 自动 Judge 引用支持 | 94.12% | 32/34 |
-| 自动 Judge 拒答正确 | 100.00% | 34/34 |
+| 自动 Judge 拒答正确 | 97.06% | 33/34 |
 | 自动 Judge 四项全部通过 | 94.12% | 32/34 |
 | 数字/日期匹配 | 100.00% | 30 个可回答样本 |
-| 引用出处准确率 | 100.00% | 30 个可回答样本 |
-| 引用完整性 | 100.00% | 30 个可回答样本 |
+| 引用出处准确率 | 96.67% | 30 个可回答样本 |
+| 引用完整性 | 98.33% | 30 个可回答样本 |
 
-剩余 2 个 Judge 失败样本的核心答案正确，但额外补充了问题未要求、且当前引用未覆盖的岗位资质说明。自动 Judge 与生成模型当前均为 `qwen3.6-plus`，因此这些语义指标应视为自动开发评测结果，而非独立人工结论。
+确定性代理指标记录了 11 个 gold phrase mismatch、1 个 citation failure 和 1 个 refusal failure；其中部分核心答案仍被 Judge 判为正确。上述指标是自动开发评测结果，不是独立人工结论。
 
 仓库不提交凭证配额耗尽、样本数不足或中途失败的答案报告。模型调用失败记录为 `generation_error`；调用成功但保守代理没有匹配 Gold Phrase 时记录为 `gold_phrase_mismatch`，不会混为一类，也不会把安全拒答或回显的 Top-K 文档误算成正确答案。
 

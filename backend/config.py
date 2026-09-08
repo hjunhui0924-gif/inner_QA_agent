@@ -22,8 +22,8 @@ class Settings(BaseSettings):
 
     dashscope_api_key: str = Field(default="", validation_alias="DASHSCOPE_API_KEY")
     dashscope_base_url: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-    model_name: str = "qwen3.6-plus"
-    judge_model_name: str = "qwen3.6-plus"
+    model_name: str = "qwen3.7-flash"
+    judge_model_name: str = "qwen3.7-flash"
     qwen_enable_thinking: bool = False
     chroma_persist_dir: str = str(BASE_DIR / "data" / "chroma_db")
     sqlite_db_path: str = str(BASE_DIR / "data" / "memory.db")
@@ -61,9 +61,9 @@ class Settings(BaseSettings):
     reranker_timeout_seconds: float = 10.0
     reranker_max_document_chars: int = 6000
     embedding_provider: str = "dashscope"
-    embedding_model: str = "text-embedding-v3"
+    embedding_model: str = "qwen3.7-text-embedding"
     embedding_dimensions: int = 1024
-    embedding_index_version: str = "v3"
+    embedding_index_version: str = "v4"
     chroma_collection_prefix: str = "enterprise-knowledge"
     knowledge_chunk_size: int = 800
     knowledge_chunk_overlap: int = 120
