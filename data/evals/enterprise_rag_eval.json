@@ -1,0 +1,5121 @@
+[
+  {
+    "id": "hr-leave-v1-q01",
+    "split": "development",
+    "category": "direct_fact",
+    "domain": "HR",
+    "difficulty": "easy",
+    "question": "旧版请假申请要提前多久、在哪提交？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-leave-v1"
+    ],
+    "evidence_phrases": [
+      "员工请假需提前一个工作日在 HR 系统提交申请"
+    ],
+    "expected_facts": [
+      "员工请假需提前一个工作日在 HR 系统提交申请"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "direct",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "hr-leave-v1-q02",
+    "split": "development",
+    "category": "conditional_policy",
+    "domain": "HR",
+    "difficulty": "easy",
+    "question": "旧版病假需要补什么材料？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-leave-v1"
+    ],
+    "evidence_phrases": [
+      "病假需补充医疗证明"
+    ],
+    "expected_facts": [
+      "病假需补充医疗证明"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "condition",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "hr-leave-v1-q03",
+    "split": "development",
+    "category": "threshold",
+    "domain": "HR",
+    "difficulty": "easy",
+    "question": "旧版年假和调休由谁审批？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-leave-v1"
+    ],
+    "evidence_phrases": [
+      "年假与调休由直属主管审批"
+    ],
+    "expected_facts": [
+      "年假与调休由直属主管审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "threshold",
+      "threshold",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "hr-leave-v1-q04",
+    "split": "development",
+    "category": "synonym_rewrite",
+    "domain": "HR",
+    "difficulty": "medium",
+    "question": "旧版连续请假超过几天要抄送负责人？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-leave-v1"
+    ],
+    "evidence_phrases": [
+      "连续请假超过五天需同步抄送部门负责人"
+    ],
+    "expected_facts": [
+      "连续请假超过五天需同步抄送部门负责人"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "synonym",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "hr-leave-v1-q05",
+    "split": "regression",
+    "category": "multi_step",
+    "domain": "HR",
+    "difficulty": "hard",
+    "question": "按旧版流程请病假，申请、证明和审批分别是什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-leave-v1"
+    ],
+    "evidence_phrases": [
+      "员工请假需提前一个工作日在 HR 系统提交申请",
+      "病假需补充医疗证明"
+    ],
+    "expected_facts": [
+      "员工请假需提前一个工作日在 HR 系统提交申请",
+      "病假需补充医疗证明"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "multi_hop",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "hr-leave-v1-q06",
+    "split": "regression",
+    "category": "negative_rule",
+    "domain": "HR",
+    "difficulty": "hard",
+    "question": "旧版连续休假达到阈值后需要通知哪些人？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-leave-v1"
+    ],
+    "evidence_phrases": [
+      "病假需补充医疗证明"
+    ],
+    "expected_facts": [
+      "病假需补充医疗证明"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "negation",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "hr-leave-v1-q07",
+    "split": "held_out",
+    "category": "version_conflict",
+    "domain": "HR",
+    "difficulty": "hard",
+    "question": "旧版制度关于连续请假的规则是什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-leave-v1"
+    ],
+    "evidence_phrases": [
+      "年假与调休由直属主管审批"
+    ],
+    "expected_facts": [
+      "年假与调休由直属主管审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "version",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "hr-leave-v1-q08",
+    "split": "held_out",
+    "category": "noisy_query",
+    "domain": "HR",
+    "difficulty": "hard",
+    "question": "请假这事儿按旧制度咋走？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-leave-v1"
+    ],
+    "evidence_phrases": [
+      "连续请假超过五天需同步抄送部门负责人"
+    ],
+    "expected_facts": [
+      "连续请假超过五天需同步抄送部门负责人"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "language_noise",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "hr-leave-v2-q01",
+    "split": "development",
+    "category": "direct_fact",
+    "domain": "HR",
+    "difficulty": "easy",
+    "question": "现在请假申请要提前多久、在哪提交？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-leave-v2"
+    ],
+    "evidence_phrases": [
+      "员工请假需至少提前一个工作日在 HR 系统提交申请"
+    ],
+    "expected_facts": [
+      "员工请假需至少提前一个工作日在 HR 系统提交申请"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "direct",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "hr-leave-v2-q02",
+    "split": "development",
+    "category": "conditional_policy",
+    "domain": "HR",
+    "difficulty": "easy",
+    "question": "病假需要补什么材料？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-leave-v2"
+    ],
+    "evidence_phrases": [
+      "病假需补充医疗证明"
+    ],
+    "expected_facts": [
+      "病假需补充医疗证明"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "condition",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "hr-leave-v2-q03",
+    "split": "development",
+    "category": "threshold",
+    "domain": "HR",
+    "difficulty": "easy",
+    "question": "年假和调休由谁审批？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-leave-v2"
+    ],
+    "evidence_phrases": [
+      "年假与调休需由直属主管审批"
+    ],
+    "expected_facts": [
+      "年假与调休需由直属主管审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "threshold",
+      "threshold",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "hr-leave-v2-q04",
+    "split": "development",
+    "category": "synonym_rewrite",
+    "domain": "HR",
+    "difficulty": "medium",
+    "question": "连续请假超过几天要抄送哪些人？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-leave-v2"
+    ],
+    "evidence_phrases": [
+      "连续请假超过三天需同步抄送部门负责人和人力资源"
+    ],
+    "expected_facts": [
+      "连续请假超过三天需同步抄送部门负责人和人力资源"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "synonym",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "hr-leave-v2-q05",
+    "split": "regression",
+    "category": "multi_step",
+    "domain": "HR",
+    "difficulty": "hard",
+    "question": "我要请假并准备病假材料，申请和审批怎么走？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-leave-v2"
+    ],
+    "evidence_phrases": [
+      "员工请假需至少提前一个工作日在 HR 系统提交申请",
+      "病假需补充医疗证明"
+    ],
+    "expected_facts": [
+      "员工请假需至少提前一个工作日在 HR 系统提交申请",
+      "病假需补充医疗证明"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "multi_hop",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "hr-leave-v2-q06",
+    "split": "regression",
+    "category": "negative_rule",
+    "domain": "HR",
+    "difficulty": "hard",
+    "question": "连续休假达到阈值后需要通知哪些人？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-leave-v2"
+    ],
+    "evidence_phrases": [
+      "病假需补充医疗证明"
+    ],
+    "expected_facts": [
+      "病假需补充医疗证明"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "negation",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "hr-leave-v2-q07",
+    "split": "held_out",
+    "category": "version_conflict",
+    "domain": "HR",
+    "difficulty": "hard",
+    "question": "当前生效的请假制度关于连续请假怎么规定？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-leave-v2"
+    ],
+    "evidence_phrases": [
+      "年假与调休需由直属主管审批"
+    ],
+    "expected_facts": [
+      "年假与调休需由直属主管审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "version",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "hr-leave-v2-q08",
+    "split": "held_out",
+    "category": "noisy_query",
+    "domain": "HR",
+    "difficulty": "hard",
+    "question": "请假这个咋整，病假要不要证明？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-leave-v2"
+    ],
+    "evidence_phrases": [
+      "连续请假超过三天需同步抄送部门负责人和人力资源"
+    ],
+    "expected_facts": [
+      "连续请假超过三天需同步抄送部门负责人和人力资源"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "language_noise",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "hr-onboarding-v1-q01",
+    "split": "development",
+    "category": "direct_fact",
+    "domain": "HR",
+    "difficulty": "easy",
+    "question": "新员工入职当天谁提交账号开通申请？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-onboarding-v1"
+    ],
+    "evidence_phrases": [
+      "新员工入职当天由直属主管在 OA 系统提交账号开通申请"
+    ],
+    "expected_facts": [
+      "新员工入职当天由直属主管在 OA 系统提交账号开通申请"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "direct"
+    ]
+  },
+  {
+    "id": "hr-onboarding-v1-q02",
+    "split": "development",
+    "category": "conditional_policy",
+    "domain": "HR",
+    "difficulty": "easy",
+    "question": "邮箱、协作平台和代码仓库权限多久能配好？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-onboarding-v1"
+    ],
+    "evidence_phrases": [
+      "IT 在一个工作日内完成邮箱、协作平台和代码仓库权限配置"
+    ],
+    "expected_facts": [
+      "IT 在一个工作日内完成邮箱、协作平台和代码仓库权限配置"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "condition"
+    ]
+  },
+  {
+    "id": "hr-onboarding-v1-q03",
+    "split": "development",
+    "category": "threshold",
+    "domain": "HR",
+    "difficulty": "easy",
+    "question": "生产环境权限开通还需要什么审批？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-onboarding-v1"
+    ],
+    "evidence_phrases": [
+      "涉及生产环境权限的申请需额外通过安全审批"
+    ],
+    "expected_facts": [
+      "涉及生产环境权限的申请需额外通过安全审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "threshold",
+      "threshold"
+    ]
+  },
+  {
+    "id": "hr-onboarding-v1-q04",
+    "split": "development",
+    "category": "synonym_rewrite",
+    "domain": "HR",
+    "difficulty": "medium",
+    "question": "入职权限申请应该走哪个系统？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-onboarding-v1"
+    ],
+    "evidence_phrases": [
+      "入职当天由直属主管在 OA 系统提交账号开通申请"
+    ],
+    "expected_facts": [
+      "入职当天由直属主管在 OA 系统提交账号开通申请"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "synonym"
+    ]
+  },
+  {
+    "id": "hr-onboarding-v1-q05",
+    "split": "regression",
+    "category": "multi_step",
+    "domain": "HR",
+    "difficulty": "hard",
+    "question": "新员工入职后，账号申请和普通权限配置的步骤是什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-onboarding-v1"
+    ],
+    "evidence_phrases": [
+      "新员工入职当天由直属主管在 OA 系统提交账号开通申请",
+      "IT 在一个工作日内完成邮箱、协作平台和代码仓库权限配置"
+    ],
+    "expected_facts": [
+      "新员工入职当天由直属主管在 OA 系统提交账号开通申请",
+      "IT 在一个工作日内完成邮箱、协作平台和代码仓库权限配置"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "multi_hop"
+    ]
+  },
+  {
+    "id": "hr-onboarding-v1-q06",
+    "split": "regression",
+    "category": "negative_rule",
+    "domain": "HR",
+    "difficulty": "hard",
+    "question": "如果要访问生产环境，普通开通流程还缺哪一步？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-onboarding-v1"
+    ],
+    "evidence_phrases": [
+      "IT 在一个工作日内完成邮箱、协作平台和代码仓库权限配置"
+    ],
+    "expected_facts": [
+      "IT 在一个工作日内完成邮箱、协作平台和代码仓库权限配置"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "negation"
+    ]
+  },
+  {
+    "id": "hr-onboarding-v1-q07",
+    "split": "held_out",
+    "category": "version_conflict",
+    "domain": "HR",
+    "difficulty": "hard",
+    "question": "当前入职办公权限的办理时限是多少？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-onboarding-v1"
+    ],
+    "evidence_phrases": [
+      "涉及生产环境权限的申请需额外通过安全审批"
+    ],
+    "expected_facts": [
+      "涉及生产环境权限的申请需额外通过安全审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "version"
+    ]
+  },
+  {
+    "id": "hr-onboarding-v1-q08",
+    "split": "held_out",
+    "category": "noisy_query",
+    "domain": "HR",
+    "difficulty": "hard",
+    "question": "新人账号咋开，生产权限是不是还得单独批？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-onboarding-v1"
+    ],
+    "evidence_phrases": [
+      "入职当天由直属主管在 OA 系统提交账号开通申请"
+    ],
+    "expected_facts": [
+      "入职当天由直属主管在 OA 系统提交账号开通申请"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "language_noise"
+    ]
+  },
+  {
+    "id": "hr-attendance-v1-q01",
+    "split": "development",
+    "category": "direct_fact",
+    "domain": "HR",
+    "difficulty": "easy",
+    "question": "员工每个工作日需要做什么考勤动作？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-attendance-v1"
+    ],
+    "evidence_phrases": [
+      "员工应在每个工作日上下班打卡"
+    ],
+    "expected_facts": [
+      "员工应在每个工作日上下班打卡"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "direct"
+    ]
+  },
+  {
+    "id": "hr-attendance-v1-q02",
+    "split": "development",
+    "category": "conditional_policy",
+    "domain": "HR",
+    "difficulty": "easy",
+    "question": "加班需要提前经过谁批准？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-attendance-v1"
+    ],
+    "evidence_phrases": [
+      "加班需事前获得直属主管批准"
+    ],
+    "expected_facts": [
+      "加班需事前获得直属主管批准"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "condition"
+    ]
+  },
+  {
+    "id": "hr-attendance-v1-q03",
+    "split": "development",
+    "category": "threshold",
+    "domain": "HR",
+    "difficulty": "easy",
+    "question": "加班结束后多久提交调休或加班记录？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-attendance-v1"
+    ],
+    "evidence_phrases": [
+      "加班结束后五个工作日内在 HR 系统提交调休或加班记录"
+    ],
+    "expected_facts": [
+      "加班结束后五个工作日内在 HR 系统提交调休或加班记录"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "threshold",
+      "threshold"
+    ]
+  },
+  {
+    "id": "hr-attendance-v1-q04",
+    "split": "development",
+    "category": "synonym_rewrite",
+    "domain": "HR",
+    "difficulty": "medium",
+    "question": "连续迟到三次由谁提醒？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-attendance-v1"
+    ],
+    "evidence_phrases": [
+      "连续迟到三次由部门负责人进行提醒"
+    ],
+    "expected_facts": [
+      "连续迟到三次由部门负责人进行提醒"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "synonym"
+    ]
+  },
+  {
+    "id": "hr-attendance-v1-q05",
+    "split": "regression",
+    "category": "multi_step",
+    "domain": "HR",
+    "difficulty": "hard",
+    "question": "加班申请、结束后的记录提交和审批怎么衔接？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-attendance-v1"
+    ],
+    "evidence_phrases": [
+      "员工应在每个工作日上下班打卡",
+      "加班需事前获得直属主管批准"
+    ],
+    "expected_facts": [
+      "员工应在每个工作日上下班打卡",
+      "加班需事前获得直属主管批准"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "multi_hop"
+    ]
+  },
+  {
+    "id": "hr-attendance-v1-q06",
+    "split": "regression",
+    "category": "negative_rule",
+    "domain": "HR",
+    "difficulty": "hard",
+    "question": "迟到达到次数后会触发什么处理？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-attendance-v1"
+    ],
+    "evidence_phrases": [
+      "加班需事前获得直属主管批准"
+    ],
+    "expected_facts": [
+      "加班需事前获得直属主管批准"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "negation"
+    ]
+  },
+  {
+    "id": "hr-attendance-v1-q07",
+    "split": "held_out",
+    "category": "version_conflict",
+    "domain": "HR",
+    "difficulty": "hard",
+    "question": "现在加班记录应在什么时限内补交？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-attendance-v1"
+    ],
+    "evidence_phrases": [
+      "加班结束后五个工作日内在 HR 系统提交调休或加班记录"
+    ],
+    "expected_facts": [
+      "加班结束后五个工作日内在 HR 系统提交调休或加班记录"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "version"
+    ]
+  },
+  {
+    "id": "hr-attendance-v1-q08",
+    "split": "held_out",
+    "category": "noisy_query",
+    "domain": "HR",
+    "difficulty": "hard",
+    "question": "加班记录咋补，迟到几次会被提醒？",
+    "answerability": "answerable",
+    "source_ids": [
+      "hr-attendance-v1"
+    ],
+    "evidence_phrases": [
+      "连续迟到三次由部门负责人进行提醒"
+    ],
+    "expected_facts": [
+      "连续迟到三次由部门负责人进行提醒"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "language_noise"
+    ]
+  },
+  {
+    "id": "finance-reimbursement-v1-q01",
+    "split": "development",
+    "category": "direct_fact",
+    "domain": "Finance",
+    "difficulty": "easy",
+    "question": "旧版差旅和采购费用报销前要做什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-reimbursement-v1"
+    ],
+    "evidence_phrases": [
+      "员工差旅和采购费用须先在内部审批系统提交申请"
+    ],
+    "expected_facts": [
+      "员工差旅和采购费用须先在内部审批系统提交申请"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "direct",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "finance-reimbursement-v1-q02",
+    "split": "development",
+    "category": "conditional_policy",
+    "domain": "Finance",
+    "difficulty": "easy",
+    "question": "旧版报销单需要附哪些材料？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-reimbursement-v1"
+    ],
+    "evidence_phrases": [
+      "报销单需附发票、行程单或支付凭证"
+    ],
+    "expected_facts": [
+      "报销单需附发票、行程单或支付凭证"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "condition",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "finance-reimbursement-v1-q03",
+    "split": "development",
+    "category": "threshold",
+    "domain": "Finance",
+    "difficulty": "easy",
+    "question": "旧版财务收到材料后几天完成审核？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-reimbursement-v1"
+    ],
+    "evidence_phrases": [
+      "财务在收到完整材料后的七个工作日内完成审核"
+    ],
+    "expected_facts": [
+      "财务在收到完整材料后的七个工作日内完成审核"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "threshold",
+      "threshold",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "finance-reimbursement-v1-q04",
+    "split": "development",
+    "category": "synonym_rewrite",
+    "domain": "Finance",
+    "difficulty": "medium",
+    "question": "旧版单笔超过多少需要财务负责人审批？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-reimbursement-v1"
+    ],
+    "evidence_phrases": [
+      "单笔超过一万元需财务负责人审批"
+    ],
+    "expected_facts": [
+      "单笔超过一万元需财务负责人审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "synonym",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "finance-reimbursement-v1-q05",
+    "split": "regression",
+    "category": "multi_step",
+    "domain": "Finance",
+    "difficulty": "hard",
+    "question": "按照旧版制度，费用申请、材料和审核时限分别是什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-reimbursement-v1"
+    ],
+    "evidence_phrases": [
+      "员工差旅和采购费用须先在内部审批系统提交申请",
+      "报销单需附发票、行程单或支付凭证"
+    ],
+    "expected_facts": [
+      "员工差旅和采购费用须先在内部审批系统提交申请",
+      "报销单需附发票、行程单或支付凭证"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "multi_hop",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "finance-reimbursement-v1-q06",
+    "split": "regression",
+    "category": "negative_rule",
+    "domain": "Finance",
+    "difficulty": "hard",
+    "question": "旧版大额报销的审批人是谁？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-reimbursement-v1"
+    ],
+    "evidence_phrases": [
+      "报销单需附发票、行程单或支付凭证"
+    ],
+    "expected_facts": [
+      "报销单需附发票、行程单或支付凭证"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "negation",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "finance-reimbursement-v1-q07",
+    "split": "held_out",
+    "category": "version_conflict",
+    "domain": "Finance",
+    "difficulty": "hard",
+    "question": "旧版费用报销的审核时限怎么规定？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-reimbursement-v1"
+    ],
+    "evidence_phrases": [
+      "财务在收到完整材料后的七个工作日内完成审核"
+    ],
+    "expected_facts": [
+      "财务在收到完整材料后的七个工作日内完成审核"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "version",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "finance-reimbursement-v1-q08",
+    "split": "held_out",
+    "category": "noisy_query",
+    "domain": "Finance",
+    "difficulty": "hard",
+    "question": "老的报销规则咋走，票据要带啥？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-reimbursement-v1"
+    ],
+    "evidence_phrases": [
+      "单笔超过一万元需财务负责人审批"
+    ],
+    "expected_facts": [
+      "单笔超过一万元需财务负责人审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "language_noise",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "finance-reimbursement-v2-q01",
+    "split": "development",
+    "category": "direct_fact",
+    "domain": "Finance",
+    "difficulty": "easy",
+    "question": "当前差旅和采购费用报销前要做什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-reimbursement-v2"
+    ],
+    "evidence_phrases": [
+      "差旅、采购和业务招待费用须先在内部审批系统提交申请"
+    ],
+    "expected_facts": [
+      "差旅、采购和业务招待费用须先在内部审批系统提交申请"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "direct",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "finance-reimbursement-v2-q02",
+    "split": "development",
+    "category": "conditional_policy",
+    "domain": "Finance",
+    "difficulty": "easy",
+    "question": "报销单需要附哪些材料？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-reimbursement-v2"
+    ],
+    "evidence_phrases": [
+      "报销单需附发票、行程单或支付凭证"
+    ],
+    "expected_facts": [
+      "报销单需附发票、行程单或支付凭证"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "condition",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "finance-reimbursement-v2-q03",
+    "split": "development",
+    "category": "threshold",
+    "domain": "Finance",
+    "difficulty": "easy",
+    "question": "财务收到完整材料后几天完成审核？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-reimbursement-v2"
+    ],
+    "evidence_phrases": [
+      "财务收到完整材料后五个工作日内完成审核"
+    ],
+    "expected_facts": [
+      "财务收到完整材料后五个工作日内完成审核"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "threshold",
+      "threshold",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "finance-reimbursement-v2-q04",
+    "split": "development",
+    "category": "synonym_rewrite",
+    "domain": "Finance",
+    "difficulty": "medium",
+    "question": "单笔超过多少还要财务负责人复核？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-reimbursement-v2"
+    ],
+    "evidence_phrases": [
+      "单笔超过5000元还需财务负责人复核"
+    ],
+    "expected_facts": [
+      "单笔超过5000元还需财务负责人复核"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "synonym",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "finance-reimbursement-v2-q05",
+    "split": "regression",
+    "category": "multi_step",
+    "domain": "Finance",
+    "difficulty": "hard",
+    "question": "费用申请、票据材料和财务审核时限怎么衔接？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-reimbursement-v2"
+    ],
+    "evidence_phrases": [
+      "差旅、采购和业务招待费用须先在内部审批系统提交申请",
+      "报销单需附发票、行程单或支付凭证"
+    ],
+    "expected_facts": [
+      "差旅、采购和业务招待费用须先在内部审批系统提交申请",
+      "报销单需附发票、行程单或支付凭证"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "multi_hop",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "finance-reimbursement-v2-q06",
+    "split": "regression",
+    "category": "negative_rule",
+    "domain": "Finance",
+    "difficulty": "hard",
+    "question": "超过金额阈值的报销还要谁复核？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-reimbursement-v2"
+    ],
+    "evidence_phrases": [
+      "报销单需附发票、行程单或支付凭证"
+    ],
+    "expected_facts": [
+      "报销单需附发票、行程单或支付凭证"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "negation",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "finance-reimbursement-v2-q07",
+    "split": "held_out",
+    "category": "version_conflict",
+    "domain": "Finance",
+    "difficulty": "hard",
+    "question": "现行报销制度的审核期限是多少？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-reimbursement-v2"
+    ],
+    "evidence_phrases": [
+      "财务收到完整材料后五个工作日内完成审核"
+    ],
+    "expected_facts": [
+      "财务收到完整材料后五个工作日内完成审核"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "version",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "finance-reimbursement-v2-q08",
+    "split": "held_out",
+    "category": "noisy_query",
+    "domain": "Finance",
+    "difficulty": "hard",
+    "question": "报销咋弄，超过五千是不是要复核？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-reimbursement-v2"
+    ],
+    "evidence_phrases": [
+      "单笔超过5000元还需财务负责人复核"
+    ],
+    "expected_facts": [
+      "单笔超过5000元还需财务负责人复核"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "language_noise",
+      "versioned_policy"
+    ]
+  },
+  {
+    "id": "finance-travel-v1-q01",
+    "split": "development",
+    "category": "direct_fact",
+    "domain": "Finance",
+    "difficulty": "easy",
+    "question": "国内差旅申请要在什么时候提交？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-travel-v1"
+    ],
+    "evidence_phrases": [
+      "国内差旅申请须在出发前提交"
+    ],
+    "expected_facts": [
+      "国内差旅申请须在出发前提交"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "direct"
+    ]
+  },
+  {
+    "id": "finance-travel-v1-q02",
+    "split": "development",
+    "category": "conditional_policy",
+    "domain": "Finance",
+    "difficulty": "easy",
+    "question": "差旅申请需要写明哪些信息？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-travel-v1"
+    ],
+    "evidence_phrases": [
+      "写明出差地点、事由和预计天数"
+    ],
+    "expected_facts": [
+      "写明出差地点、事由和预计天数"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "condition"
+    ]
+  },
+  {
+    "id": "finance-travel-v1-q03",
+    "split": "development",
+    "category": "threshold",
+    "domain": "Finance",
+    "difficulty": "easy",
+    "question": "出差结束后多久提交报销？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-travel-v1"
+    ],
+    "evidence_phrases": [
+      "出差结束后十个工作日内提交报销"
+    ],
+    "expected_facts": [
+      "出差结束后十个工作日内提交报销"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "threshold",
+      "threshold"
+    ]
+  },
+  {
+    "id": "finance-travel-v1-q04",
+    "split": "development",
+    "category": "synonym_rewrite",
+    "domain": "Finance",
+    "difficulty": "medium",
+    "question": "住宿超标准需要什么批准？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-travel-v1"
+    ],
+    "evidence_phrases": [
+      "住宿标准按城市等级执行，超标准需事前书面批准"
+    ],
+    "expected_facts": [
+      "住宿标准按城市等级执行，超标准需事前书面批准"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "synonym"
+    ]
+  },
+  {
+    "id": "finance-travel-v1-q05",
+    "split": "regression",
+    "category": "multi_step",
+    "domain": "Finance",
+    "difficulty": "hard",
+    "question": "出差申请、票据材料和报销时限怎么安排？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-travel-v1"
+    ],
+    "evidence_phrases": [
+      "国内差旅申请须在出发前提交",
+      "写明出差地点、事由和预计天数"
+    ],
+    "expected_facts": [
+      "国内差旅申请须在出发前提交",
+      "写明出差地点、事由和预计天数"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "multi_hop"
+    ]
+  },
+  {
+    "id": "finance-travel-v1-q06",
+    "split": "regression",
+    "category": "negative_rule",
+    "domain": "Finance",
+    "difficulty": "hard",
+    "question": "住宿超标准时应该先做什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-travel-v1"
+    ],
+    "evidence_phrases": [
+      "写明出差地点、事由和预计天数"
+    ],
+    "expected_facts": [
+      "写明出差地点、事由和预计天数"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "negation"
+    ]
+  },
+  {
+    "id": "finance-travel-v1-q07",
+    "split": "held_out",
+    "category": "version_conflict",
+    "domain": "Finance",
+    "difficulty": "hard",
+    "question": "差旅报销有哪些必须保留的票据？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-travel-v1"
+    ],
+    "evidence_phrases": [
+      "出差结束后十个工作日内提交报销"
+    ],
+    "expected_facts": [
+      "出差结束后十个工作日内提交报销"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "version"
+    ]
+  },
+  {
+    "id": "finance-travel-v1-q08",
+    "split": "held_out",
+    "category": "noisy_query",
+    "domain": "Finance",
+    "difficulty": "hard",
+    "question": "出差报销咋交，住宿超标能不能报？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-travel-v1"
+    ],
+    "evidence_phrases": [
+      "住宿标准按城市等级执行，超标准需事前书面批准"
+    ],
+    "expected_facts": [
+      "住宿标准按城市等级执行，超标准需事前书面批准"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "language_noise"
+    ]
+  },
+  {
+    "id": "finance-payment-invoice-v1-q01",
+    "split": "development",
+    "category": "direct_fact",
+    "domain": "Finance",
+    "difficulty": "easy",
+    "question": "对公付款申请要提交哪些材料？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-payment-invoice-v1"
+    ],
+    "evidence_phrases": [
+      "对公付款由经办人提交付款申请、合同和验收材料"
+    ],
+    "expected_facts": [
+      "对公付款由经办人提交付款申请、合同和验收材料"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "direct"
+    ]
+  },
+  {
+    "id": "finance-payment-invoice-v1-q02",
+    "split": "development",
+    "category": "conditional_policy",
+    "domain": "Finance",
+    "difficulty": "easy",
+    "question": "发票抬头和合同主体有什么要求？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-payment-invoice-v1"
+    ],
+    "evidence_phrases": [
+      "发票抬头与合同主体必须一致"
+    ],
+    "expected_facts": [
+      "发票抬头与合同主体必须一致"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "condition"
+    ]
+  },
+  {
+    "id": "finance-payment-invoice-v1-q03",
+    "split": "development",
+    "category": "threshold",
+    "domain": "Finance",
+    "difficulty": "easy",
+    "question": "财务收到完整付款材料后多久复核？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-payment-invoice-v1"
+    ],
+    "evidence_phrases": [
+      "财务在收到完整材料后三个工作日内复核"
+    ],
+    "expected_facts": [
+      "财务在收到完整材料后三个工作日内复核"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "threshold",
+      "threshold"
+    ]
+  },
+  {
+    "id": "finance-payment-invoice-v1-q04",
+    "split": "development",
+    "category": "synonym_rewrite",
+    "domain": "Finance",
+    "difficulty": "medium",
+    "question": "单笔超过十万元需要谁共同审批？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-payment-invoice-v1"
+    ],
+    "evidence_phrases": [
+      "单笔超过十万元需财务经理和部门负责人共同审批"
+    ],
+    "expected_facts": [
+      "单笔超过十万元需财务经理和部门负责人共同审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "synonym"
+    ]
+  },
+  {
+    "id": "finance-payment-invoice-v1-q05",
+    "split": "regression",
+    "category": "multi_step",
+    "domain": "Finance",
+    "difficulty": "hard",
+    "question": "对公付款从申请、合同验收材料到财务复核怎么走？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-payment-invoice-v1"
+    ],
+    "evidence_phrases": [
+      "对公付款由经办人提交付款申请、合同和验收材料",
+      "发票抬头与合同主体必须一致"
+    ],
+    "expected_facts": [
+      "对公付款由经办人提交付款申请、合同和验收材料",
+      "发票抬头与合同主体必须一致"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "multi_hop"
+    ]
+  },
+  {
+    "id": "finance-payment-invoice-v1-q06",
+    "split": "regression",
+    "category": "negative_rule",
+    "domain": "Finance",
+    "difficulty": "hard",
+    "question": "十万元以上付款的审批链是什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-payment-invoice-v1"
+    ],
+    "evidence_phrases": [
+      "发票抬头与合同主体必须一致"
+    ],
+    "expected_facts": [
+      "发票抬头与合同主体必须一致"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "negation"
+    ]
+  },
+  {
+    "id": "finance-payment-invoice-v1-q07",
+    "split": "held_out",
+    "category": "version_conflict",
+    "domain": "Finance",
+    "difficulty": "hard",
+    "question": "现行对公付款的发票校验规则是什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-payment-invoice-v1"
+    ],
+    "evidence_phrases": [
+      "财务在收到完整材料后三个工作日内复核"
+    ],
+    "expected_facts": [
+      "财务在收到完整材料后三个工作日内复核"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "version"
+    ]
+  },
+  {
+    "id": "finance-payment-invoice-v1-q08",
+    "split": "held_out",
+    "category": "noisy_query",
+    "domain": "Finance",
+    "difficulty": "hard",
+    "question": "公司付款咋申请，发票抬头能不能随便写？",
+    "answerability": "answerable",
+    "source_ids": [
+      "finance-payment-invoice-v1"
+    ],
+    "evidence_phrases": [
+      "单笔超过十万元需财务经理和部门负责人共同审批"
+    ],
+    "expected_facts": [
+      "单笔超过十万元需财务经理和部门负责人共同审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "language_noise"
+    ]
+  },
+  {
+    "id": "procurement-request-v1-q01",
+    "split": "development",
+    "category": "direct_fact",
+    "domain": "Procurement",
+    "difficulty": "easy",
+    "question": "办公设备和软件采购要先提交什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-request-v1"
+    ],
+    "evidence_phrases": [
+      "办公设备和软件采购需先提交采购申请单"
+    ],
+    "expected_facts": [
+      "办公设备和软件采购需先提交采购申请单"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "direct"
+    ]
+  },
+  {
+    "id": "procurement-request-v1-q02",
+    "split": "development",
+    "category": "conditional_policy",
+    "domain": "Procurement",
+    "difficulty": "easy",
+    "question": "采购申请单需要注明哪些内容？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-request-v1"
+    ],
+    "evidence_phrases": [
+      "注明预算、用途和交付时间"
+    ],
+    "expected_facts": [
+      "注明预算、用途和交付时间"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "condition"
+    ]
+  },
+  {
+    "id": "procurement-request-v1-q03",
+    "split": "development",
+    "category": "threshold",
+    "domain": "Procurement",
+    "difficulty": "easy",
+    "question": "金额超过一万元采购要做几家供应商比价？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-request-v1"
+    ],
+    "evidence_phrases": [
+      "金额超过一万元的采购需至少进行两家供应商比价"
+    ],
+    "expected_facts": [
+      "金额超过一万元的采购需至少进行两家供应商比价"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "threshold",
+      "threshold"
+    ]
+  },
+  {
+    "id": "procurement-request-v1-q04",
+    "split": "development",
+    "category": "synonym_rewrite",
+    "domain": "Procurement",
+    "difficulty": "medium",
+    "question": "比价结果由哪个部门汇总提交审批？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-request-v1"
+    ],
+    "evidence_phrases": [
+      "采购部汇总后提交审批"
+    ],
+    "expected_facts": [
+      "采购部汇总后提交审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "synonym"
+    ]
+  },
+  {
+    "id": "procurement-request-v1-q05",
+    "split": "regression",
+    "category": "multi_step",
+    "domain": "Procurement",
+    "difficulty": "hard",
+    "question": "采购申请从预算用途填写到比价审批怎么走？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-request-v1"
+    ],
+    "evidence_phrases": [
+      "办公设备和软件采购需先提交采购申请单",
+      "注明预算、用途和交付时间"
+    ],
+    "expected_facts": [
+      "办公设备和软件采购需先提交采购申请单",
+      "注明预算、用途和交付时间"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "multi_hop"
+    ]
+  },
+  {
+    "id": "procurement-request-v1-q06",
+    "split": "regression",
+    "category": "negative_rule",
+    "domain": "Procurement",
+    "difficulty": "hard",
+    "question": "超过一万元的采购有什么额外要求？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-request-v1"
+    ],
+    "evidence_phrases": [
+      "注明预算、用途和交付时间"
+    ],
+    "expected_facts": [
+      "注明预算、用途和交付时间"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "negation"
+    ]
+  },
+  {
+    "id": "procurement-request-v1-q07",
+    "split": "held_out",
+    "category": "version_conflict",
+    "domain": "Procurement",
+    "difficulty": "hard",
+    "question": "当前采购申请的必填信息有哪些？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-request-v1"
+    ],
+    "evidence_phrases": [
+      "金额超过一万元的采购需至少进行两家供应商比价"
+    ],
+    "expected_facts": [
+      "金额超过一万元的采购需至少进行两家供应商比价"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "version"
+    ]
+  },
+  {
+    "id": "procurement-request-v1-q08",
+    "split": "held_out",
+    "category": "noisy_query",
+    "domain": "Procurement",
+    "difficulty": "hard",
+    "question": "买设备咋提申请，超过一万要不要比价？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-request-v1"
+    ],
+    "evidence_phrases": [
+      "采购部汇总后提交审批"
+    ],
+    "expected_facts": [
+      "采购部汇总后提交审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "language_noise"
+    ]
+  },
+  {
+    "id": "procurement-vendor-v1-q01",
+    "split": "development",
+    "category": "direct_fact",
+    "domain": "Procurement",
+    "difficulty": "easy",
+    "question": "新供应商准入需要提交哪些资料？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-vendor-v1"
+    ],
+    "evidence_phrases": [
+      "新供应商准入需提交营业执照、开户信息和联系人资料"
+    ],
+    "expected_facts": [
+      "新供应商准入需提交营业执照、开户信息和联系人资料"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "direct"
+    ]
+  },
+  {
+    "id": "procurement-vendor-v1-q02",
+    "split": "development",
+    "category": "conditional_policy",
+    "domain": "Procurement",
+    "difficulty": "easy",
+    "question": "供应商准入由哪些部门分别核验？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-vendor-v1"
+    ],
+    "evidence_phrases": [
+      "采购部完成初审，财务核验收款账户，法务审查合同模板"
+    ],
+    "expected_facts": [
+      "采购部完成初审，财务核验收款账户，法务审查合同模板"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "condition"
+    ]
+  },
+  {
+    "id": "procurement-vendor-v1-q03",
+    "split": "development",
+    "category": "threshold",
+    "domain": "Procurement",
+    "difficulty": "easy",
+    "question": "金额超过一万元的采购要保留什么记录？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-vendor-v1"
+    ],
+    "evidence_phrases": [
+      "金额超过一万元的采购至少保留两家供应商的比价记录"
+    ],
+    "expected_facts": [
+      "金额超过一万元的采购至少保留两家供应商的比价记录"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "threshold",
+      "threshold"
+    ]
+  },
+  {
+    "id": "procurement-vendor-v1-q04",
+    "split": "development",
+    "category": "synonym_rewrite",
+    "domain": "Procurement",
+    "difficulty": "medium",
+    "question": "财务在供应商准入中负责核验什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-vendor-v1"
+    ],
+    "evidence_phrases": [
+      "采购部完成初审，财务核验收款账户，法务审查合同模板"
+    ],
+    "expected_facts": [
+      "采购部完成初审，财务核验收款账户，法务审查合同模板"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "synonym"
+    ]
+  },
+  {
+    "id": "procurement-vendor-v1-q05",
+    "split": "regression",
+    "category": "multi_step",
+    "domain": "Procurement",
+    "difficulty": "hard",
+    "question": "供应商准入、账户核验和合同审查的顺序是什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-vendor-v1"
+    ],
+    "evidence_phrases": [
+      "新供应商准入需提交营业执照、开户信息和联系人资料",
+      "采购部完成初审，财务核验收款账户，法务审查合同模板"
+    ],
+    "expected_facts": [
+      "新供应商准入需提交营业执照、开户信息和联系人资料",
+      "采购部完成初审，财务核验收款账户，法务审查合同模板"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "multi_hop"
+    ]
+  },
+  {
+    "id": "procurement-vendor-v1-q06",
+    "split": "regression",
+    "category": "negative_rule",
+    "domain": "Procurement",
+    "difficulty": "hard",
+    "question": "超过一万元采购的比价记录有什么要求？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-vendor-v1"
+    ],
+    "evidence_phrases": [
+      "采购部完成初审，财务核验收款账户，法务审查合同模板"
+    ],
+    "expected_facts": [
+      "采购部完成初审，财务核验收款账户，法务审查合同模板"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "negation"
+    ]
+  },
+  {
+    "id": "procurement-vendor-v1-q07",
+    "split": "held_out",
+    "category": "version_conflict",
+    "domain": "Procurement",
+    "difficulty": "hard",
+    "question": "当前供应商准入要准备哪些材料？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-vendor-v1"
+    ],
+    "evidence_phrases": [
+      "金额超过一万元的采购至少保留两家供应商的比价记录"
+    ],
+    "expected_facts": [
+      "金额超过一万元的采购至少保留两家供应商的比价记录"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "version"
+    ]
+  },
+  {
+    "id": "procurement-vendor-v1-q08",
+    "split": "held_out",
+    "category": "noisy_query",
+    "domain": "Procurement",
+    "difficulty": "hard",
+    "question": "供应商咋入库，营业执照和比价记录都要吗？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-vendor-v1"
+    ],
+    "evidence_phrases": [
+      "采购部完成初审，财务核验收款账户，法务审查合同模板"
+    ],
+    "expected_facts": [
+      "采购部完成初审，财务核验收款账户，法务审查合同模板"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "language_noise"
+    ]
+  },
+  {
+    "id": "procurement-contract-v1-q01",
+    "split": "development",
+    "category": "direct_fact",
+    "domain": "Procurement",
+    "difficulty": "easy",
+    "question": "采购合同签署前要核对哪些材料？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-contract-v1"
+    ],
+    "evidence_phrases": [
+      "采购合同签署前需核对订单、报价单和验收标准"
+    ],
+    "expected_facts": [
+      "采购合同签署前需核对订单、报价单和验收标准"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "direct"
+    ]
+  },
+  {
+    "id": "procurement-contract-v1-q02",
+    "split": "development",
+    "category": "conditional_policy",
+    "domain": "Procurement",
+    "difficulty": "easy",
+    "question": "金额超过五十万元的采购合同由谁审批？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-contract-v1"
+    ],
+    "evidence_phrases": [
+      "金额超过五十万元需业务负责人和财务负责人联合审批"
+    ],
+    "expected_facts": [
+      "金额超过五十万元需业务负责人和财务负责人联合审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "condition"
+    ]
+  },
+  {
+    "id": "procurement-contract-v1-q03",
+    "split": "development",
+    "category": "threshold",
+    "domain": "Procurement",
+    "difficulty": "easy",
+    "question": "非标准条款应该交给谁复核？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-contract-v1"
+    ],
+    "evidence_phrases": [
+      "非标准条款交法务复核"
+    ],
+    "expected_facts": [
+      "非标准条款交法务复核"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "threshold",
+      "threshold"
+    ]
+  },
+  {
+    "id": "procurement-contract-v1-q04",
+    "split": "development",
+    "category": "synonym_rewrite",
+    "domain": "Procurement",
+    "difficulty": "medium",
+    "question": "采购合同归档需要包含什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-contract-v1"
+    ],
+    "evidence_phrases": [
+      "合同归档应包含审批记录和最终签署文本"
+    ],
+    "expected_facts": [
+      "合同归档应包含审批记录和最终签署文本"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "synonym"
+    ]
+  },
+  {
+    "id": "procurement-contract-v1-q05",
+    "split": "regression",
+    "category": "multi_step",
+    "domain": "Procurement",
+    "difficulty": "hard",
+    "question": "采购合同从订单报价核对到大额审批怎么走？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-contract-v1"
+    ],
+    "evidence_phrases": [
+      "采购合同签署前需核对订单、报价单和验收标准",
+      "金额超过五十万元需业务负责人和财务负责人联合审批"
+    ],
+    "expected_facts": [
+      "采购合同签署前需核对订单、报价单和验收标准",
+      "金额超过五十万元需业务负责人和财务负责人联合审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "multi_hop"
+    ]
+  },
+  {
+    "id": "procurement-contract-v1-q06",
+    "split": "regression",
+    "category": "negative_rule",
+    "domain": "Procurement",
+    "difficulty": "hard",
+    "question": "五十万元以上合同和非标准条款分别触发什么流程？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-contract-v1"
+    ],
+    "evidence_phrases": [
+      "金额超过五十万元需业务负责人和财务负责人联合审批"
+    ],
+    "expected_facts": [
+      "金额超过五十万元需业务负责人和财务负责人联合审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "negation"
+    ]
+  },
+  {
+    "id": "procurement-contract-v1-q07",
+    "split": "held_out",
+    "category": "version_conflict",
+    "domain": "Procurement",
+    "difficulty": "hard",
+    "question": "当前采购合同归档的要求是什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-contract-v1"
+    ],
+    "evidence_phrases": [
+      "非标准条款交法务复核"
+    ],
+    "expected_facts": [
+      "非标准条款交法务复核"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "version"
+    ]
+  },
+  {
+    "id": "procurement-contract-v1-q08",
+    "split": "held_out",
+    "category": "noisy_query",
+    "domain": "Procurement",
+    "difficulty": "hard",
+    "question": "采购合同咋审，金额大或者条款特殊怎么办？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-contract-v1"
+    ],
+    "evidence_phrases": [
+      "合同归档应包含审批记录和最终签署文本"
+    ],
+    "expected_facts": [
+      "合同归档应包含审批记录和最终签署文本"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "language_noise"
+    ]
+  },
+  {
+    "id": "procurement-acceptance-v1-q01",
+    "split": "development",
+    "category": "direct_fact",
+    "domain": "Procurement",
+    "difficulty": "easy",
+    "question": "采购物品到货后由谁在几天内验收？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-acceptance-v1"
+    ],
+    "evidence_phrases": [
+      "采购物品到货后由需求部门在三个工作日内完成验收并提交验收单"
+    ],
+    "expected_facts": [
+      "采购物品到货后由需求部门在三个工作日内完成验收并提交验收单"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "direct"
+    ]
+  },
+  {
+    "id": "procurement-acceptance-v1-q02",
+    "split": "development",
+    "category": "conditional_policy",
+    "domain": "Procurement",
+    "difficulty": "easy",
+    "question": "验收需要提交什么单据？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-acceptance-v1"
+    ],
+    "evidence_phrases": [
+      "采购部核对订单与验收结果"
+    ],
+    "expected_facts": [
+      "采购部核对订单与验收结果"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "condition"
+    ]
+  },
+  {
+    "id": "procurement-acceptance-v1-q03",
+    "split": "development",
+    "category": "threshold",
+    "domain": "Procurement",
+    "difficulty": "easy",
+    "question": "财务收到完整付款材料后多久安排付款？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-acceptance-v1"
+    ],
+    "evidence_phrases": [
+      "财务收到完整付款材料后三个工作日内安排付款"
+    ],
+    "expected_facts": [
+      "财务收到完整付款材料后三个工作日内安排付款"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "threshold",
+      "threshold"
+    ]
+  },
+  {
+    "id": "procurement-acceptance-v1-q04",
+    "split": "development",
+    "category": "synonym_rewrite",
+    "domain": "Procurement",
+    "difficulty": "medium",
+    "question": "什么情况下不得进入付款流程？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-acceptance-v1"
+    ],
+    "evidence_phrases": [
+      "验收不合格不得进入付款流程"
+    ],
+    "expected_facts": [
+      "验收不合格不得进入付款流程"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "synonym"
+    ]
+  },
+  {
+    "id": "procurement-acceptance-v1-q05",
+    "split": "regression",
+    "category": "multi_step",
+    "domain": "Procurement",
+    "difficulty": "hard",
+    "question": "采购到货、需求部门验收和财务付款如何衔接？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-acceptance-v1"
+    ],
+    "evidence_phrases": [
+      "采购物品到货后由需求部门在三个工作日内完成验收并提交验收单",
+      "采购部核对订单与验收结果"
+    ],
+    "expected_facts": [
+      "采购物品到货后由需求部门在三个工作日内完成验收并提交验收单",
+      "采购部核对订单与验收结果"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "multi_hop"
+    ]
+  },
+  {
+    "id": "procurement-acceptance-v1-q06",
+    "split": "regression",
+    "category": "negative_rule",
+    "domain": "Procurement",
+    "difficulty": "hard",
+    "question": "验收不合格时能否进入付款流程？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-acceptance-v1"
+    ],
+    "evidence_phrases": [
+      "采购部核对订单与验收结果"
+    ],
+    "expected_facts": [
+      "采购部核对订单与验收结果"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "negation"
+    ]
+  },
+  {
+    "id": "procurement-acceptance-v1-q07",
+    "split": "held_out",
+    "category": "version_conflict",
+    "domain": "Procurement",
+    "difficulty": "hard",
+    "question": "当前采购验收的处理时限是多少？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-acceptance-v1"
+    ],
+    "evidence_phrases": [
+      "财务收到完整付款材料后三个工作日内安排付款"
+    ],
+    "expected_facts": [
+      "财务收到完整付款材料后三个工作日内安排付款"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "version"
+    ]
+  },
+  {
+    "id": "procurement-acceptance-v1-q08",
+    "split": "held_out",
+    "category": "noisy_query",
+    "domain": "Procurement",
+    "difficulty": "hard",
+    "question": "东西到了咋验收，没验收合格能付款吗？",
+    "answerability": "answerable",
+    "source_ids": [
+      "procurement-acceptance-v1"
+    ],
+    "evidence_phrases": [
+      "验收不合格不得进入付款流程"
+    ],
+    "expected_facts": [
+      "验收不合格不得进入付款流程"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "language_noise"
+    ]
+  },
+  {
+    "id": "it-account-access-v1-q01",
+    "split": "development",
+    "category": "direct_fact",
+    "domain": "IT",
+    "difficulty": "easy",
+    "question": "普通账号和代码仓库权限由谁申请？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-account-access-v1"
+    ],
+    "evidence_phrases": [
+      "账号、协作平台和代码仓库权限由直属主管在 OA 系统提交申请"
+    ],
+    "expected_facts": [
+      "账号、协作平台和代码仓库权限由直属主管在 OA 系统提交申请"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "direct"
+    ]
+  },
+  {
+    "id": "it-account-access-v1-q02",
+    "split": "development",
+    "category": "conditional_policy",
+    "domain": "IT",
+    "difficulty": "easy",
+    "question": "普通权限配置需要多久完成？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-account-access-v1"
+    ],
+    "evidence_phrases": [
+      "IT 在一个工作日内完成普通权限配置"
+    ],
+    "expected_facts": [
+      "IT 在一个工作日内完成普通权限配置"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "condition"
+    ]
+  },
+  {
+    "id": "it-account-access-v1-q03",
+    "split": "development",
+    "category": "threshold",
+    "domain": "IT",
+    "difficulty": "easy",
+    "question": "权限申请必须写明哪些信息？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-account-access-v1"
+    ],
+    "evidence_phrases": [
+      "权限申请必须写明业务用途和有效期限"
+    ],
+    "expected_facts": [
+      "权限申请必须写明业务用途和有效期限"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "threshold",
+      "threshold"
+    ]
+  },
+  {
+    "id": "it-account-access-v1-q04",
+    "split": "development",
+    "category": "synonym_rewrite",
+    "domain": "IT",
+    "difficulty": "medium",
+    "question": "员工离职或转岗时谁发起权限回收？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-account-access-v1"
+    ],
+    "evidence_phrases": [
+      "离职或转岗时由主管发起回收"
+    ],
+    "expected_facts": [
+      "离职或转岗时由主管发起回收"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "synonym"
+    ]
+  },
+  {
+    "id": "it-account-access-v1-q05",
+    "split": "regression",
+    "category": "multi_step",
+    "domain": "IT",
+    "difficulty": "hard",
+    "question": "账号申请、普通权限配置和离职回收的流程是什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-account-access-v1"
+    ],
+    "evidence_phrases": [
+      "账号、协作平台和代码仓库权限由直属主管在 OA 系统提交申请",
+      "IT 在一个工作日内完成普通权限配置"
+    ],
+    "expected_facts": [
+      "账号、协作平台和代码仓库权限由直属主管在 OA 系统提交申请",
+      "IT 在一个工作日内完成普通权限配置"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "multi_hop"
+    ]
+  },
+  {
+    "id": "it-account-access-v1-q06",
+    "split": "regression",
+    "category": "negative_rule",
+    "domain": "IT",
+    "difficulty": "hard",
+    "question": "权限申请为什么要写业务用途和有效期限？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-account-access-v1"
+    ],
+    "evidence_phrases": [
+      "IT 在一个工作日内完成普通权限配置"
+    ],
+    "expected_facts": [
+      "IT 在一个工作日内完成普通权限配置"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "negation"
+    ]
+  },
+  {
+    "id": "it-account-access-v1-q07",
+    "split": "held_out",
+    "category": "version_conflict",
+    "domain": "IT",
+    "difficulty": "hard",
+    "question": "当前普通权限配置的时限是多少？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-account-access-v1"
+    ],
+    "evidence_phrases": [
+      "权限申请必须写明业务用途和有效期限"
+    ],
+    "expected_facts": [
+      "权限申请必须写明业务用途和有效期限"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "version"
+    ]
+  },
+  {
+    "id": "it-account-access-v1-q08",
+    "split": "held_out",
+    "category": "noisy_query",
+    "domain": "IT",
+    "difficulty": "hard",
+    "question": "账号权限咋申请，离职后谁来回收？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-account-access-v1"
+    ],
+    "evidence_phrases": [
+      "离职或转岗时由主管发起回收"
+    ],
+    "expected_facts": [
+      "离职或转岗时由主管发起回收"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "language_noise"
+    ]
+  },
+  {
+    "id": "it-vpn-device-v1-q01",
+    "split": "development",
+    "category": "direct_fact",
+    "domain": "IT",
+    "difficulty": "easy",
+    "question": "远程办公使用什么网络工具，申请由谁审批？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-vpn-device-v1"
+    ],
+    "evidence_phrases": [
+      "远程办公使用公司 VPN，申请需直属主管审批"
+    ],
+    "expected_facts": [
+      "远程办公使用公司 VPN，申请需直属主管审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "direct"
+    ]
+  },
+  {
+    "id": "it-vpn-device-v1-q02",
+    "split": "development",
+    "category": "conditional_policy",
+    "domain": "IT",
+    "difficulty": "easy",
+    "question": "公司设备遗失后多久报告？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-vpn-device-v1"
+    ],
+    "evidence_phrases": [
+      "公司设备遗失应在两小时内向 IT 报告"
+    ],
+    "expected_facts": [
+      "公司设备遗失应在两小时内向 IT 报告"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "condition"
+    ]
+  },
+  {
+    "id": "it-vpn-device-v1-q03",
+    "split": "development",
+    "category": "threshold",
+    "domain": "IT",
+    "difficulty": "easy",
+    "question": "设备遗失后 IT 可以采取什么措施？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-vpn-device-v1"
+    ],
+    "evidence_phrases": [
+      "IT 可远程冻结设备"
+    ],
+    "expected_facts": [
+      "IT 可远程冻结设备"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "threshold",
+      "threshold"
+    ]
+  },
+  {
+    "id": "it-vpn-device-v1-q04",
+    "split": "development",
+    "category": "synonym_rewrite",
+    "domain": "IT",
+    "difficulty": "medium",
+    "question": "员工能否把公司账号或设备交给他人？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-vpn-device-v1"
+    ],
+    "evidence_phrases": [
+      "员工不得把公司账号或设备交给他人使用"
+    ],
+    "expected_facts": [
+      "员工不得把公司账号或设备交给他人使用"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "synonym"
+    ]
+  },
+  {
+    "id": "it-vpn-device-v1-q05",
+    "split": "regression",
+    "category": "multi_step",
+    "domain": "IT",
+    "difficulty": "hard",
+    "question": "远程办公、设备遗失报告和账号使用要求是什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-vpn-device-v1"
+    ],
+    "evidence_phrases": [
+      "远程办公使用公司 VPN，申请需直属主管审批",
+      "公司设备遗失应在两小时内向 IT 报告"
+    ],
+    "expected_facts": [
+      "远程办公使用公司 VPN，申请需直属主管审批",
+      "公司设备遗失应在两小时内向 IT 报告"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "multi_hop"
+    ]
+  },
+  {
+    "id": "it-vpn-device-v1-q06",
+    "split": "regression",
+    "category": "negative_rule",
+    "domain": "IT",
+    "difficulty": "hard",
+    "question": "设备丢失后应先报告还是继续使用？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-vpn-device-v1"
+    ],
+    "evidence_phrases": [
+      "公司设备遗失应在两小时内向 IT 报告"
+    ],
+    "expected_facts": [
+      "公司设备遗失应在两小时内向 IT 报告"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "negation"
+    ]
+  },
+  {
+    "id": "it-vpn-device-v1-q07",
+    "split": "held_out",
+    "category": "version_conflict",
+    "domain": "IT",
+    "difficulty": "hard",
+    "question": "当前设备遗失的报告时限是多少？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-vpn-device-v1"
+    ],
+    "evidence_phrases": [
+      "IT 可远程冻结设备"
+    ],
+    "expected_facts": [
+      "IT 可远程冻结设备"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "version"
+    ]
+  },
+  {
+    "id": "it-vpn-device-v1-q08",
+    "split": "held_out",
+    "category": "noisy_query",
+    "domain": "IT",
+    "difficulty": "hard",
+    "question": "VPN咋申请，电脑丢了要马上报吗？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-vpn-device-v1"
+    ],
+    "evidence_phrases": [
+      "员工不得把公司账号或设备交给他人使用"
+    ],
+    "expected_facts": [
+      "员工不得把公司账号或设备交给他人使用"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "language_noise"
+    ]
+  },
+  {
+    "id": "it-production-access-v1-q01",
+    "split": "development",
+    "category": "direct_fact",
+    "domain": "IT",
+    "difficulty": "easy",
+    "question": "生产环境权限按照什么原则分配？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-production-access-v1"
+    ],
+    "evidence_phrases": [
+      "生产环境权限按最小权限原则分配"
+    ],
+    "expected_facts": [
+      "生产环境权限按最小权限原则分配"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "direct"
+    ]
+  },
+  {
+    "id": "it-production-access-v1-q02",
+    "split": "development",
+    "category": "conditional_policy",
+    "domain": "IT",
+    "difficulty": "easy",
+    "question": "生产环境权限最长有效多久？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-production-access-v1"
+    ],
+    "evidence_phrases": [
+      "有效期最长九十天"
+    ],
+    "expected_facts": [
+      "有效期最长九十天"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "condition"
+    ]
+  },
+  {
+    "id": "it-production-access-v1-q03",
+    "split": "development",
+    "category": "threshold",
+    "domain": "IT",
+    "difficulty": "easy",
+    "question": "生产权限申请需要哪些审批？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-production-access-v1"
+    ],
+    "evidence_phrases": [
+      "申请人填写工单并由直属主管、安全负责人审批"
+    ],
+    "expected_facts": [
+      "申请人填写工单并由直属主管、安全负责人审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "threshold",
+      "threshold"
+    ]
+  },
+  {
+    "id": "it-production-access-v1-q04",
+    "split": "development",
+    "category": "synonym_rewrite",
+    "domain": "IT",
+    "difficulty": "medium",
+    "question": "紧急权限使用后多久补录审计记录？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-production-access-v1"
+    ],
+    "evidence_phrases": [
+      "紧急权限使用后一个工作日内补录审计记录"
+    ],
+    "expected_facts": [
+      "紧急权限使用后一个工作日内补录审计记录"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "synonym"
+    ]
+  },
+  {
+    "id": "it-production-access-v1-q05",
+    "split": "regression",
+    "category": "multi_step",
+    "domain": "IT",
+    "difficulty": "hard",
+    "question": "生产权限从工单申请、审批到审计补录怎么走？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-production-access-v1"
+    ],
+    "evidence_phrases": [
+      "生产环境权限按最小权限原则分配",
+      "有效期最长九十天"
+    ],
+    "expected_facts": [
+      "生产环境权限按最小权限原则分配",
+      "有效期最长九十天"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "multi_hop"
+    ]
+  },
+  {
+    "id": "it-production-access-v1-q06",
+    "split": "regression",
+    "category": "negative_rule",
+    "domain": "IT",
+    "difficulty": "hard",
+    "question": "紧急权限是否可以不留审计记录？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-production-access-v1"
+    ],
+    "evidence_phrases": [
+      "有效期最长九十天"
+    ],
+    "expected_facts": [
+      "有效期最长九十天"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "negation"
+    ]
+  },
+  {
+    "id": "it-production-access-v1-q07",
+    "split": "held_out",
+    "category": "version_conflict",
+    "domain": "IT",
+    "difficulty": "hard",
+    "question": "当前生产权限的最长有效期是多少？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-production-access-v1"
+    ],
+    "evidence_phrases": [
+      "申请人填写工单并由直属主管、安全负责人审批"
+    ],
+    "expected_facts": [
+      "申请人填写工单并由直属主管、安全负责人审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "version"
+    ]
+  },
+  {
+    "id": "it-production-access-v1-q08",
+    "split": "held_out",
+    "category": "noisy_query",
+    "domain": "IT",
+    "difficulty": "hard",
+    "question": "生产权限咋开，紧急使用后要补啥？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-production-access-v1"
+    ],
+    "evidence_phrases": [
+      "紧急权限使用后一个工作日内补录审计记录"
+    ],
+    "expected_facts": [
+      "紧急权限使用后一个工作日内补录审计记录"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "language_noise"
+    ]
+  },
+  {
+    "id": "it-incident-response-v1-q01",
+    "split": "development",
+    "category": "direct_fact",
+    "domain": "IT",
+    "difficulty": "easy",
+    "question": "发现账号泄露等安全事件后第一步做什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-incident-response-v1"
+    ],
+    "evidence_phrases": [
+      "发现账号泄露、恶意软件或数据误发等安全事件时，应立即断开受影响设备的网络并向 IT 安全组报告"
+    ],
+    "expected_facts": [
+      "发现账号泄露、恶意软件或数据误发等安全事件时，应立即断开受影响设备的网络并向 IT 安全组报告"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "direct"
+    ]
+  },
+  {
+    "id": "it-incident-response-v1-q02",
+    "split": "development",
+    "category": "conditional_policy",
+    "domain": "IT",
+    "difficulty": "easy",
+    "question": "安全事件应该向哪个团队报告？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-incident-response-v1"
+    ],
+    "evidence_phrases": [
+      "IT 在四小时内完成初步分级"
+    ],
+    "expected_facts": [
+      "IT 在四小时内完成初步分级"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "condition"
+    ]
+  },
+  {
+    "id": "it-incident-response-v1-q03",
+    "split": "development",
+    "category": "threshold",
+    "domain": "IT",
+    "difficulty": "easy",
+    "question": "IT 在多久内完成初步分级？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-incident-response-v1"
+    ],
+    "evidence_phrases": [
+      "重大事件由安全负责人升级通知管理层"
+    ],
+    "expected_facts": [
+      "重大事件由安全负责人升级通知管理层"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "threshold",
+      "threshold"
+    ]
+  },
+  {
+    "id": "it-incident-response-v1-q04",
+    "split": "development",
+    "category": "synonym_rewrite",
+    "domain": "IT",
+    "difficulty": "medium",
+    "question": "重大事件由谁升级通知管理层？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-incident-response-v1"
+    ],
+    "evidence_phrases": [
+      "发现账号泄露、恶意软件或数据误发等安全事件时，应立即断开受影响设备的网络并向 IT 安全组报告"
+    ],
+    "expected_facts": [
+      "发现账号泄露、恶意软件或数据误发等安全事件时，应立即断开受影响设备的网络并向 IT 安全组报告"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "synonym"
+    ]
+  },
+  {
+    "id": "it-incident-response-v1-q05",
+    "split": "regression",
+    "category": "multi_step",
+    "domain": "IT",
+    "difficulty": "hard",
+    "question": "从发现安全事件到分级和升级通知的步骤是什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-incident-response-v1"
+    ],
+    "evidence_phrases": [
+      "发现账号泄露、恶意软件或数据误发等安全事件时，应立即断开受影响设备的网络并向 IT 安全组报告",
+      "IT 在四小时内完成初步分级"
+    ],
+    "expected_facts": [
+      "发现账号泄露、恶意软件或数据误发等安全事件时，应立即断开受影响设备的网络并向 IT 安全组报告",
+      "IT 在四小时内完成初步分级"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "multi_hop"
+    ]
+  },
+  {
+    "id": "it-incident-response-v1-q06",
+    "split": "regression",
+    "category": "negative_rule",
+    "domain": "IT",
+    "difficulty": "hard",
+    "question": "重大安全事件是否需要通知管理层？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-incident-response-v1"
+    ],
+    "evidence_phrases": [
+      "IT 在四小时内完成初步分级"
+    ],
+    "expected_facts": [
+      "IT 在四小时内完成初步分级"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "negation"
+    ]
+  },
+  {
+    "id": "it-incident-response-v1-q07",
+    "split": "held_out",
+    "category": "version_conflict",
+    "domain": "IT",
+    "difficulty": "hard",
+    "question": "当前安全事件初步分级的时限是多少？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-incident-response-v1"
+    ],
+    "evidence_phrases": [
+      "重大事件由安全负责人升级通知管理层"
+    ],
+    "expected_facts": [
+      "重大事件由安全负责人升级通知管理层"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "version"
+    ]
+  },
+  {
+    "id": "it-incident-response-v1-q08",
+    "split": "held_out",
+    "category": "noisy_query",
+    "domain": "IT",
+    "difficulty": "hard",
+    "question": "账号泄露咋办，先断网还是先等通知？",
+    "answerability": "answerable",
+    "source_ids": [
+      "it-incident-response-v1"
+    ],
+    "evidence_phrases": [
+      "发现账号泄露、恶意软件或数据误发等安全事件时，应立即断开受影响设备的网络并向 IT 安全组报告"
+    ],
+    "expected_facts": [
+      "发现账号泄露、恶意软件或数据误发等安全事件时，应立即断开受影响设备的网络并向 IT 安全组报告"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "language_noise"
+    ]
+  },
+  {
+    "id": "legal-contract-review-v2-q01",
+    "split": "development",
+    "category": "direct_fact",
+    "domain": "Legal",
+    "difficulty": "easy",
+    "question": "对外合同必须使用什么模板？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-contract-review-v2"
+    ],
+    "evidence_phrases": [
+      "所有对外合同必须使用法务提供的标准模板"
+    ],
+    "expected_facts": [
+      "所有对外合同必须使用法务提供的标准模板"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "direct"
+    ]
+  },
+  {
+    "id": "legal-contract-review-v2-q02",
+    "split": "development",
+    "category": "conditional_policy",
+    "domain": "Legal",
+    "difficulty": "easy",
+    "question": "非标准条款需要经过谁复核？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-contract-review-v2"
+    ],
+    "evidence_phrases": [
+      "若涉及非标准条款，必须提交法务复核"
+    ],
+    "expected_facts": [
+      "若涉及非标准条款，必须提交法务复核"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "condition"
+    ]
+  },
+  {
+    "id": "legal-contract-review-v2-q03",
+    "split": "development",
+    "category": "threshold",
+    "domain": "Legal",
+    "difficulty": "easy",
+    "question": "合同金额超过五十万元还要谁联合审批？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-contract-review-v2"
+    ],
+    "evidence_phrases": [
+      "合同金额超过五十万元的事项，除业务负责人外，还需财务负责人联合审批"
+    ],
+    "expected_facts": [
+      "合同金额超过五十万元的事项，除业务负责人外，还需财务负责人联合审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "threshold",
+      "threshold"
+    ]
+  },
+  {
+    "id": "legal-contract-review-v2-q04",
+    "split": "development",
+    "category": "synonym_rewrite",
+    "domain": "Legal",
+    "difficulty": "medium",
+    "question": "当前合同模板是什么版本、何时生效？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-contract-review-v2"
+    ],
+    "evidence_phrases": [
+      "当前合同模板版本为 v2，自2026年1月1日起生效"
+    ],
+    "expected_facts": [
+      "当前合同模板版本为 v2，自2026年1月1日起生效"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "synonym"
+    ]
+  },
+  {
+    "id": "legal-contract-review-v2-q05",
+    "split": "regression",
+    "category": "multi_step",
+    "domain": "Legal",
+    "difficulty": "hard",
+    "question": "合同模板、非标准条款和大额审批分别怎么处理？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-contract-review-v2"
+    ],
+    "evidence_phrases": [
+      "所有对外合同必须使用法务提供的标准模板",
+      "若涉及非标准条款，必须提交法务复核"
+    ],
+    "expected_facts": [
+      "所有对外合同必须使用法务提供的标准模板",
+      "若涉及非标准条款，必须提交法务复核"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "multi_hop"
+    ]
+  },
+  {
+    "id": "legal-contract-review-v2-q06",
+    "split": "regression",
+    "category": "negative_rule",
+    "domain": "Legal",
+    "difficulty": "hard",
+    "question": "超过五十万元的合同审批链是什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-contract-review-v2"
+    ],
+    "evidence_phrases": [
+      "若涉及非标准条款，必须提交法务复核"
+    ],
+    "expected_facts": [
+      "若涉及非标准条款，必须提交法务复核"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "negation"
+    ]
+  },
+  {
+    "id": "legal-contract-review-v2-q07",
+    "split": "held_out",
+    "category": "version_conflict",
+    "domain": "Legal",
+    "difficulty": "hard",
+    "question": "当前生效的合同模板版本是什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-contract-review-v2"
+    ],
+    "evidence_phrases": [
+      "合同金额超过五十万元的事项，除业务负责人外，还需财务负责人联合审批"
+    ],
+    "expected_facts": [
+      "合同金额超过五十万元的事项，除业务负责人外，还需财务负责人联合审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "version"
+    ]
+  },
+  {
+    "id": "legal-contract-review-v2-q08",
+    "split": "held_out",
+    "category": "noisy_query",
+    "domain": "Legal",
+    "difficulty": "hard",
+    "question": "合同咋审，特殊条款和大额合同咋办？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-contract-review-v2"
+    ],
+    "evidence_phrases": [
+      "当前合同模板版本为 v2，自2026年1月1日起生效"
+    ],
+    "expected_facts": [
+      "当前合同模板版本为 v2，自2026年1月1日起生效"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "language_noise"
+    ]
+  },
+  {
+    "id": "legal-seal-v1-q01",
+    "split": "development",
+    "category": "direct_fact",
+    "domain": "Legal",
+    "difficulty": "easy",
+    "question": "用印申请需要写明哪些信息？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-seal-v1"
+    ],
+    "evidence_phrases": [
+      "公司印章使用需提交用印申请，写明文件名称、份数和经办人"
+    ],
+    "expected_facts": [
+      "公司印章使用需提交用印申请，写明文件名称、份数和经办人"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "direct"
+    ]
+  },
+  {
+    "id": "legal-seal-v1-q02",
+    "split": "development",
+    "category": "conditional_policy",
+    "domain": "Legal",
+    "difficulty": "easy",
+    "question": "法定代表人章由谁保管？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-seal-v1"
+    ],
+    "evidence_phrases": [
+      "法定代表人章由行政负责人保管"
+    ],
+    "expected_facts": [
+      "法定代表人章由行政负责人保管"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "condition"
+    ]
+  },
+  {
+    "id": "legal-seal-v1-q03",
+    "split": "development",
+    "category": "threshold",
+    "domain": "Legal",
+    "difficulty": "easy",
+    "question": "合同用印前需要完成什么审批？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-seal-v1"
+    ],
+    "evidence_phrases": [
+      "合同用印须完成法务审批"
+    ],
+    "expected_facts": [
+      "合同用印须完成法务审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "threshold",
+      "threshold"
+    ]
+  },
+  {
+    "id": "legal-seal-v1-q04",
+    "split": "development",
+    "category": "synonym_rewrite",
+    "domain": "Legal",
+    "difficulty": "medium",
+    "question": "能否在空白文件上盖章？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-seal-v1"
+    ],
+    "evidence_phrases": [
+      "禁止在空白文件上盖章"
+    ],
+    "expected_facts": [
+      "禁止在空白文件上盖章"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "synonym"
+    ]
+  },
+  {
+    "id": "legal-seal-v1-q05",
+    "split": "regression",
+    "category": "multi_step",
+    "domain": "Legal",
+    "difficulty": "hard",
+    "question": "印章申请、保管和合同用印审批怎么衔接？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-seal-v1"
+    ],
+    "evidence_phrases": [
+      "公司印章使用需提交用印申请，写明文件名称、份数和经办人",
+      "法定代表人章由行政负责人保管"
+    ],
+    "expected_facts": [
+      "公司印章使用需提交用印申请，写明文件名称、份数和经办人",
+      "法定代表人章由行政负责人保管"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "multi_hop"
+    ]
+  },
+  {
+    "id": "legal-seal-v1-q06",
+    "split": "regression",
+    "category": "negative_rule",
+    "domain": "Legal",
+    "difficulty": "hard",
+    "question": "空白文件盖章是否被允许？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-seal-v1"
+    ],
+    "evidence_phrases": [
+      "法定代表人章由行政负责人保管"
+    ],
+    "expected_facts": [
+      "法定代表人章由行政负责人保管"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "negation"
+    ]
+  },
+  {
+    "id": "legal-seal-v1-q07",
+    "split": "held_out",
+    "category": "version_conflict",
+    "domain": "Legal",
+    "difficulty": "hard",
+    "question": "当前合同用印的前置审批是什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-seal-v1"
+    ],
+    "evidence_phrases": [
+      "合同用印须完成法务审批"
+    ],
+    "expected_facts": [
+      "合同用印须完成法务审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "version"
+    ]
+  },
+  {
+    "id": "legal-seal-v1-q08",
+    "split": "held_out",
+    "category": "noisy_query",
+    "domain": "Legal",
+    "difficulty": "hard",
+    "question": "盖章咋申请，空白纸能不能先盖？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-seal-v1"
+    ],
+    "evidence_phrases": [
+      "禁止在空白文件上盖章"
+    ],
+    "expected_facts": [
+      "禁止在空白文件上盖章"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "language_noise"
+    ]
+  },
+  {
+    "id": "legal-confidentiality-ip-v1-q01",
+    "split": "development",
+    "category": "direct_fact",
+    "domain": "Legal",
+    "difficulty": "easy",
+    "question": "涉及未公开经营信息的员工要遵守什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-confidentiality-ip-v1"
+    ],
+    "evidence_phrases": [
+      "涉及未公开经营信息的员工应遵守保密义务"
+    ],
+    "expected_facts": [
+      "涉及未公开经营信息的员工应遵守保密义务"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "direct"
+    ]
+  },
+  {
+    "id": "legal-confidentiality-ip-v1-q02",
+    "split": "development",
+    "category": "conditional_policy",
+    "domain": "Legal",
+    "difficulty": "easy",
+    "question": "对外披露前需要哪些审批？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-confidentiality-ip-v1"
+    ],
+    "evidence_phrases": [
+      "对外披露前须经信息所有者和法务审批"
+    ],
+    "expected_facts": [
+      "对外披露前须经信息所有者和法务审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "condition"
+    ]
+  },
+  {
+    "id": "legal-confidentiality-ip-v1-q03",
+    "split": "development",
+    "category": "threshold",
+    "domain": "Legal",
+    "difficulty": "easy",
+    "question": "信息所有者在披露流程中负责什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-confidentiality-ip-v1"
+    ],
+    "evidence_phrases": [
+      "代码、文档和设计成果的知识产权归属按劳动合同和项目协议确认"
+    ],
+    "expected_facts": [
+      "代码、文档和设计成果的知识产权归属按劳动合同和项目协议确认"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "threshold",
+      "threshold"
+    ]
+  },
+  {
+    "id": "legal-confidentiality-ip-v1-q04",
+    "split": "development",
+    "category": "synonym_rewrite",
+    "domain": "Legal",
+    "difficulty": "medium",
+    "question": "代码、文档和设计成果的知识产权如何确认？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-confidentiality-ip-v1"
+    ],
+    "evidence_phrases": [
+      "对外披露前须经信息所有者和法务审批"
+    ],
+    "expected_facts": [
+      "对外披露前须经信息所有者和法务审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "synonym"
+    ]
+  },
+  {
+    "id": "legal-confidentiality-ip-v1-q05",
+    "split": "regression",
+    "category": "multi_step",
+    "domain": "Legal",
+    "difficulty": "hard",
+    "question": "保密信息对外披露和项目成果归属怎么处理？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-confidentiality-ip-v1"
+    ],
+    "evidence_phrases": [
+      "涉及未公开经营信息的员工应遵守保密义务",
+      "对外披露前须经信息所有者和法务审批"
+    ],
+    "expected_facts": [
+      "涉及未公开经营信息的员工应遵守保密义务",
+      "对外披露前须经信息所有者和法务审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "multi_hop"
+    ]
+  },
+  {
+    "id": "legal-confidentiality-ip-v1-q06",
+    "split": "regression",
+    "category": "negative_rule",
+    "domain": "Legal",
+    "difficulty": "hard",
+    "question": "未公开信息能否直接对外披露？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-confidentiality-ip-v1"
+    ],
+    "evidence_phrases": [
+      "对外披露前须经信息所有者和法务审批"
+    ],
+    "expected_facts": [
+      "对外披露前须经信息所有者和法务审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "negation"
+    ]
+  },
+  {
+    "id": "legal-confidentiality-ip-v1-q07",
+    "split": "held_out",
+    "category": "version_conflict",
+    "domain": "Legal",
+    "difficulty": "hard",
+    "question": "当前知识产权归属依据哪些文件确认？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-confidentiality-ip-v1"
+    ],
+    "evidence_phrases": [
+      "代码、文档和设计成果的知识产权归属按劳动合同和项目协议确认"
+    ],
+    "expected_facts": [
+      "代码、文档和设计成果的知识产权归属按劳动合同和项目协议确认"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "version"
+    ]
+  },
+  {
+    "id": "legal-confidentiality-ip-v1-q08",
+    "split": "held_out",
+    "category": "noisy_query",
+    "domain": "Legal",
+    "difficulty": "hard",
+    "question": "保密内容咋发给外部，代码成果算谁的？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-confidentiality-ip-v1"
+    ],
+    "evidence_phrases": [
+      "对外披露前须经信息所有者和法务审批"
+    ],
+    "expected_facts": [
+      "对外披露前须经信息所有者和法务审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "language_noise"
+    ]
+  },
+  {
+    "id": "legal-data-review-v1-q01",
+    "split": "development",
+    "category": "direct_fact",
+    "domain": "Legal",
+    "difficulty": "easy",
+    "question": "处理客户个人信息前要提交哪些材料？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-data-review-v1"
+    ],
+    "evidence_phrases": [
+      "新业务处理客户个人信息前，应提交数据处理清单、处理目的、保存期限和访问角色"
+    ],
+    "expected_facts": [
+      "新业务处理客户个人信息前，应提交数据处理清单、处理目的、保存期限和访问角色"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "direct"
+    ]
+  },
+  {
+    "id": "legal-data-review-v1-q02",
+    "split": "development",
+    "category": "conditional_policy",
+    "domain": "Legal",
+    "difficulty": "easy",
+    "question": "数据处理清单需要包括哪些内容？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-data-review-v1"
+    ],
+    "evidence_phrases": [
+      "数据处理清单、处理目的、保存期限和访问角色"
+    ],
+    "expected_facts": [
+      "数据处理清单、处理目的、保存期限和访问角色"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "condition"
+    ]
+  },
+  {
+    "id": "legal-data-review-v1-q03",
+    "split": "development",
+    "category": "threshold",
+    "domain": "Legal",
+    "difficulty": "easy",
+    "question": "合规审查由哪些部门共同完成？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-data-review-v1"
+    ],
+    "evidence_phrases": [
+      "法务与信息安全部门共同完成合规审查"
+    ],
+    "expected_facts": [
+      "法务与信息安全部门共同完成合规审查"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "threshold",
+      "threshold"
+    ]
+  },
+  {
+    "id": "legal-data-review-v1-q04",
+    "split": "development",
+    "category": "synonym_rewrite",
+    "domain": "Legal",
+    "difficulty": "medium",
+    "question": "审查结论应在什么时候归档？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-data-review-v1"
+    ],
+    "evidence_phrases": [
+      "审查结论应在上线前归档"
+    ],
+    "expected_facts": [
+      "审查结论应在上线前归档"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "synonym"
+    ]
+  },
+  {
+    "id": "legal-data-review-v1-q05",
+    "split": "regression",
+    "category": "multi_step",
+    "domain": "Legal",
+    "difficulty": "hard",
+    "question": "客户个人信息上线前，从材料提交到审查归档怎么走？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-data-review-v1"
+    ],
+    "evidence_phrases": [
+      "新业务处理客户个人信息前，应提交数据处理清单、处理目的、保存期限和访问角色",
+      "数据处理清单、处理目的、保存期限和访问角色"
+    ],
+    "expected_facts": [
+      "新业务处理客户个人信息前，应提交数据处理清单、处理目的、保存期限和访问角色",
+      "数据处理清单、处理目的、保存期限和访问角色"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "multi_hop"
+    ]
+  },
+  {
+    "id": "legal-data-review-v1-q06",
+    "split": "regression",
+    "category": "negative_rule",
+    "domain": "Legal",
+    "difficulty": "hard",
+    "question": "没有完成合规审查能否上线？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-data-review-v1"
+    ],
+    "evidence_phrases": [
+      "数据处理清单、处理目的、保存期限和访问角色"
+    ],
+    "expected_facts": [
+      "数据处理清单、处理目的、保存期限和访问角色"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "negation"
+    ]
+  },
+  {
+    "id": "legal-data-review-v1-q07",
+    "split": "held_out",
+    "category": "version_conflict",
+    "domain": "Legal",
+    "difficulty": "hard",
+    "question": "当前数据合规审查需要记录哪些字段？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-data-review-v1"
+    ],
+    "evidence_phrases": [
+      "法务与信息安全部门共同完成合规审查"
+    ],
+    "expected_facts": [
+      "法务与信息安全部门共同完成合规审查"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "version"
+    ]
+  },
+  {
+    "id": "legal-data-review-v1-q08",
+    "split": "held_out",
+    "category": "noisy_query",
+    "domain": "Legal",
+    "difficulty": "hard",
+    "question": "处理客户信息咋办，法务和安全要一起审吗？",
+    "answerability": "answerable",
+    "source_ids": [
+      "legal-data-review-v1"
+    ],
+    "evidence_phrases": [
+      "审查结论应在上线前归档"
+    ],
+    "expected_facts": [
+      "审查结论应在上线前归档"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "language_noise"
+    ]
+  },
+  {
+    "id": "admin-meeting-room-v1-q01",
+    "split": "development",
+    "category": "direct_fact",
+    "domain": "Administration",
+    "difficulty": "easy",
+    "question": "会议室应该通过什么系统预约？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-meeting-room-v1"
+    ],
+    "evidence_phrases": [
+      "会议室需通过企业日历系统预约"
+    ],
+    "expected_facts": [
+      "会议室需通过企业日历系统预约"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "direct"
+    ]
+  },
+  {
+    "id": "admin-meeting-room-v1-q02",
+    "split": "development",
+    "category": "conditional_policy",
+    "domain": "Administration",
+    "difficulty": "easy",
+    "question": "预约人应在会议开始前多久确认？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-meeting-room-v1"
+    ],
+    "evidence_phrases": [
+      "预约人应在会议开始前十分钟确认使用"
+    ],
+    "expected_facts": [
+      "预约人应在会议开始前十分钟确认使用"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "condition"
+    ]
+  },
+  {
+    "id": "admin-meeting-room-v1-q03",
+    "split": "development",
+    "category": "threshold",
+    "domain": "Administration",
+    "difficulty": "easy",
+    "question": "会议取消后要做什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-meeting-room-v1"
+    ],
+    "evidence_phrases": [
+      "若会议取消，需及时释放会议室资源"
+    ],
+    "expected_facts": [
+      "若会议取消，需及时释放会议室资源"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "threshold",
+      "threshold"
+    ]
+  },
+  {
+    "id": "admin-meeting-room-v1-q04",
+    "split": "development",
+    "category": "synonym_rewrite",
+    "domain": "Administration",
+    "difficulty": "medium",
+    "question": "重复无故占用会议室会怎样？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-meeting-room-v1"
+    ],
+    "evidence_phrases": [
+      "重复无故占用将被管理员提醒"
+    ],
+    "expected_facts": [
+      "重复无故占用将被管理员提醒"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "synonym"
+    ]
+  },
+  {
+    "id": "admin-meeting-room-v1-q05",
+    "split": "regression",
+    "category": "multi_step",
+    "domain": "Administration",
+    "difficulty": "hard",
+    "question": "会议室预约、开始确认和取消释放的要求是什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-meeting-room-v1"
+    ],
+    "evidence_phrases": [
+      "会议室需通过企业日历系统预约",
+      "预约人应在会议开始前十分钟确认使用"
+    ],
+    "expected_facts": [
+      "会议室需通过企业日历系统预约",
+      "预约人应在会议开始前十分钟确认使用"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "multi_hop"
+    ]
+  },
+  {
+    "id": "admin-meeting-room-v1-q06",
+    "split": "regression",
+    "category": "negative_rule",
+    "domain": "Administration",
+    "difficulty": "hard",
+    "question": "会议取消后能否不释放资源？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-meeting-room-v1"
+    ],
+    "evidence_phrases": [
+      "预约人应在会议开始前十分钟确认使用"
+    ],
+    "expected_facts": [
+      "预约人应在会议开始前十分钟确认使用"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "negation"
+    ]
+  },
+  {
+    "id": "admin-meeting-room-v1-q07",
+    "split": "held_out",
+    "category": "version_conflict",
+    "domain": "Administration",
+    "difficulty": "hard",
+    "question": "当前会议开始前需要提前多久确认？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-meeting-room-v1"
+    ],
+    "evidence_phrases": [
+      "若会议取消，需及时释放会议室资源"
+    ],
+    "expected_facts": [
+      "若会议取消，需及时释放会议室资源"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "version"
+    ]
+  },
+  {
+    "id": "admin-meeting-room-v1-q08",
+    "split": "held_out",
+    "category": "noisy_query",
+    "domain": "Administration",
+    "difficulty": "hard",
+    "question": "会议室咋约，取消了记得做啥？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-meeting-room-v1"
+    ],
+    "evidence_phrases": [
+      "重复无故占用将被管理员提醒"
+    ],
+    "expected_facts": [
+      "重复无故占用将被管理员提醒"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "language_noise"
+    ]
+  },
+  {
+    "id": "admin-office-supplies-v1-q01",
+    "split": "development",
+    "category": "direct_fact",
+    "domain": "Administration",
+    "difficulty": "easy",
+    "question": "办公用品由哪个部门统一采购？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-office-supplies-v1"
+    ],
+    "evidence_phrases": [
+      "办公用品由行政部统一采购"
+    ],
+    "expected_facts": [
+      "办公用品由行政部统一采购"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "direct"
+    ]
+  },
+  {
+    "id": "admin-office-supplies-v1-q02",
+    "split": "development",
+    "category": "conditional_policy",
+    "domain": "Administration",
+    "difficulty": "easy",
+    "question": "下月办公用品需求最迟何时提交？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-office-supplies-v1"
+    ],
+    "evidence_phrases": [
+      "员工应在每月二十五日前提交下月需求"
+    ],
+    "expected_facts": [
+      "员工应在每月二十五日前提交下月需求"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "condition"
+    ]
+  },
+  {
+    "id": "admin-office-supplies-v1-q03",
+    "split": "development",
+    "category": "threshold",
+    "domain": "Administration",
+    "difficulty": "easy",
+    "question": "领用时要填写哪些信息？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-office-supplies-v1"
+    ],
+    "evidence_phrases": [
+      "领用时填写物品名称、数量和用途"
+    ],
+    "expected_facts": [
+      "领用时填写物品名称、数量和用途"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "threshold",
+      "threshold"
+    ]
+  },
+  {
+    "id": "admin-office-supplies-v1-q04",
+    "split": "development",
+    "category": "synonym_rewrite",
+    "domain": "Administration",
+    "difficulty": "medium",
+    "question": "高价值设备领用还要谁登记？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-office-supplies-v1"
+    ],
+    "evidence_phrases": [
+      "高价值设备还需资产管理员登记"
+    ],
+    "expected_facts": [
+      "高价值设备还需资产管理员登记"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "synonym"
+    ]
+  },
+  {
+    "id": "admin-office-supplies-v1-q05",
+    "split": "regression",
+    "category": "multi_step",
+    "domain": "Administration",
+    "difficulty": "hard",
+    "question": "办公用品需求、领用和高价值设备登记怎么走？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-office-supplies-v1"
+    ],
+    "evidence_phrases": [
+      "办公用品由行政部统一采购",
+      "员工应在每月二十五日前提交下月需求"
+    ],
+    "expected_facts": [
+      "办公用品由行政部统一采购",
+      "员工应在每月二十五日前提交下月需求"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "multi_hop"
+    ]
+  },
+  {
+    "id": "admin-office-supplies-v1-q06",
+    "split": "regression",
+    "category": "negative_rule",
+    "domain": "Administration",
+    "difficulty": "hard",
+    "question": "高价值设备是否可以不登记？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-office-supplies-v1"
+    ],
+    "evidence_phrases": [
+      "员工应在每月二十五日前提交下月需求"
+    ],
+    "expected_facts": [
+      "员工应在每月二十五日前提交下月需求"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "negation"
+    ]
+  },
+  {
+    "id": "admin-office-supplies-v1-q07",
+    "split": "held_out",
+    "category": "version_conflict",
+    "domain": "Administration",
+    "difficulty": "hard",
+    "question": "当前办公用品需求提交截止日是什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-office-supplies-v1"
+    ],
+    "evidence_phrases": [
+      "领用时填写物品名称、数量和用途"
+    ],
+    "expected_facts": [
+      "领用时填写物品名称、数量和用途"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "version"
+    ]
+  },
+  {
+    "id": "admin-office-supplies-v1-q08",
+    "split": "held_out",
+    "category": "noisy_query",
+    "domain": "Administration",
+    "difficulty": "hard",
+    "question": "办公用品咋领，贵的设备是不是要登记？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-office-supplies-v1"
+    ],
+    "evidence_phrases": [
+      "高价值设备还需资产管理员登记"
+    ],
+    "expected_facts": [
+      "高价值设备还需资产管理员登记"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "language_noise"
+    ]
+  },
+  {
+    "id": "admin-visitor-assets-v1-q01",
+    "split": "development",
+    "category": "direct_fact",
+    "domain": "Administration",
+    "difficulty": "easy",
+    "question": "访客进入办公区前要在哪里登记？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-visitor-assets-v1"
+    ],
+    "evidence_phrases": [
+      "访客进入办公区需由接待人提前在访客系统登记"
+    ],
+    "expected_facts": [
+      "访客进入办公区需由接待人提前在访客系统登记"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "direct"
+    ]
+  },
+  {
+    "id": "admin-visitor-assets-v1-q02",
+    "split": "development",
+    "category": "conditional_policy",
+    "domain": "Administration",
+    "difficulty": "easy",
+    "question": "访客登记需要哪些信息？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-visitor-assets-v1"
+    ],
+    "evidence_phrases": [
+      "登记信息包括姓名、单位和到访时间"
+    ],
+    "expected_facts": [
+      "登记信息包括姓名、单位和到访时间"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "condition"
+    ]
+  },
+  {
+    "id": "admin-visitor-assets-v1-q03",
+    "split": "development",
+    "category": "threshold",
+    "domain": "Administration",
+    "difficulty": "easy",
+    "question": "接待人是否需要全程陪同？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-visitor-assets-v1"
+    ],
+    "evidence_phrases": [
+      "接待人应全程陪同"
+    ],
+    "expected_facts": [
+      "接待人应全程陪同"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "threshold",
+      "threshold"
+    ]
+  },
+  {
+    "id": "admin-visitor-assets-v1-q04",
+    "split": "development",
+    "category": "synonym_rewrite",
+    "domain": "Administration",
+    "difficulty": "medium",
+    "question": "访客离场时要归还什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-visitor-assets-v1"
+    ],
+    "evidence_phrases": [
+      "访客离场时归还临时门禁卡"
+    ],
+    "expected_facts": [
+      "访客离场时归还临时门禁卡"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "synonym"
+    ]
+  },
+  {
+    "id": "admin-visitor-assets-v1-q05",
+    "split": "regression",
+    "category": "multi_step",
+    "domain": "Administration",
+    "difficulty": "hard",
+    "question": "访客登记、陪同和临时门禁卡归还怎么安排？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-visitor-assets-v1"
+    ],
+    "evidence_phrases": [
+      "访客进入办公区需由接待人提前在访客系统登记",
+      "登记信息包括姓名、单位和到访时间"
+    ],
+    "expected_facts": [
+      "访客进入办公区需由接待人提前在访客系统登记",
+      "登记信息包括姓名、单位和到访时间"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "multi_hop"
+    ]
+  },
+  {
+    "id": "admin-visitor-assets-v1-q06",
+    "split": "regression",
+    "category": "negative_rule",
+    "domain": "Administration",
+    "difficulty": "hard",
+    "question": "访客能否自行在办公区活动？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-visitor-assets-v1"
+    ],
+    "evidence_phrases": [
+      "登记信息包括姓名、单位和到访时间"
+    ],
+    "expected_facts": [
+      "登记信息包括姓名、单位和到访时间"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "negation"
+    ]
+  },
+  {
+    "id": "admin-visitor-assets-v1-q07",
+    "split": "held_out",
+    "category": "version_conflict",
+    "domain": "Administration",
+    "difficulty": "hard",
+    "question": "当前访客登记的必填信息有哪些？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-visitor-assets-v1"
+    ],
+    "evidence_phrases": [
+      "接待人应全程陪同"
+    ],
+    "expected_facts": [
+      "接待人应全程陪同"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "version"
+    ]
+  },
+  {
+    "id": "admin-visitor-assets-v1-q08",
+    "split": "held_out",
+    "category": "noisy_query",
+    "domain": "Administration",
+    "difficulty": "hard",
+    "question": "有客人来咋登记，门禁卡走时要还吗？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-visitor-assets-v1"
+    ],
+    "evidence_phrases": [
+      "访客离场时归还临时门禁卡"
+    ],
+    "expected_facts": [
+      "访客离场时归还临时门禁卡"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "language_noise"
+    ]
+  },
+  {
+    "id": "admin-facility-maintenance-v1-q01",
+    "split": "development",
+    "category": "direct_fact",
+    "domain": "Administration",
+    "difficulty": "easy",
+    "question": "办公设施故障应该通过什么方式报修？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-facility-maintenance-v1"
+    ],
+    "evidence_phrases": [
+      "办公设施故障应在工单系统提交报修"
+    ],
+    "expected_facts": [
+      "办公设施故障应在工单系统提交报修"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "direct"
+    ]
+  },
+  {
+    "id": "admin-facility-maintenance-v1-q02",
+    "split": "development",
+    "category": "conditional_policy",
+    "domain": "Administration",
+    "difficulty": "easy",
+    "question": "报修工单需要写明哪些信息？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-facility-maintenance-v1"
+    ],
+    "evidence_phrases": [
+      "写明位置、故障现象和紧急程度"
+    ],
+    "expected_facts": [
+      "写明位置、故障现象和紧急程度"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "condition"
+    ]
+  },
+  {
+    "id": "admin-facility-maintenance-v1-q03",
+    "split": "development",
+    "category": "threshold",
+    "domain": "Administration",
+    "difficulty": "easy",
+    "question": "行政部多久确认处理人？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-facility-maintenance-v1"
+    ],
+    "evidence_phrases": [
+      "行政部在一个工作日内确认处理人"
+    ],
+    "expected_facts": [
+      "行政部在一个工作日内确认处理人"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "threshold",
+      "threshold"
+    ]
+  },
+  {
+    "id": "admin-facility-maintenance-v1-q04",
+    "split": "development",
+    "category": "synonym_rewrite",
+    "domain": "Administration",
+    "difficulty": "medium",
+    "question": "涉及用电消防安全的故障还要怎么通知？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-facility-maintenance-v1"
+    ],
+    "evidence_phrases": [
+      "涉及用电、消防或人身安全的故障应立即电话通知行政部"
+    ],
+    "expected_facts": [
+      "涉及用电、消防或人身安全的故障应立即电话通知行政部"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "synonym"
+    ]
+  },
+  {
+    "id": "admin-facility-maintenance-v1-q05",
+    "split": "regression",
+    "category": "multi_step",
+    "domain": "Administration",
+    "difficulty": "hard",
+    "question": "设施故障从工单提交到行政确认的流程是什么？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-facility-maintenance-v1"
+    ],
+    "evidence_phrases": [
+      "办公设施故障应在工单系统提交报修",
+      "写明位置、故障现象和紧急程度"
+    ],
+    "expected_facts": [
+      "办公设施故障应在工单系统提交报修",
+      "写明位置、故障现象和紧急程度"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "multi_hop"
+    ]
+  },
+  {
+    "id": "admin-facility-maintenance-v1-q06",
+    "split": "regression",
+    "category": "negative_rule",
+    "domain": "Administration",
+    "difficulty": "hard",
+    "question": "涉及人身安全的故障能否只提交普通工单？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-facility-maintenance-v1"
+    ],
+    "evidence_phrases": [
+      "写明位置、故障现象和紧急程度"
+    ],
+    "expected_facts": [
+      "写明位置、故障现象和紧急程度"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "negation"
+    ]
+  },
+  {
+    "id": "admin-facility-maintenance-v1-q07",
+    "split": "held_out",
+    "category": "version_conflict",
+    "domain": "Administration",
+    "difficulty": "hard",
+    "question": "当前普通报修的确认时限是多少？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-facility-maintenance-v1"
+    ],
+    "evidence_phrases": [
+      "行政部在一个工作日内确认处理人"
+    ],
+    "expected_facts": [
+      "行政部在一个工作日内确认处理人"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "version"
+    ]
+  },
+  {
+    "id": "admin-facility-maintenance-v1-q08",
+    "split": "held_out",
+    "category": "noisy_query",
+    "domain": "Administration",
+    "difficulty": "hard",
+    "question": "设施坏了咋报修，消防问题要不要马上打电话？",
+    "answerability": "answerable",
+    "source_ids": [
+      "admin-facility-maintenance-v1"
+    ],
+    "evidence_phrases": [
+      "涉及用电、消防或人身安全的故障应立即电话通知行政部"
+    ],
+    "expected_facts": [
+      "涉及用电、消防或人身安全的故障应立即电话通知行政部"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null,
+    "tags": [
+      "language_noise"
+    ]
+  },
+  {
+    "id": "multi-hr-account-01",
+    "split": "development",
+    "domain": "HR",
+    "question": "新员工入职后，账号、邮箱和代码仓库权限如何申请，多久完成？",
+    "source_ids": [
+      "hr-onboarding-v1",
+      "it-account-access-v1"
+    ],
+    "evidence_phrases": [
+      "新员工入职当天由直属主管在 OA 系统提交账号开通申请",
+      "IT 在一个工作日内完成邮箱、协作平台和代码仓库权限配置"
+    ],
+    "tags": [
+      "multi_document",
+      "approval_chain"
+    ],
+    "category": "multi_document",
+    "answerability": "answerable",
+    "difficulty": "hard",
+    "expected_facts": [
+      "新员工入职当天由直属主管在 OA 系统提交账号开通申请",
+      "IT 在一个工作日内完成邮箱、协作平台和代码仓库权限配置"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null
+  },
+  {
+    "id": "multi-finance-travel-01",
+    "answerability": "answerable",
+    "split": "development",
+    "domain": "Finance",
+    "question": "出差结束后办理费用报销要准备哪些材料，最迟什么时候提交？",
+    "source_ids": [
+      "finance-travel-v1",
+      "finance-reimbursement-v2"
+    ],
+    "evidence_phrases": [
+      "报销时需提供交通票据、住宿发票和行程单",
+      "出差结束后十个工作日内提交报销"
+    ],
+    "tags": [
+      "multi_document",
+      "materials",
+      "deadline"
+    ],
+    "category": "multi_document",
+    "difficulty": "hard",
+    "expected_facts": [
+      "报销时需提供交通票据、住宿发票和行程单",
+      "出差结束后十个工作日内提交报销"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null
+  },
+  {
+    "id": "multi-procurement-vendor-01",
+    "answerability": "answerable",
+    "split": "regression",
+    "domain": "Procurement",
+    "question": "超过一万元的采购申请除了填预算用途，还要怎样做供应商比价？",
+    "source_ids": [
+      "procurement-request-v1",
+      "procurement-vendor-v1"
+    ],
+    "evidence_phrases": [
+      "金额超过一万元的采购需至少进行两家供应商比价",
+      "金额超过一万元的采购至少保留两家供应商的比价记录"
+    ],
+    "tags": [
+      "multi_document",
+      "threshold",
+      "distractor"
+    ],
+    "category": "multi_document",
+    "difficulty": "hard",
+    "expected_facts": [
+      "金额超过一万元的采购需至少进行两家供应商比价",
+      "金额超过一万元的采购至少保留两家供应商的比价记录"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null
+  },
+  {
+    "id": "multi-procurement-legal-01",
+    "answerability": "answerable",
+    "split": "regression",
+    "domain": "Procurement",
+    "question": "采购合同金额较大且出现非标准条款时，业务、财务和法务分别怎么参与？",
+    "source_ids": [
+      "procurement-contract-v1",
+      "legal-contract-review-v2"
+    ],
+    "evidence_phrases": [
+      "金额超过五十万元需业务负责人和财务负责人联合审批",
+      "若涉及非标准条款，必须提交法务复核"
+    ],
+    "tags": [
+      "multi_document",
+      "approval_chain",
+      "threshold"
+    ],
+    "category": "multi_document",
+    "difficulty": "hard",
+    "expected_facts": [
+      "金额超过五十万元需业务负责人和财务负责人联合审批",
+      "若涉及非标准条款，必须提交法务复核"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null
+  },
+  {
+    "id": "multi-it-production-01",
+    "answerability": "answerable",
+    "split": "held_out",
+    "domain": "IT",
+    "question": "普通代码仓库权限和生产环境权限的申请、审批和有效期有什么区别？",
+    "source_ids": [
+      "it-account-access-v1",
+      "it-production-access-v1"
+    ],
+    "evidence_phrases": [
+      "IT 在一个工作日内完成普通权限配置",
+      "有效期最长九十天"
+    ],
+    "tags": [
+      "multi_document",
+      "comparison",
+      "access_control"
+    ],
+    "category": "multi_document",
+    "difficulty": "hard",
+    "expected_facts": [
+      "IT 在一个工作日内完成普通权限配置",
+      "有效期最长九十天"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null
+  },
+  {
+    "id": "multi-it-device-01",
+    "answerability": "answerable",
+    "split": "held_out",
+    "domain": "IT",
+    "question": "公司电脑丢失后，员工应如何报告，IT 可以采取什么措施？",
+    "source_ids": [
+      "it-vpn-device-v1",
+      "it-incident-response-v1"
+    ],
+    "evidence_phrases": [
+      "公司设备遗失应在两小时内向 IT 报告",
+      "IT 可远程冻结设备"
+    ],
+    "tags": [
+      "multi_document",
+      "incident",
+      "deadline"
+    ],
+    "category": "multi_document",
+    "difficulty": "hard",
+    "expected_facts": [
+      "公司设备遗失应在两小时内向 IT 报告",
+      "IT 可远程冻结设备"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null
+  },
+  {
+    "id": "multi-legal-seal-01",
+    "answerability": "answerable",
+    "split": "development",
+    "domain": "Legal",
+    "question": "对外合同签署和盖章分别要遵守哪些模板与审批要求？",
+    "source_ids": [
+      "legal-contract-review-v2",
+      "legal-seal-v1"
+    ],
+    "evidence_phrases": [
+      "所有对外合同必须使用法务提供的标准模板",
+      "合同用印须完成法务审批"
+    ],
+    "tags": [
+      "multi_document",
+      "contract",
+      "citation"
+    ],
+    "category": "multi_document",
+    "difficulty": "hard",
+    "expected_facts": [
+      "所有对外合同必须使用法务提供的标准模板",
+      "合同用印须完成法务审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null
+  },
+  {
+    "id": "multi-legal-data-01",
+    "answerability": "answerable",
+    "split": "regression",
+    "domain": "Legal",
+    "question": "新业务要处理客户个人信息并对外披露时，上线前需要哪些合规审批？",
+    "source_ids": [
+      "legal-data-review-v1",
+      "legal-confidentiality-ip-v1"
+    ],
+    "evidence_phrases": [
+      "法务与信息安全部门共同完成合规审查",
+      "对外披露前须经信息所有者和法务审批"
+    ],
+    "tags": [
+      "multi_document",
+      "privacy",
+      "approval_chain"
+    ],
+    "category": "multi_document",
+    "difficulty": "hard",
+    "expected_facts": [
+      "法务与信息安全部门共同完成合规审查",
+      "对外披露前须经信息所有者和法务审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null
+  },
+  {
+    "id": "multi-admin-visitor-meeting-01",
+    "answerability": "answerable",
+    "split": "held_out",
+    "domain": "Administration",
+    "question": "外部访客来公司参加会议，访客登记、陪同和会议室预约怎么安排？",
+    "source_ids": [
+      "admin-visitor-assets-v1",
+      "admin-meeting-room-v1"
+    ],
+    "evidence_phrases": [
+      "访客进入办公区需由接待人提前在访客系统登记",
+      "会议室需通过企业日历系统预约"
+    ],
+    "tags": [
+      "multi_document",
+      "visitor",
+      "meeting"
+    ],
+    "category": "multi_document",
+    "difficulty": "hard",
+    "expected_facts": [
+      "访客进入办公区需由接待人提前在访客系统登记",
+      "会议室需通过企业日历系统预约"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null
+  },
+  {
+    "id": "multi-admin-office-01",
+    "answerability": "answerable",
+    "split": "held_out",
+    "domain": "Administration",
+    "question": "办公用品需求和设施故障分别通过什么流程处理，紧急故障有什么特殊要求？",
+    "source_ids": [
+      "admin-office-supplies-v1",
+      "admin-facility-maintenance-v1"
+    ],
+    "evidence_phrases": [
+      "员工应在每月二十五日前提交下月需求",
+      "涉及用电、消防或人身安全的故障应立即电话通知行政部"
+    ],
+    "tags": [
+      "multi_document",
+      "deadline",
+      "safety"
+    ],
+    "category": "multi_document",
+    "difficulty": "hard",
+    "expected_facts": [
+      "员工应在每月二十五日前提交下月需求",
+      "涉及用电、消防或人身安全的故障应立即电话通知行政部"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null
+  },
+  {
+    "id": "multi-hr-attendance-01",
+    "answerability": "answerable",
+    "split": "development",
+    "domain": "HR",
+    "question": "员工请假期间如果发生加班或考勤异常，申请、记录和提醒规则分别是什么？",
+    "source_ids": [
+      "hr-leave-v2",
+      "hr-attendance-v1"
+    ],
+    "evidence_phrases": [
+      "员工请假需至少提前一个工作日在 HR 系统提交申请",
+      "加班结束后五个工作日内在 HR 系统提交调休或加班记录"
+    ],
+    "tags": [
+      "multi_document",
+      "hr",
+      "workflow"
+    ],
+    "category": "multi_document",
+    "difficulty": "hard",
+    "expected_facts": [
+      "员工请假需至少提前一个工作日在 HR 系统提交申请",
+      "加班结束后五个工作日内在 HR 系统提交调休或加班记录"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null
+  },
+  {
+    "id": "multi-finance-payment-01",
+    "answerability": "answerable",
+    "split": "held_out",
+    "domain": "Finance",
+    "question": "采购验收完成后申请对公付款，需要哪些材料以及谁审批大额付款？",
+    "source_ids": [
+      "procurement-acceptance-v1",
+      "finance-payment-invoice-v1"
+    ],
+    "evidence_phrases": [
+      "采购部核对订单与验收结果",
+      "单笔超过十万元需财务经理和部门负责人共同审批"
+    ],
+    "tags": [
+      "multi_document",
+      "payment",
+      "approval_chain"
+    ],
+    "category": "multi_document",
+    "difficulty": "hard",
+    "expected_facts": [
+      "采购部核对订单与验收结果",
+      "单笔超过十万元需财务经理和部门负责人共同审批"
+    ],
+    "must_cite": true,
+    "expected_refusal_reason": null
+  },
+  {
+    "id": "hr-no-answer-01",
+    "split": "development",
+    "category": "no_answer",
+    "domain": "HR",
+    "difficulty": "medium",
+    "question": "公司是否提供海外长期派驻补贴及家属保险？",
+    "answerability": "unanswerable",
+    "source_ids": [],
+    "evidence_phrases": [],
+    "expected_facts": [],
+    "must_cite": false,
+    "expected_refusal_reason": "knowledge_missing",
+    "tags": [
+      "no_answer",
+      "out_of_corpus"
+    ]
+  },
+  {
+    "id": "hr-no-answer-02",
+    "split": "development",
+    "category": "no_answer",
+    "domain": "HR",
+    "difficulty": "medium",
+    "question": "公司是否允许员工把年假兑换成现金？",
+    "answerability": "unanswerable",
+    "source_ids": [],
+    "evidence_phrases": [],
+    "expected_facts": [],
+    "must_cite": false,
+    "expected_refusal_reason": "knowledge_missing",
+    "tags": [
+      "no_answer",
+      "out_of_corpus"
+    ]
+  },
+  {
+    "id": "finance-no-answer-03",
+    "split": "regression",
+    "category": "no_answer",
+    "domain": "Finance",
+    "difficulty": "medium",
+    "question": "国内出差每天的住宿报销上限是多少元？",
+    "answerability": "unanswerable",
+    "source_ids": [],
+    "evidence_phrases": [],
+    "expected_facts": [],
+    "must_cite": false,
+    "expected_refusal_reason": "knowledge_missing",
+    "tags": [
+      "no_answer",
+      "out_of_corpus"
+    ]
+  },
+  {
+    "id": "finance-no-answer-04",
+    "split": "regression",
+    "category": "no_answer",
+    "domain": "Finance",
+    "difficulty": "medium",
+    "question": "公司是否提供员工购房贷款或住房补贴？",
+    "answerability": "unanswerable",
+    "source_ids": [],
+    "evidence_phrases": [],
+    "expected_facts": [],
+    "must_cite": false,
+    "expected_refusal_reason": "knowledge_missing",
+    "tags": [
+      "no_answer",
+      "out_of_corpus"
+    ]
+  },
+  {
+    "id": "procurement-no-answer-05",
+    "split": "held_out",
+    "category": "no_answer",
+    "domain": "Procurement",
+    "difficulty": "medium",
+    "question": "供应商违约后的赔偿比例和黑名单期限是多少？",
+    "answerability": "unanswerable",
+    "source_ids": [],
+    "evidence_phrases": [],
+    "expected_facts": [],
+    "must_cite": false,
+    "expected_refusal_reason": "knowledge_missing",
+    "tags": [
+      "no_answer",
+      "out_of_corpus"
+    ]
+  },
+  {
+    "id": "procurement-no-answer-06",
+    "split": "held_out",
+    "category": "no_answer",
+    "domain": "Procurement",
+    "difficulty": "medium",
+    "question": "采购是否允许员工个人先垫付再统一结算？",
+    "answerability": "unanswerable",
+    "source_ids": [],
+    "evidence_phrases": [],
+    "expected_facts": [],
+    "must_cite": false,
+    "expected_refusal_reason": "knowledge_missing",
+    "tags": [
+      "no_answer",
+      "out_of_corpus"
+    ]
+  },
+  {
+    "id": "it-no-answer-07",
+    "split": "development",
+    "category": "no_answer",
+    "domain": "IT",
+    "difficulty": "medium",
+    "question": "公司是否为员工提供手机流量和家庭宽带补贴？",
+    "answerability": "unanswerable",
+    "source_ids": [],
+    "evidence_phrases": [],
+    "expected_facts": [],
+    "must_cite": false,
+    "expected_refusal_reason": "knowledge_missing",
+    "tags": [
+      "no_answer",
+      "out_of_corpus"
+    ]
+  },
+  {
+    "id": "it-no-answer-08",
+    "split": "development",
+    "category": "no_answer",
+    "domain": "IT",
+    "difficulty": "medium",
+    "question": "生产数据库的具体管理员姓名和应急密码是什么？",
+    "answerability": "unanswerable",
+    "source_ids": [],
+    "evidence_phrases": [],
+    "expected_facts": [],
+    "must_cite": false,
+    "expected_refusal_reason": "knowledge_missing",
+    "tags": [
+      "no_answer",
+      "out_of_corpus"
+    ]
+  },
+  {
+    "id": "legal-no-answer-09",
+    "split": "regression",
+    "category": "no_answer",
+    "domain": "Legal",
+    "difficulty": "medium",
+    "question": "公司是否已经购买董事责任保险？",
+    "answerability": "unanswerable",
+    "source_ids": [],
+    "evidence_phrases": [],
+    "expected_facts": [],
+    "must_cite": false,
+    "expected_refusal_reason": "knowledge_missing",
+    "tags": [
+      "no_answer",
+      "out_of_corpus"
+    ]
+  },
+  {
+    "id": "legal-no-answer-10",
+    "split": "regression",
+    "category": "no_answer",
+    "domain": "Legal",
+    "difficulty": "medium",
+    "question": "客户合同发生诉讼时外部律师的收费标准是多少？",
+    "answerability": "unanswerable",
+    "source_ids": [],
+    "evidence_phrases": [],
+    "expected_facts": [],
+    "must_cite": false,
+    "expected_refusal_reason": "knowledge_missing",
+    "tags": [
+      "no_answer",
+      "out_of_corpus"
+    ]
+  },
+  {
+    "id": "administration-no-answer-11",
+    "split": "held_out",
+    "category": "no_answer",
+    "domain": "Administration",
+    "difficulty": "medium",
+    "question": "公司班车路线和每站发车时间是什么？",
+    "answerability": "unanswerable",
+    "source_ids": [],
+    "evidence_phrases": [],
+    "expected_facts": [],
+    "must_cite": false,
+    "expected_refusal_reason": "knowledge_missing",
+    "tags": [
+      "no_answer",
+      "out_of_corpus"
+    ]
+  },
+  {
+    "id": "administration-no-answer-12",
+    "split": "held_out",
+    "category": "no_answer",
+    "domain": "Administration",
+    "difficulty": "medium",
+    "question": "办公区是否提供员工餐以及每餐补贴金额？",
+    "answerability": "unanswerable",
+    "source_ids": [],
+    "evidence_phrases": [],
+    "expected_facts": [],
+    "must_cite": false,
+    "expected_refusal_reason": "knowledge_missing",
+    "tags": [
+      "no_answer",
+      "out_of_corpus"
+    ]
+  }
+  ,{"id":"hr-no-answer-extra-01","split":"development","category":"no_answer","domain":"HR","difficulty":"hard","question":"公司是否支持跨国远程办公的长期签证办理？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"hr-no-answer-extra-02","split":"development","category":"no_answer","domain":"HR","difficulty":"hard","question":"产假期间的商业保险报销比例是多少？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"hr-no-answer-extra-03","split":"regression","category":"no_answer","domain":"HR","difficulty":"hard","question":"员工年度绩效奖金的计算公式是什么？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"hr-no-answer-extra-04","split":"regression","category":"no_answer","domain":"HR","difficulty":"hard","question":"试用期最长可以约定多少个月？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"hr-no-answer-extra-05","split":"held_out","category":"no_answer","domain":"HR","difficulty":"hard","question":"公司是否提供子女教育补贴？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"hr-no-answer-extra-06","split":"held_out","category":"no_answer","domain":"HR","difficulty":"hard","question":"员工退休后的福利待遇如何安排？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"finance-no-answer-extra-01","split":"development","category":"no_answer","domain":"Finance","difficulty":"hard","question":"海外出差的每日餐费标准是多少？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"finance-no-answer-extra-02","split":"development","category":"no_answer","domain":"Finance","difficulty":"hard","question":"公司是否允许报销员工个人信用卡年费？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"finance-no-answer-extra-03","split":"regression","category":"no_answer","domain":"Finance","difficulty":"hard","question":"研发项目的预算结余如何结转？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"finance-no-answer-extra-04","split":"regression","category":"no_answer","domain":"Finance","difficulty":"hard","question":"股票期权行权需要缴纳多少税？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"finance-no-answer-extra-05","split":"held_out","category":"no_answer","domain":"Finance","difficulty":"hard","question":"现金借款最长可以占用多少天？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"finance-no-answer-extra-06","split":"held_out","category":"no_answer","domain":"Finance","difficulty":"hard","question":"公司银行账户的开户行和账号是什么？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"procurement-no-answer-extra-01","split":"development","category":"no_answer","domain":"Procurement","difficulty":"hard","question":"指定品牌采购是否可以跳过比价？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"procurement-no-answer-extra-02","split":"development","category":"no_answer","domain":"Procurement","difficulty":"hard","question":"供应商年度评级的分数线和淘汰规则是什么？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"procurement-no-answer-extra-03","split":"regression","category":"no_answer","domain":"Procurement","difficulty":"hard","question":"采购合同自动续期的最长年限是多少？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"procurement-no-answer-extra-04","split":"regression","category":"no_answer","domain":"Procurement","difficulty":"hard","question":"采购预付款最高可以占合同金额的多少？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"procurement-no-answer-extra-05","split":"held_out","category":"no_answer","domain":"Procurement","difficulty":"hard","question":"供应商发票逾期提交的罚金如何计算？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"procurement-no-answer-extra-06","split":"held_out","category":"no_answer","domain":"Procurement","difficulty":"hard","question":"公司是否允许从海外平台直接采购软件？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"it-no-answer-extra-01","split":"development","category":"no_answer","domain":"IT","difficulty":"hard","question":"员工个人电脑接入内网需要安装哪些软件？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"it-no-answer-extra-02","split":"development","category":"no_answer","domain":"IT","difficulty":"hard","question":"数据库备份保留几个月以及存放在哪个机房？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"it-no-answer-extra-03","split":"regression","category":"no_answer","domain":"IT","difficulty":"hard","question":"公司 Wi-Fi 的访客密码是多少？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"it-no-answer-extra-04","split":"regression","category":"no_answer","domain":"IT","difficulty":"hard","question":"软件许可证超期使用的处罚金额是多少？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"it-no-answer-extra-05","split":"held_out","category":"no_answer","domain":"IT","difficulty":"hard","question":"远程办公是否可以使用个人 VPN 绕过公司网络？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"it-no-answer-extra-06","split":"held_out","category":"no_answer","domain":"IT","difficulty":"hard","question":"下一次系统升级的具体停机时间是什么？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"legal-no-answer-extra-01","split":"development","category":"no_answer","domain":"Legal","difficulty":"hard","question":"公司标准劳动合同的竞业限制补偿金额是多少？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"legal-no-answer-extra-02","split":"development","category":"no_answer","domain":"Legal","difficulty":"hard","question":"商标注册由哪一家外部代理机构负责？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"legal-no-answer-extra-03","split":"regression","category":"no_answer","domain":"Legal","difficulty":"hard","question":"专利申请的预算上限和费用承担人是谁？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"legal-no-answer-extra-04","split":"regression","category":"no_answer","domain":"Legal","difficulty":"hard","question":"合作方发生侵权时公司的诉讼策略是什么？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"legal-no-answer-extra-05","split":"held_out","category":"no_answer","domain":"Legal","difficulty":"hard","question":"个人信息跨境传输是否已经完成监管备案？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"legal-no-answer-extra-06","split":"held_out","category":"no_answer","domain":"Legal","difficulty":"hard","question":"公司印章丢失后的公告和补办流程是什么？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"administration-no-answer-extra-01","split":"development","category":"no_answer","domain":"Administration","difficulty":"hard","question":"公司停车位的月租价格和抽签规则是什么？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"administration-no-answer-extra-02","split":"development","category":"no_answer","domain":"Administration","difficulty":"hard","question":"办公区空调的具体开启温度由谁决定？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"administration-no-answer-extra-03","split":"regression","category":"no_answer","domain":"Administration","difficulty":"hard","question":"员工生日礼物的采购预算是多少？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"administration-no-answer-extra-04","split":"regression","category":"no_answer","domain":"Administration","difficulty":"hard","question":"公司年会的举办地点和日期是什么？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"administration-no-answer-extra-05","split":"held_out","category":"no_answer","domain":"Administration","difficulty":"hard","question":"保洁服务的投诉电话和响应时限是什么？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"administration-no-answer-extra-06","split":"held_out","category":"no_answer","domain":"Administration","difficulty":"hard","question":"办公楼发生火灾时的集合地点在哪里？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"hr-no-answer-extra2-01","split":"development","category":"no_answer","domain":"HR","difficulty":"hard","question":"公司是否提供年度体检之外的家属医疗福利？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"hr-no-answer-extra2-02","split":"held_out","category":"no_answer","domain":"HR","difficulty":"hard","question":"员工调岗后的薪酬调整周期和计算方法是什么？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"finance-no-answer-extra2-01","split":"development","category":"no_answer","domain":"Finance","difficulty":"hard","question":"公司年度预算冻结日和预算追加审批额度是多少？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"finance-no-answer-extra2-02","split":"held_out","category":"no_answer","domain":"Finance","difficulty":"hard","question":"员工福利平台积分可以兑换哪些商品？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"procurement-no-answer-extra2-01","split":"development","category":"no_answer","domain":"Procurement","difficulty":"hard","question":"年度框架协议的供应商续约评分标准是什么？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"procurement-no-answer-extra2-02","split":"held_out","category":"no_answer","domain":"Procurement","difficulty":"hard","question":"采购订单取消时的违约金由哪个部门核定？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"it-no-answer-extra2-01","split":"development","category":"no_answer","domain":"IT","difficulty":"hard","question":"公司内部 DNS 的地址和专用网络段是什么？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"it-no-answer-extra2-02","split":"held_out","category":"no_answer","domain":"IT","difficulty":"hard","question":"办公电脑的标准配置和采购品牌清单在哪里？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"legal-no-answer-extra2-01","split":"development","category":"no_answer","domain":"Legal","difficulty":"hard","question":"公司对外投资项目的法律尽调费用预算是多少？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"legal-no-answer-extra2-02","split":"held_out","category":"no_answer","domain":"Legal","difficulty":"hard","question":"劳动争议仲裁的内部和解授权金额上限是多少？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"administration-no-answer-extra2-01","split":"development","category":"no_answer","domain":"Administration","difficulty":"hard","question":"办公楼物业费的分摊比例和缴费日期是什么？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+  ,{"id":"administration-no-answer-extra2-02","split":"held_out","category":"no_answer","domain":"Administration","difficulty":"hard","question":"公司节假日礼品的领取资格和预算标准是什么？","answerability":"unanswerable","source_ids":[],"evidence_phrases":[],"expected_facts":[],"must_cite":false,"expected_refusal_reason":"knowledge_missing","tags":["no_answer","out_of_corpus"]}
+]

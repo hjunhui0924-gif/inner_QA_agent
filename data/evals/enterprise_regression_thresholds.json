@@ -1,0 +1,6 @@
+{
+  "source_hit_at_k_min": 0.70,
+  "evidence_recall_at_k_min": 0.60,
+  "no_answer_evidence_proxy_accuracy_min": 0.90,
+  "retrieval_failure_count_max": 25
+}
