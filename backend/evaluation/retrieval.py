@@ -1,104 +1,58 @@
-"""Deterministic retrieval ablation metrics."""
+"""Deterministic retrieval metrics, grouping, and failure attribution."""
 
 from __future__ import annotations
 
 import math
 import statistics
+from collections import defaultdict
 from dataclasses import asdict, dataclass
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable
 
 from langchain_core.documents import Document
 
+from backend.evaluation.schema import (
+    EvalCase,
+    parse_eval_cases,
+    validate_cases_against_corpus,
+)
 from backend.retrieval.engine import RetrievalEngine, RetrievalStrategy
 
 
-@dataclass(frozen=True)
-class RetrievalEvalCase:
-    id: str
-    category: str
-    question: str
-    source_ids: list[str]
-    evidence_phrases: list[str]
-
-    @property
-    def answerable(self) -> bool:
-        return bool(self.source_ids)
+# Compatibility names retained for the original official 34-case benchmark and
+# its tests. The structured schema is the canonical implementation now.
+RetrievalEvalCase = EvalCase
+parse_cases = parse_eval_cases
 
 
 @dataclass(frozen=True)
 class RetrievalCaseResult:
     id: str
+    split: str
+    domain: str
+    difficulty: str
     category: str
+    tags: list[str]
     question: str
+    gold_source_ids: list[str]
+    gold_evidence_phrases: list[str]
     answerable: bool
     source_hit: bool | None
+    candidate_source_hit: bool | None
     reciprocal_rank: float | None
     ndcg: float | None
     evidence_recall: float | None
     retrieved_sources: list[str]
     retrieved_chunk_ids: list[str]
+    candidate_chunk_ids: list[str]
     top_rerank_score: float | None
     latency_ms: float
     rerank_used: bool
     degraded_reason: str | None
-
-
-def parse_cases(data: Any) -> list[RetrievalEvalCase]:
-    if not isinstance(data, list):
-        raise ValueError("Retrieval evaluation dataset must be a JSON array.")
-    cases: list[RetrievalEvalCase] = []
-    seen: set[str] = set()
-    for raw in data:
-        if not isinstance(raw, dict):
-            raise ValueError("Every retrieval case must be a JSON object.")
-        case = RetrievalEvalCase(
-            id=str(raw.get("id", "")).strip(),
-            category=str(raw.get("category", "")).strip(),
-            question=str(raw.get("question", "")).strip(),
-            source_ids=[str(item).strip() for item in raw.get("source_ids", [])],
-            evidence_phrases=[
-                str(item).strip() for item in raw.get("evidence_phrases", [])
-            ],
-        )
-        if not case.id or not case.category or not case.question:
-            raise ValueError("Case id, category, and question are required.")
-        if case.id in seen:
-            raise ValueError(f"Duplicate retrieval case id: {case.id}")
-        if case.answerable and not case.evidence_phrases:
-            raise ValueError(f"Answerable case {case.id} has no evidence phrases.")
-        if not case.answerable and case.evidence_phrases:
-            raise ValueError(f"No-answer case {case.id} must not contain evidence.")
-        seen.add(case.id)
-        cases.append(case)
-    return cases
-
-
-def validate_cases_against_corpus(
-    cases: Iterable[RetrievalEvalCase],
-    documents: Iterable[Document],
-) -> None:
-    """Fail when a gold source or evidence phrase is absent from the corpus."""
-
-    content_by_source: dict[str, list[str]] = {}
-    for document in documents:
-        source_id = str(document.metadata.get("source_id", "")).strip()
-        if source_id:
-            content_by_source.setdefault(source_id, []).append(document.page_content)
-    errors: list[str] = []
-    for case in cases:
-        for source_id in case.source_ids:
-            if source_id not in content_by_source:
-                errors.append(f"{case.id}: unknown source {source_id}")
-        source_text = "\n".join(
-            text
-            for source_id in case.source_ids
-            for text in content_by_source.get(source_id, [])
-        )
-        for phrase in case.evidence_phrases:
-            if phrase not in source_text:
-                errors.append(f"{case.id}: evidence not found: {phrase}")
-    if errors:
-        raise ValueError("Invalid retrieval gold data:\n" + "\n".join(errors))
+    failure_type: str
+    failure_reason: str
+    retrieval_failure: bool
+    evidence_failure: bool
+    ranking_failure: bool
 
 
 def run_retrieval_ablation(
@@ -131,24 +85,43 @@ def _evaluate_case(
 ) -> RetrievalCaseResult:
     retrieval = engine.retrieve(case.question, top_k=top_k, strategy=strategy)
     documents = retrieval.documents
+    candidates = retrieval.candidate_documents or documents
     sources = [str(doc.metadata.get("source_id", "")) for doc in documents]
     chunk_ids = [str(doc.metadata.get("chunk_id", "")) for doc in documents]
+    candidate_sources = {
+        str(doc.metadata.get("source_id", "")) for doc in candidates
+    }
     if not case.answerable:
         return RetrievalCaseResult(
             id=case.id,
+            split=case.split,
+            domain=case.domain,
+            difficulty=case.difficulty,
             category=case.category,
+            tags=list(case.tags),
             question=case.question,
+            gold_source_ids=list(case.source_ids),
+            gold_evidence_phrases=list(case.evidence_phrases),
             answerable=False,
             source_hit=None,
+            candidate_source_hit=None,
             reciprocal_rank=None,
             ndcg=None,
             evidence_recall=None,
             retrieved_sources=sources,
             retrieved_chunk_ids=chunk_ids,
+            candidate_chunk_ids=[
+                str(doc.metadata.get("chunk_id", "")) for doc in candidates
+            ],
             top_rerank_score=_top_rerank_score(documents),
             latency_ms=retrieval.latency_ms,
             rerank_used=retrieval.rerank_used,
             degraded_reason=retrieval.degraded_reason,
+            failure_type="none",
+            failure_reason="no gold source expected",
+            retrieval_failure=False,
+            evidence_failure=False,
+            ranking_failure=False,
         )
 
     source_ranks = [
@@ -160,25 +133,91 @@ def _evaluate_case(
     combined = "\n".join(document.page_content for document in documents)
     evidence_hits = sum(phrase in combined for phrase in case.evidence_phrases)
     evidence_recall = evidence_hits / len(case.evidence_phrases)
+    source_hit = first_rank is not None
+    candidate_source_hit = bool(candidate_sources & set(case.source_ids))
+    retrieval_failure = not candidate_source_hit
+    ranking_failure = candidate_source_hit and not source_hit
+    evidence_failure = source_hit and evidence_recall < 1.0
+    failure_type = (
+        "retrieval_failure"
+        if retrieval_failure
+        else "ranking_failure"
+        if ranking_failure
+        else "evidence_failure"
+        if evidence_failure
+        else "none"
+    )
+    failure_reason = {
+        "retrieval_failure": "gold source was absent from the candidate pool",
+        "ranking_failure": "gold source was recalled but not present in top-k",
+        "evidence_failure": "gold source was in top-k but evidence phrase coverage was incomplete",
+        "none": "gold source and evidence were found in top-k",
+    }[failure_type]
     return RetrievalCaseResult(
         id=case.id,
+        split=case.split,
+        domain=case.domain,
+        difficulty=case.difficulty,
         category=case.category,
+        tags=list(case.tags),
         question=case.question,
+        gold_source_ids=list(case.source_ids),
+        gold_evidence_phrases=list(case.evidence_phrases),
         answerable=True,
-        source_hit=first_rank is not None,
+        source_hit=source_hit,
+        candidate_source_hit=candidate_source_hit,
         reciprocal_rank=1 / first_rank if first_rank else 0.0,
         ndcg=1 / math.log2(first_rank + 1) if first_rank else 0.0,
         evidence_recall=evidence_recall,
         retrieved_sources=sources,
         retrieved_chunk_ids=chunk_ids,
+        candidate_chunk_ids=[
+            str(doc.metadata.get("chunk_id", "")) for doc in candidates
+        ],
         top_rerank_score=_top_rerank_score(documents),
         latency_ms=retrieval.latency_ms,
         rerank_used=retrieval.rerank_used,
         degraded_reason=retrieval.degraded_reason,
+        failure_type=failure_type,
+        failure_reason=failure_reason,
+        retrieval_failure=retrieval_failure,
+        evidence_failure=evidence_failure,
+        ranking_failure=ranking_failure,
     )
 
 
 def _aggregate(results: list[RetrievalCaseResult]) -> dict[str, Any]:
+    """Aggregate one strategy and retain case-level failure evidence."""
+
+    report = _summary(results)
+    failure_counts = defaultdict(int)
+    for result in results:
+        failure_counts[result.failure_type] += 1
+    report.update(
+        {
+            "failure_counts": dict(sorted(failure_counts.items())),
+            "failure_rates": {
+                name: count / len(results) if results else 0.0
+                for name, count in sorted(failure_counts.items())
+            },
+            "retrieval_failure_count": sum(item.retrieval_failure for item in results),
+            "evidence_failure_count": sum(item.evidence_failure for item in results),
+            "ranking_failure_count": sum(item.ranking_failure for item in results),
+            "by_split": _group_results(results, lambda item: item.split),
+            "by_domain": _group_results(results, lambda item: item.domain),
+            "by_category": _group_results(results, lambda item: item.category),
+            "by_difficulty": _group_results(results, lambda item: item.difficulty),
+            "by_tag": _group_results(
+                results,
+                lambda item: item.tags or ["untagged"],
+            ),
+            "results": [asdict(result) for result in results],
+        }
+    )
+    return report
+
+
+def _summary(results: list[RetrievalCaseResult]) -> dict[str, Any]:
     answerable = [result for result in results if result.answerable]
     no_answer = [result for result in results if not result.answerable]
     latencies = [result.latency_ms for result in results]
@@ -186,7 +225,7 @@ def _aggregate(results: list[RetrievalCaseResult]) -> dict[str, Any]:
     return {
         "case_count": len(results),
         "answerable_case_count": len(answerable),
-        "no_answer_case_count": len(results) - len(answerable),
+        "no_answer_case_count": len(no_answer),
         "source_hit_at_k": _mean(result.source_hit for result in answerable),
         "mrr_at_k": _mean(result.reciprocal_rank for result in answerable),
         "ndcg_at_k": _mean(result.ndcg for result in answerable),
@@ -201,8 +240,23 @@ def _aggregate(results: list[RetrievalCaseResult]) -> dict[str, Any]:
         "rerank_degradation_count": degradation_count,
         "answerable_min_top_rerank_score": _minimum_score(answerable),
         "no_answer_max_top_rerank_score": _maximum_score(no_answer),
-        "results": [asdict(result) for result in results],
+        "no_answer_candidate_rate": _mean(
+            result.candidate_source_hit for result in no_answer
+        ),
     }
+
+
+def _group_results(
+    results: list[RetrievalCaseResult],
+    key: Callable[[RetrievalCaseResult], str | list[str]],
+) -> dict[str, dict[str, Any]]:
+    groups: dict[str, list[RetrievalCaseResult]] = defaultdict(list)
+    for result in results:
+        value = key(result)
+        values = value if isinstance(value, list) else [value]
+        for item in values:
+            groups[str(item)].append(result)
+    return {name: _summary(items) for name, items in sorted(groups.items())}
 
 
 def _mean(values: Iterable[float | bool | None]) -> float:

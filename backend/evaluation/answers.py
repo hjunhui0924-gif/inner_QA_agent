@@ -27,6 +27,17 @@ FailureType = Literal[
     "abstention_error",
 ]
 
+FailureClass = Literal[
+    "none",
+    "retrieval_failure",
+    "evidence_failure",
+    "ranking_failure",
+    "citation_failure",
+    "generation_failure",
+    "refusal_failure",
+    "tool_or_runtime_failure",
+]
+
 
 @dataclass(frozen=True)
 class AnswerEvalCase:
@@ -37,6 +48,10 @@ class AnswerEvalCase:
     ranking_hit: bool = True
     parse_succeeded: bool = True
     generation_succeeded: bool = True
+    evidence_hit: bool = True
+    tool_succeeded: bool = True
+    must_cite: bool | None = None
+    expected_refusal_reason: str | None = None
 
 
 @dataclass(frozen=True)
@@ -48,6 +63,14 @@ class AnswerEvalResult:
     extractive_overlap_rate: float
     abstention_accuracy: float
     failure_type: FailureType
+    failure_class: FailureClass = "none"
+    retrieval_failure: bool = False
+    evidence_failure: bool = False
+    ranking_failure: bool = False
+    citation_failure: bool = False
+    generation_failure: bool = False
+    refusal_failure: bool = False
+    tool_or_runtime_failure: bool = False
 
 
 _ABSTENTION_PHRASES = (
@@ -100,27 +123,42 @@ def evaluate_answer(
     numeric_accuracy = _mean(numeric_scores, default=1.0)
     citation_provenance_accuracy = _citation_provenance_accuracy(citations, documents)
     extractive_overlap_rate = _extractive_overlap_rate(answer, citations, documents)
-    citation_completeness = _citation_completeness(answer) if case.answerable else 1.0
+    should_cite = case.must_cite if case.must_cite is not None else case.answerable
+    citation_completeness = _citation_completeness(answer) if should_cite else 1.0
 
     failure: FailureType = "none"
+    failure_class: FailureClass = "none"
     if not case.parse_succeeded:
         failure = "parse_failure"
+        failure_class = "tool_or_runtime_failure"
+    elif not case.tool_succeeded:
+        failure = "parse_failure"
+        failure_class = "tool_or_runtime_failure"
     elif not case.generation_succeeded:
         failure = "generation_error"
+        failure_class = "generation_failure"
     elif case.answerable and not case.retrieval_hit:
         failure = "retrieval_miss"
+        failure_class = "retrieval_failure"
+    elif case.answerable and not case.evidence_hit:
+        failure = "ranking_error"
+        failure_class = "evidence_failure"
     elif case.answerable and not case.ranking_hit:
         failure = "ranking_error"
+        failure_class = "ranking_failure"
     elif abstention_accuracy < 1.0:
         failure = "abstention_error"
+        failure_class = "refusal_failure"
     elif case.answerable and (
         gold_phrase_match_rate < 1.0 or numeric_accuracy < 1.0
     ):
         failure = "gold_phrase_mismatch"
+        failure_class = "generation_failure"
     elif case.answerable and (
         citation_provenance_accuracy < 1.0 or citation_completeness < 1.0
     ):
         failure = "citation_error"
+        failure_class = "citation_failure"
 
     return AnswerEvalResult(
         gold_phrase_match_rate=gold_phrase_match_rate,
@@ -130,6 +168,14 @@ def evaluate_answer(
         extractive_overlap_rate=extractive_overlap_rate,
         abstention_accuracy=abstention_accuracy,
         failure_type=failure,
+        failure_class=failure_class,
+        retrieval_failure=failure_class == "retrieval_failure",
+        evidence_failure=failure_class == "evidence_failure",
+        ranking_failure=failure_class == "ranking_failure",
+        citation_failure=failure_class == "citation_failure",
+        generation_failure=failure_class == "generation_failure",
+        refusal_failure=failure_class == "refusal_failure",
+        tool_or_runtime_failure=failure_class == "tool_or_runtime_failure",
     )
 
 

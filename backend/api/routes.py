@@ -95,6 +95,13 @@ def _ingest_uploaded_file(
     raw_bytes: bytes,
     title: str,
     source: str,
+    department: str,
+    version: str,
+    status: str,
+    effective_from: str,
+    effective_to: str,
+    owner: str,
+    access_scope: str,
 ) -> dict[str, object]:
     """Parse and persist an upload outside the event-loop thread."""
 
@@ -107,6 +114,14 @@ def _ingest_uploaded_file(
             source=source,
             original_filename=saved_path.name,
             segments=extracted.segments,
+            source_type=source,
+            department=department,
+            version=version,
+            status=status,
+            effective_from=effective_from,
+            effective_to=effective_to or None,
+            owner=owner,
+            access_scope=access_scope,
         )
     except Exception:
         saved_path.unlink(missing_ok=True)
@@ -252,11 +267,19 @@ async def _stream_graph_unlocked(
         final_answer = str(final_state.get("answer", "")).strip() or assistant_text
         if not final_answer:
             final_answer = "未返回有效内容。"
+        trace_state = {
+            **final_state,
+            "trace_include_content": settings.trace_include_content,
+            "trace_retention_days": settings.trace_retention_days,
+        }
         trace = build_trace(
             trace_id=trace_id,
             query=payload.message,
-            state=final_state,
+            state=trace_state,
         )
+        response_citations = final_state.get("citations", [])
+        if not isinstance(response_citations, list):
+            response_citations = []
         if settings.trace_enabled:
             try:
                 await asyncio.to_thread(
@@ -265,6 +288,7 @@ async def _stream_graph_unlocked(
                     settings.trace_log_path,
                     max_bytes=settings.trace_max_bytes,
                     backup_count=settings.trace_backup_count,
+                    retention_days=settings.trace_retention_days,
                 )
             except Exception:
                 pass
@@ -307,9 +331,7 @@ async def _stream_graph_unlocked(
             session_id=payload.session_id,
             role="assistant",
             content=final_answer,
-            citations=(
-                trace["citations"] if isinstance(trace["citations"], list) else []
-            ),
+            citations=response_citations,
         )
         for chunk in _answer_chunks(final_answer):
             yield _sse_event({"type": "token", "content": chunk})
@@ -317,7 +339,7 @@ async def _stream_graph_unlocked(
             {
                 "type": "result",
                 "content": final_answer,
-                "citations": trace["citations"],
+                "citations": response_citations,
                 "trace_id": trace_id,
                 "failure_type": trace["failure_type"],
             }
@@ -329,6 +351,8 @@ async def _stream_graph_unlocked(
             "answer": "",
             "status_events": [*final_state.get("status_events", []), f"error:{exc}"],
         }
+        error_state["trace_include_content"] = settings.trace_include_content
+        error_state["trace_retention_days"] = settings.trace_retention_days
         trace = build_trace(trace_id=trace_id, query=payload.message, state=error_state)
         trace["failure_type"] = "generation_error"
         if settings.trace_enabled:
@@ -339,6 +363,7 @@ async def _stream_graph_unlocked(
                     settings.trace_log_path,
                     max_bytes=settings.trace_max_bytes,
                     backup_count=settings.trace_backup_count,
+                    retention_days=settings.trace_retention_days,
                 )
             except Exception:
                 pass
@@ -440,6 +465,13 @@ async def upload_knowledge_file(
     file: UploadFile = File(...),
     title: str = Form(default=""),
     source: str = Form(default="upload"),
+    department: str = Form(default="unknown"),
+    version: str = Form(default="v1"),
+    status: str = Form(default="active"),
+    effective_from: str = Form(default="1970-01-01"),
+    effective_to: str = Form(default=""),
+    owner: str = Form(default="未指定"),
+    access_scope: str = Form(default="internal"),
 ) -> dict[str, object]:
     """Upload a file and write it into the knowledge base."""
 
@@ -460,6 +492,13 @@ async def upload_knowledge_file(
             raw_bytes,
             title,
             source,
+            department,
+            version,
+            status,
+            effective_from,
+            effective_to,
+            owner,
+            access_scope,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

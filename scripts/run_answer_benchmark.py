@@ -63,11 +63,21 @@ async def run_answer_benchmark(
         started = time.perf_counter()
         retrieval = await asyncio.to_thread(engine.retrieve, question, top_k)
         retrieved = retrieval.documents
+        candidates = retrieval.candidate_documents or retrieved
         retrieved_source_ids = {
             str(document.metadata.get("source_id", "")) for document in retrieved
         }
-        retrieval_hit = not answerable or bool(source_ids & retrieved_source_ids)
+        candidate_source_ids = {
+            str(document.metadata.get("source_id", "")) for document in candidates
+        }
+        retrieval_hit = not answerable or bool(source_ids & candidate_source_ids)
+        candidate_evidence = "\n".join(
+            document.page_content for document in candidates
+        )
         combined_evidence = "\n".join(document.page_content for document in retrieved)
+        evidence_hit = not answerable or all(
+            phrase in candidate_evidence for phrase in expected_facts
+        )
         ranking_hit = not answerable or all(
             phrase in combined_evidence for phrase in expected_facts
         )
@@ -98,6 +108,7 @@ async def run_answer_benchmark(
                 expected_facts=expected_facts,
                 answerable=answerable,
                 retrieval_hit=retrieval_hit,
+                evidence_hit=evidence_hit,
                 ranking_hit=ranking_hit,
                 generation_succeeded=not generation_error,
             ),
@@ -126,11 +137,27 @@ async def run_answer_benchmark(
                 "question": question,
                 "answerable": answerable,
                 "expected_facts": expected_facts,
+                "gold_source_ids": sorted(source_ids),
+                "candidate_source_ids": sorted(candidate_source_ids),
+                "retrieved_source_ids": sorted(retrieved_source_ids),
+                "candidate_chunk_ids": [
+                    str(document.metadata.get("chunk_id", ""))
+                    for document in candidates
+                ],
                 "retrieved_chunk_ids": [
                     str(document.metadata.get("chunk_id", "")) for document in retrieved
                 ],
                 "retrieval_hit": retrieval_hit,
+                "evidence_hit": evidence_hit,
                 "ranking_hit": ranking_hit,
+                "failure_reason": _answer_failure_reason(
+                    answerable=answerable,
+                    retrieval_hit=retrieval_hit,
+                    evidence_hit=evidence_hit,
+                    ranking_hit=ranking_hit,
+                    generation_error=generation_error,
+                    metrics=metrics,
+                ),
                 "answer": answer,
                 "generation_error": generation_error,
                 "generation_attempts": generation_attempts,
@@ -162,7 +189,7 @@ async def run_answer_benchmark(
             if population
             else 0.0
         )
-    failure_counts = Counter(result["metrics"]["failure_type"] for result in results)
+    failure_counts = Counter(result["metrics"]["failure_class"] for result in results)
     judged_results = [
         result["automatic_judge"]
         for result in results
@@ -210,6 +237,7 @@ async def run_answer_benchmark(
             "Quote provenance proves source location only. Extractive overlap is "
             "not a human or NLI entailment judgment."
         ),
+        "failure_class_scope": "deterministic attribution using candidate evidence, top-k evidence, generation status, and citation checks",
         "no_answer_accuracy": (
             sum(item["metrics"]["abstention_accuracy"] for item in no_answer_results)
             / len(no_answer_results)
@@ -239,6 +267,32 @@ def _judge_rate(results: list[dict[str, Any]], key: str) -> float | None:
     if not results:
         return None
     return sum(1 for result in results if result.get(key) is True) / len(results)
+
+
+def _answer_failure_reason(
+    *,
+    answerable: bool,
+    retrieval_hit: bool,
+    evidence_hit: bool,
+    ranking_hit: bool,
+    generation_error: str,
+    metrics: Any,
+) -> str:
+    if generation_error:
+        return "generation failed before a reliable answer was produced"
+    if answerable and not retrieval_hit:
+        return "gold source was absent from the candidate pool"
+    if answerable and not evidence_hit:
+        return "gold source was recalled but gold evidence was absent from the candidate pool"
+    if answerable and not ranking_hit:
+        return "gold evidence was recalled but ranked outside the returned top-k"
+    if metrics.failure_class == "citation_failure":
+        return "answer citation was missing, invalid, or not aligned with the claim"
+    if metrics.failure_class == "generation_failure":
+        return "answer missed a gold fact or numeric constraint"
+    if metrics.failure_class == "refusal_failure":
+        return "answerability and abstention behavior disagreed"
+    return "none"
 
 
 def main() -> None:

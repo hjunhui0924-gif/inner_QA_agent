@@ -16,8 +16,12 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
-from langchain_chroma import Chroma
 from langchain_core.documents import Document
+
+try:
+    from langchain_chroma import Chroma
+except ImportError:  # pragma: no cover - optional for offline CI
+    Chroma = None  # type: ignore[assignment,misc]
 
 from backend.config import settings
 from backend.evaluation.retrieval import (
@@ -28,7 +32,8 @@ from backend.evaluation.retrieval import (
 from backend.knowledge.chunking import split_text
 from backend.knowledge.embeddings import EmbeddingProfile, create_embeddings
 from backend.retrieval.engine import RetrievalConfig, RetrievalEngine
-from backend.retrieval.reranker import DashScopeReranker
+from backend.retrieval.reranker import DashScopeReranker, DeterministicReranker
+from backend.agent.memory import _LocalVectorStore
 
 
 CORPUS_DIR = BASE_DIR / "data" / "eval_corpus"
@@ -142,10 +147,11 @@ def _build_engine(
     provenance: list[dict[str, Any]],
     *,
     enable_rerank: bool,
+    offline: bool = False,
 ) -> tuple[RetrievalEngine, dict[str, Any]]:
     profile = EmbeddingProfile(
-        provider=settings.embedding_provider,  # type: ignore[arg-type]
-        model=settings.embedding_model,
+        provider=("hashing" if offline else settings.embedding_provider),  # type: ignore[arg-type]
+        model=("offline-hashing" if offline else settings.embedding_model),
         dimensions=settings.embedding_dimensions,
         index_version=(
             f"{settings.embedding_index_version}-"
@@ -171,41 +177,53 @@ def _build_engine(
         ).encode("utf-8")
     ).hexdigest()
     collection_name = profile.collection_name(f"official-{corpus_identity[:10]}")
-    INDEX_DIR.mkdir(parents=True, exist_ok=True)
-    store = Chroma(
-        collection_name=collection_name,
-        embedding_function=create_embeddings(profile),
-        persist_directory=str(INDEX_DIR),
-    )
-    stored = store.get(include=["documents", "metadatas"])
-    existing_by_id = {
-        str(item_id): (page_content, metadata)
-        for item_id, page_content, metadata in zip(
-            stored.get("ids", []),
-            stored.get("documents", []) or [],
-            stored.get("metadatas", []) or [],
-            strict=True,
+    if offline:
+        store = _LocalVectorStore(
+            create_embeddings(profile),
+            documents,
         )
-    }
-    changed_or_missing = [
-        document
-        for document in documents
-        if (
-            str(document.metadata["chunk_id"]) not in existing_by_id
-            or existing_by_id[str(document.metadata["chunk_id"])][0]
-            != document.page_content
-            or existing_by_id[str(document.metadata["chunk_id"])][1]
-            != document.metadata
+    else:
+        if Chroma is None:
+            raise RuntimeError(
+                "langchain-chroma is not installed; rerun with --offline or install requirements.txt."
+            )
+        INDEX_DIR.mkdir(parents=True, exist_ok=True)
+        store = Chroma(
+            collection_name=collection_name,
+            embedding_function=create_embeddings(profile),
+            persist_directory=str(INDEX_DIR),
         )
-    ]
-    if changed_or_missing:
-        store.add_documents(
-            changed_or_missing,
-            ids=[str(document.metadata["chunk_id"]) for document in changed_or_missing],
-        )
+        stored = store.get(include=["documents", "metadatas"])
+        existing_by_id = {
+            str(item_id): (page_content, metadata)
+            for item_id, page_content, metadata in zip(
+                stored.get("ids", []),
+                stored.get("documents", []) or [],
+                stored.get("metadatas", []) or [],
+                strict=True,
+            )
+        }
+        changed_or_missing = [
+            document
+            for document in documents
+            if (
+                str(document.metadata["chunk_id"]) not in existing_by_id
+                or existing_by_id[str(document.metadata["chunk_id"])][0]
+                != document.page_content
+                or existing_by_id[str(document.metadata["chunk_id"])][1]
+                != document.metadata
+            )
+        ]
+        if changed_or_missing:
+            store.add_documents(
+                changed_or_missing,
+                ids=[str(document.metadata["chunk_id"]) for document in changed_or_missing],
+            )
 
     reranker = None
-    if enable_rerank:
+    if enable_rerank and offline:
+        reranker = DeterministicReranker()
+    elif enable_rerank:
         reranker = DashScopeReranker(
             api_key=settings.dashscope_api_key,
             model=settings.reranker_model,
@@ -249,6 +267,7 @@ def _build_engine(
             "lexical_weight": config.lexical_weight,
         },
         "reranker_model": settings.reranker_model if enable_rerank else None,
+        "offline": offline,
         "reranker_endpoint": settings.reranker_endpoint if enable_rerank else None,
         "reranker_api_style": (
             settings.reranker_api_style if enable_rerank else None
@@ -265,6 +284,7 @@ def run_benchmark(
     top_k: int = 5,
     strategies: list[str] | None = None,
     enable_rerank: bool = True,
+    offline: bool = False,
 ) -> dict[str, Any]:
     provenance = _load_json(PROVENANCE_PATH)
     documents = _build_documents(provenance)
@@ -274,6 +294,7 @@ def run_benchmark(
         documents,
         provenance,
         enable_rerank=enable_rerank,
+        offline=offline,
     )
     selected = strategies or ["rerank", "fusion", "dense", "lexical"]
     report = {
@@ -306,6 +327,11 @@ def main() -> None:
         help="Comma-separated subset of rerank,fusion,dense,lexical",
     )
     parser.add_argument("--disable-rerank", action="store_true")
+    parser.add_argument(
+        "--offline",
+        action="store_true",
+        help="Use deterministic hashing embeddings and reranking without network calls.",
+    )
     args = parser.parse_args()
     strategies = [item.strip() for item in args.strategies.split(",") if item.strip()]
     allowed = {"rerank", "fusion", "dense", "lexical"}
@@ -315,6 +341,7 @@ def main() -> None:
         top_k=args.top_k,
         strategies=strategies,
         enable_rerank=not args.disable_rerank,
+        offline=args.offline,
     )
     summary = {
         strategy: {

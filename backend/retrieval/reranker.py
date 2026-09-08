@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 from typing import Literal, Protocol
 
 import httpx
@@ -26,6 +27,47 @@ class Reranker(Protocol):
         documents: list[Document],
         top_n: int,
     ) -> list[RerankScore]: ...
+
+
+class DeterministicReranker:
+    """Small offline reranker used by tests and CI-only benchmarks.
+
+    It deliberately uses token overlap rather than pretending to be a
+    semantic cross-encoder.  Its value is reproducibility: the same corpus and
+    query always produce the same candidate ordering without network calls.
+    """
+
+    def rerank(
+        self,
+        query: str,
+        documents: list[Document],
+        top_n: int,
+    ) -> list[RerankScore]:
+        if not query.strip() or not documents or top_n <= 0:
+            return []
+        query_tokens = set(_offline_tokens(query))
+        scored: list[tuple[float, int]] = []
+        for index, document in enumerate(documents):
+            document_tokens = set(_offline_tokens(document.page_content))
+            overlap = len(query_tokens & document_tokens)
+            coverage = overlap / max(len(query_tokens), 1)
+            exact_phrase_bonus = 1.0 if query.strip().casefold() in document.page_content.casefold() else 0.0
+            scored.append((coverage + exact_phrase_bonus, index))
+        scored.sort(key=lambda item: (-item[0], item[1]))
+        return [
+            RerankScore(index=index, score=score)
+            for score, index in scored[: min(top_n, len(scored))]
+        ]
+
+
+def _offline_tokens(text: str) -> list[str]:
+    lowered = text.casefold()
+    tokens = re.findall(r"[a-z0-9_]+", lowered)
+    for run in re.findall(r"[\u4e00-\u9fff]+", lowered):
+        tokens.append(run)
+        tokens.extend(run[index : index + 2] for index in range(max(len(run) - 1, 0)))
+        tokens.extend(run[index : index + 3] for index in range(max(len(run) - 2, 0)))
+    return tokens
 
 
 class DashScopeReranker:

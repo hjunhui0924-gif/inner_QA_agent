@@ -15,9 +15,15 @@ class Citation(TypedDict):
     """One verifiable link from an answer marker to a source chunk."""
 
     citation_id: str
+    source_id: str
     document_id: str
     title: str
     source: str
+    source_type: str
+    version: str
+    status: str
+    effective_from: str | None
+    effective_to: str | None
     filename: str
     page: int | None
     section: str
@@ -71,9 +77,25 @@ def build_citations(
         citations.append(
             Citation(
                 citation_id=f"C{number}",
+                source_id=str(
+                    metadata.get("source_id", metadata.get("document_id", ""))
+                ).strip(),
                 document_id=str(metadata.get("document_id", "")).strip(),
                 title=str(metadata.get("title", "Untitled document")).strip(),
                 source=str(metadata.get("source", "unknown")).strip() or "unknown",
+                source_type=str(metadata.get("source_type", "")).strip(),
+                version=str(metadata.get("version", "")).strip(),
+                status=str(metadata.get("status", "")).strip(),
+                effective_from=(
+                    str(metadata.get("effective_from")).strip()
+                    if metadata.get("effective_from") not in {None, ""}
+                    else None
+                ),
+                effective_to=(
+                    str(metadata.get("effective_to")).strip()
+                    if metadata.get("effective_to") not in {None, ""}
+                    else None
+                ),
                 filename=str(metadata.get("original_filename", "")).strip(),
                 page=_page_number(metadata.get("page")),
                 section=str(metadata.get("section", "")).strip(),

@@ -99,6 +99,9 @@ RETRIEVAL_LEXICAL_WEIGHT=0.5
 RERANKER_ENABLED=true
 RERANKER_MODEL=gte-rerank-v2
 RERANKER_API_STYLE=native
+TRACE_ENABLED=false
+TRACE_INCLUDE_CONTENT=false
+TRACE_RETENTION_DAYS=30
 ```
 
 会话上下文使用保守的中英文混合 Token 估算。达到 10000 Token 时，系统使用
@@ -119,7 +122,7 @@ Checkpoint，因此复用原会话 ID 也不会恢复旧上下文。同一会话
 简短会话标题；标题只依据第一问生成，后续消息不会覆盖。旧版直接使用问题文本作为
 标题的会话，会在首次读取会话列表时尝试批量回填模型摘要标题。
 
-回答生成默认使用 `qwen3.6-plus`，并关闭思考模式，以提高抽取式回答和 JSON Judge 的指令稳定性。自动语义校验通过 `JUDGE_MODEL_NAME` 独立配置；当前同样设为 `qwen3.6-plus`，后续可以切换成不同模型做交叉评判。评测执行和指标计算全自动运行；现有 34 题保留为开发集，后续新增样本采用模型生成、原文包含校验和冲突样本自动剔除，尽量不引入逐题人工标注。
+回答生成默认使用 `qwen3.6-plus`，并关闭思考模式，以提高抽取式回答和 JSON Judge 的指令稳定性。自动语义校验通过 `JUDGE_MODEL_NAME` 独立配置；当前同样设为 `qwen3.6-plus`，后续可以切换成不同模型做交叉评判。评测执行和指标计算全自动运行；原有 34 题继续作为法规开发集，同时新增企业制度分层评测集。
 
 默认使用 DashScope `text-embedding-v3` 作为中文语义检索模型。Embedding
 提供方、模型、维度或索引版本发生变化时，系统会自动使用新的 Chroma
@@ -130,6 +133,12 @@ collection，避免新旧向量混用。无网络的本地开发可显式设置
 知识库去重不再使用语义向量：完全重复使用规范化内容指纹，近重复使用保守的字符
 shingle 重合率。这样可以跳过格式略有差异的文件副本，同时保留主题相似但规则不同
 的制度文档。
+
+知识库记录现在使用稳定 `id`、`source_type`、`department`、`version`、`status`、
+`effective_from`、`effective_to`、`owner`、`access_scope` 和 checksum。每个 chunk
+都会保留这些来源元数据；查询可以按来源、部门、状态和生效日期过滤，问题包含“当前/现行/最新”
+时会优先当前有效版本。仓库内的企业制度是合成种子数据，统一标记为 `synthetic_seed`，
+不应当当作真实公司政策。
 
 检索默认同时运行语义召回与 BM25 式中文词法召回，再通过 RRF 融合排序。词法召回
 用于补足文号、金额、日期和制度原词等精确匹配场景，语义召回用于处理同义表达；
@@ -257,6 +266,12 @@ python scripts/download_eval_corpus.py
 python scripts/run_retrieval_benchmark.py --top-k 5
 ```
 
+如果本机没有 `langchain-chroma` 或暂时没有在线 Embedding/Rerank 配额，可运行确定性离线版本：
+
+```bash
+python scripts/run_retrieval_benchmark.py --offline --top-k 5
+```
+
 使用真实 DashScope 凭证验证 Embedding 与 Rerank 请求/响应契约：
 
 ```bash
@@ -275,9 +290,34 @@ python -m unittest tests.test_live_contracts -v
 | BM25 + 向量 + RRF | 100.00% | 93.89% | 96.67% | 96.67% | 183 ms |
 | BM25 + 向量 + RRF + Rerank | 100.00% | 95.00% | 100.00% | 100.00% | 671 ms |
 
-完整报告位于 `data/eval_reports/official_policy_retrieval_benchmark.json`。Rerank
+完整报告位于 `data/eval_reports/official_policy_retrieval_benchmark.json`；报告中的
+`offline=true` 表示使用 hashing embedding 和确定性 reranker，不能与在线模型结果直接比较。历史
+在线运行结果如下。Rerank
 分数在可回答与无答案样本之间仍有重叠，因此项目没有根据这 34 条数据硬编码拒答阈值；
 无答案识别需要独立校准集和证据充分性判别，不能由 Top-K 命中率替代。
+
+## 企业知识库离线评测与回归门禁
+
+企业语料位于 `data/knowledge_base.json`，当前包含 25 份文档，覆盖 HR、Finance、
+Procurement、IT、Legal、Administration 六个主题，并保留一份完整的东山精密法律意见书。
+结构化题集位于 `data/evals/enterprise_rag_eval.json`，当前 264 题，包含 204 道可回答题、
+60 道不可回答题，分为 `development`、`regression`、`held_out` 三个 split。
+
+离线 benchmark 不需要 Chroma、DashScope 或大模型调用，使用 hashing embedding 与确定性
+token-overlap reranker，报告会记录语料 checksum、代码 commit、参数、按 split/domain/category/tag
+聚合结果和检索失败明细：
+
+```bash
+python scripts/run_enterprise_rag_benchmark.py --top-k 5
+python scripts/run_enterprise_rag_benchmark.py --split regression --top-k 5
+python scripts/run_enterprise_rag_benchmark.py --split held_out --top-k 5
+```
+
+回归门禁配置在 `data/evals/enterprise_regression_thresholds.json`，全量报告写入
+`data/eval_reports/enterprise_rag_benchmark.json`；指定 `--split` 时会分别写入带 split 后缀的报告。
+离线报告中的 `no_answer_evidence_proxy_accuracy` 只表示 gold evidence 支持度代理，
+不是模型真实拒答准确率，也不代表生产模型已经具备可靠的开放域拒答能力；
+不代表生产模型已经具备可靠的开放域拒答能力；线上回答评测仍需显式提供 API key 并单独运行。
 
 ## RAG 回答、引用与失败评估
 
@@ -296,7 +336,7 @@ python scripts/run_answer_benchmark.py --top-k 5
 
 完整运行会把报告写入 `data/eval_reports/official_policy_answer_benchmark.json`。这 34 题参与过提示词与规则迭代，属于开发集而非独立留出测试集。报告中的 Gold Phrase、数字、引用出处、引用完整性和抽取重合均为确定性代理指标，不应表述为人工验证的“回答准确率”或“忠实度”。只有 `verification_status=provenance_only` 的引用出处可以被确定性验证；语义支持需要独立 Judge/NLI 或人工标注集。
 
-当前 `qwen3.6-plus` 完整自动评测结果：
+历史 `qwen3.6-plus` 完整自动评测结果（非本次离线实现重跑）：
 
 | 指标 | 结果 | 样本数 |
 | --- | ---: | ---: |
@@ -315,7 +355,7 @@ python scripts/run_answer_benchmark.py --top-k 5
 
 旧版东山精密 8 题脚本仍保留为单文档回归检查，可运行 `python scripts/run_rag_eval.py`。其字符串包含指标不再作为正式回答准确率依据。
 
-线上问答通过 SSE `result` 事件返回最终答案、结构化引用、Trace ID 和失败类型。引用包含文档 ID、文件名、页码/章节、Chunk ID 与逐字原文。明文 Trace 默认关闭；显式设置 `TRACE_ENABLED=true` 后才会写入受容量轮转保护、且已被 Git 忽略的 `data/traces/rag_traces.jsonl`。
+线上问答通过 SSE `result` 事件返回最终答案、结构化引用、Trace ID 和失败类型。引用包含文档 ID、文件名、页码/章节、Chunk ID 与逐字原文。Trace 默认关闭；开启后默认只记录来源元数据和文本 fingerprint，不记录问题、答案、chunk 摘要和引用原文。只有明确设置 `TRACE_INCLUDE_CONTENT=true` 才记录受限明文；`TRACE_RETENTION_DAYS` 控制轮转文件的保留期限。答案评测失败会归类为检索、证据、排序、引用、生成、拒答或工具/运行时失败。
 
 ## 支持上传的文件类型
 

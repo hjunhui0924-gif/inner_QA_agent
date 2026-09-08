@@ -35,6 +35,7 @@ from backend.agent.memory import (
     keyword_overlap_score,
     latest_user_text,
     search_documents,
+    search_documents_with_metadata,
 )
 from backend.agent.state import AgentState
 from backend.agent.tools import get_current_time, search_knowledge_base, search_web
@@ -342,11 +343,31 @@ async def retrieve(state: AgentState) -> dict[str, Any]:
         state.get("messages", [])
     )
     try:
-        documents = await search_documents(query, top_k=settings.retrieval_top_k)
-    except Exception:
+        retrieval = await search_documents_with_metadata(
+            query,
+            top_k=settings.retrieval_top_k,
+        )
+        documents = retrieval.documents
+        retrieval_metadata = {
+            "strategy": retrieval.strategy,
+            "dense_candidates": retrieval.dense_candidates,
+            "lexical_candidates": retrieval.lexical_candidates,
+            "fused_candidates": retrieval.fused_candidates,
+            "filtered_candidate_count": retrieval.filtered_candidate_count,
+            "rerank_used": retrieval.rerank_used,
+            "degraded_reason": retrieval.degraded_reason,
+            "latency_ms": retrieval.latency_ms,
+            "applied_filter": retrieval.applied_filter,
+        }
+    except Exception as exc:
         documents = []
+        retrieval_metadata = {
+            "strategy": settings.retrieval_strategy,
+            "runtime_error": f"{type(exc).__name__}: {exc}"[:300],
+        }
     return {
         "retrieved_docs": documents,
+        "retrieval_metadata": retrieval_metadata,
         "status_events": ["retrieve"],
     }
 

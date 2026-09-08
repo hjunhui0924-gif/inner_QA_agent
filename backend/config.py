@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     upload_dir: str = str(BASE_DIR / "data" / "uploads")
     trace_log_path: str = str(BASE_DIR / "data" / "traces" / "rag_traces.jsonl")
     trace_enabled: bool = False
+    trace_include_content: bool = False
+    trace_retention_days: int = 30
     trace_max_bytes: int = 50 * 1024 * 1024
     trace_backup_count: int = 3
     backend_host: str = "0.0.0.0"
@@ -118,6 +120,7 @@ class Settings(BaseSettings):
         "max_archive_uncompressed_bytes",
         "trace_max_bytes",
         "trace_backup_count",
+        "trace_retention_days",
         "conversation_token_budget",
         "conversation_summary_trigger_tokens",
         "conversation_summary_target_tokens",

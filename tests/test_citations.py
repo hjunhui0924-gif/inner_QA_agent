@@ -59,6 +59,7 @@ class CitationTests(unittest.TestCase):
         self.assertEqual(len(citations), 1)
         self.assertEqual(citations[0]["citation_id"], "C2")
         self.assertEqual(citations[0]["chunk_id"], "law-b:4")
+        self.assertEqual(citations[0]["source_id"], "law-b")
         self.assertEqual(citations[0]["section"], "Article 20")
         self.assertIn(citations[0]["quote"], self.documents[1].page_content)
         self.assertEqual(citations[0]["verification_status"], "provenance_only")

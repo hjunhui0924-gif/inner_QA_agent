@@ -42,7 +42,16 @@ from backend.config import settings
 from backend.knowledge.chunking import split_text
 from backend.knowledge.deduplication import content_fingerprint, find_duplicate
 from backend.knowledge.embeddings import EmbeddingProfile, create_embeddings
+from backend.knowledge.schema import (
+    canonical_content,
+    content_checksum,
+    knowledge_record_id,
+    metadata_for_record,
+    normalize_knowledge_record,
+    validate_knowledge_record,
+)
 from backend.retrieval.engine import RetrievalConfig, RetrievalEngine, tokenize
+from backend.retrieval.engine import RetrievalFilter, RetrievalResult
 from backend.retrieval.reranker import DashScopeReranker
 
 
@@ -550,27 +559,12 @@ def _load_knowledge_base_records() -> list[dict[str, Any]]:
     path = Path(settings.knowledge_base_path)
     records = _load_json_file(path)
     normalized: list[dict[str, Any]] = []
-    for record in records:
-        if not isinstance(record, dict):
+    for index, record in enumerate(records):
+        item = normalize_knowledge_record(record, fallback_index=index)
+        if item is None:
             continue
-        title = str(record.get("title", "")).strip()
-        content = str(record.get("content", "")).strip()
-        source = str(record.get("source", "seed")).strip() or "seed"
-        if title and content:
-            normalized.append(
-                {
-                    "title": title,
-                    "content": content,
-                    "source": source,
-                    "original_filename": str(
-                        record.get("original_filename", "")
-                    ).strip(),
-                    "segments": _normalize_segments(record.get("segments", [])),
-                    # Recompute so manually migrated/edited legacy JSON cannot
-                    # point at vectors created from different content.
-                    "content_fingerprint": content_fingerprint(content),
-                }
-            )
+        item["segments"] = _normalize_segments(item.get("segments", []))
+        normalized.append(item)
     return normalized
 
 
@@ -581,6 +575,7 @@ def _chunk_documents_from_record(
     original_filename: str = "",
     document_id: str = "",
     segments: list[dict[str, Any]] | None = None,
+    record_metadata: dict[str, Any] | None = None,
 ) -> list[Document]:
     """Create chunked documents from one record."""
 
@@ -610,17 +605,41 @@ def _chunk_documents_from_record(
             )
         ]
     stable_document_id = document_id or content_fingerprint(content)
+    base_metadata = {
+        "document_id": stable_document_id,
+        "source_id": stable_document_id,
+        "title": title,
+        "source": source,
+        "source_type": source,
+        "department": "unknown",
+        "version": "v1",
+        "status": "active",
+        "effective_from": "1970-01-01",
+        "effective_to": None,
+        "owner": "未指定",
+        "access_scope": "internal",
+        "original_filename": original_filename,
+        "content_fingerprint": content_fingerprint(content),
+        "content_checksum": content_checksum(content),
+    }
+    if record_metadata:
+        base_metadata.update(metadata_for_record(record_metadata))
+        base_metadata["document_id"] = str(
+            record_metadata.get("id", stable_document_id)
+        ).strip() or stable_document_id
+        base_metadata["source_id"] = base_metadata["document_id"]
+    base_metadata = {
+        key: value for key, value in base_metadata.items() if value is not None
+    }
     for index, (chunk, location) in enumerate(chunk_units):
         documents.append(
             Document(
                 page_content=chunk,
                 metadata={
-                    "document_id": stable_document_id,
-                    "title": title,
-                    "source": source,
+                    **base_metadata,
                     "original_filename": original_filename,
                     "chunk_index": index,
-                    "chunk_id": f"{stable_document_id}:{index}",
+                    "chunk_id": f"{base_metadata['document_id']}:{index}",
                     **location,
                 },
             )
@@ -639,8 +658,9 @@ def _build_documents() -> list[Document]:
                 content=record["content"],
                 source=record["source"],
                 original_filename=record["original_filename"],
-                document_id=record["content_fingerprint"],
+                document_id=record["id"],
                 segments=record.get("segments", []),
+                record_metadata=record,
             )
         )
     return documents
@@ -799,9 +819,25 @@ def search_knowledge_base_text(query: str, top_k: int = 4) -> str:
 async def search_documents(query: str, top_k: int = 4) -> list[Document]:
     """Retrieve the most relevant documents from the vector store."""
 
-    retriever = get_retriever()
-    result = await asyncio.to_thread(retriever.retrieve, query, top_k)
+    result = await search_documents_with_metadata(query, top_k=top_k)
     return result.documents
+
+
+async def search_documents_with_metadata(
+    query: str,
+    top_k: int = 4,
+    *,
+    filters: RetrievalFilter | None = None,
+) -> RetrievalResult:
+    """Retrieve documents and diagnostics for tracing and evaluation."""
+
+    retriever = get_retriever()
+    return await asyncio.to_thread(
+        retriever.retrieve,
+        query,
+        top_k,
+        filters=filters,
+    )
 
 
 def keyword_overlap_score(query: str, texts: Iterable[str]) -> float:
@@ -985,6 +1021,17 @@ def add_knowledge_record(
     source: str,
     original_filename: str,
     segments: list[dict[str, Any]] | None = None,
+    *,
+    record_id: str | None = None,
+    source_type: str | None = None,
+    department: str = "unknown",
+    version: str = "v1",
+    status: str = "active",
+    effective_from: str = "1970-01-01",
+    effective_to: str | None = None,
+    owner: str = "未指定",
+    access_scope: str = "internal",
+    document_family: str | None = None,
 ) -> dict[str, Any]:
     """Serialize one knowledge write across JSON, vector, and lexical indexes."""
 
@@ -999,6 +1046,16 @@ def add_knowledge_record(
             source,
             original_filename,
             segments,
+            record_id=record_id,
+            source_type=source_type,
+            department=department,
+            version=version,
+            status=status,
+            effective_from=effective_from,
+            effective_to=effective_to,
+            owner=owner,
+            access_scope=access_scope,
+            document_family=document_family,
         )
 
 
@@ -1008,16 +1065,33 @@ def _add_knowledge_record_unlocked(
     source: str,
     original_filename: str,
     segments: list[dict[str, Any]] | None = None,
+    *,
+    record_id: str | None = None,
+    source_type: str | None = None,
+    department: str = "unknown",
+    version: str = "v1",
+    status: str = "active",
+    effective_from: str = "1970-01-01",
+    effective_to: str | None = None,
+    owner: str = "未指定",
+    access_scope: str = "internal",
+    document_family: str | None = None,
 ) -> dict[str, Any]:
     """Append one record to the knowledge base and index it immediately."""
 
     clean_title = title.strip() or Path(original_filename).stem
-    clean_content = content.strip()
+    clean_content = canonical_content(content.strip())
     if not clean_content:
         raise ValueError("上传文件解析后内容为空，无法入库。")
 
     kb_path = Path(settings.knowledge_base_path)
     records = _load_json_file(kb_path)
+    requested_id = record_id.strip() if record_id and record_id.strip() else ""
+    if requested_id and any(
+        knowledge_record_id(record, fallback_index=index) == requested_id
+        for index, record in enumerate(records)
+    ):
+        raise ValueError(f"知识库 source_id 已存在：{requested_id}")
     candidate_fingerprint = content_fingerprint(clean_content)
     normalized_segments = _normalize_segments(segments or [])
     duplicate = find_duplicate(
@@ -1048,6 +1122,9 @@ def _add_knowledge_record_unlocked(
             "content": existing_content,
             "source": str(existing.get("source", "seed")).strip() or "seed",
             "original_filename": str(existing.get("original_filename", "")).strip(),
+            "source_id": str(existing.get("id", "")).strip(),
+            "version": str(existing.get("version", "v1")).strip() or "v1",
+            "status": str(existing.get("status", "active")).strip() or "active",
             "deduplicated": True,
             "dedup_type": "exact" if duplicate.kind == "exact" else "similar",
             "similarity": duplicate.score,
@@ -1055,14 +1132,31 @@ def _add_knowledge_record_unlocked(
         }
 
     record = {
+        "id": record_id.strip() if record_id and record_id.strip() else None,
         "title": clean_title,
         "content": clean_content,
         "source": source,
+        "source_type": source_type or source,
+        "department": department,
+        "version": version,
+        "status": status,
+        "effective_from": effective_from,
+        "effective_to": effective_to,
+        "owner": owner,
+        "access_scope": access_scope,
         "original_filename": original_filename,
         "content_fingerprint": candidate_fingerprint,
+        "content_checksum": content_checksum(clean_content),
         "deduplicated": False,
         "dedup_type": "none",
     }
+    if record["id"] is None:
+        record["id"] = f"upload-{candidate_fingerprint[:16]}"
+    if document_family:
+        record["document_family"] = document_family.strip()
+    validation_errors = validate_knowledge_record(record)
+    if validation_errors:
+        raise ValueError("Invalid knowledge metadata: " + "; ".join(validation_errors))
     if normalized_segments:
         record["segments"] = normalized_segments
     documents = _chunk_documents_from_record(
@@ -1070,8 +1164,9 @@ def _add_knowledge_record_unlocked(
         content=clean_content,
         source=source,
         original_filename=original_filename,
-        document_id=candidate_fingerprint,
+        document_id=str(record["id"]),
         segments=normalized_segments,
+        record_metadata=record,
     )
     vectorstore = get_vectorstore()
     document_ids = _chunk_ids(documents)
@@ -1102,19 +1197,20 @@ def _upgrade_duplicate_segments(
     """Backfill locations for an exact legacy record and rebuild its chunks."""
 
     index = next(i for i, record in enumerate(records) if record is existing)
-    updated = dict(existing)
+    updated = normalize_knowledge_record(existing, fallback_index=index) or dict(existing)
     updated["segments"] = segments
     title = str(existing.get("title", "")).strip()
     content = str(existing.get("content", "")).strip()
     source = str(existing.get("source", "seed")).strip() or "seed"
     original_filename = str(existing.get("original_filename", "")).strip()
-    document_id = content_fingerprint(content)
+    document_id = str(updated.get("id", "")).strip() or content_fingerprint(content)
     old_documents = _chunk_documents_from_record(
         title,
         content,
         source,
         original_filename,
         document_id,
+        record_metadata=updated,
     )
     new_documents = _chunk_documents_from_record(
         title,
@@ -1123,6 +1219,7 @@ def _upgrade_duplicate_segments(
         original_filename,
         document_id,
         segments,
+        record_metadata=updated,
     )
     old_ids = set(_chunk_ids(old_documents))
     new_ids = set(_chunk_ids(new_documents))
@@ -1155,11 +1252,20 @@ def list_knowledge_records() -> list[dict[str, Any]]:
         items.append(
             {
                 "id": index,
+                "source_id": str(record.get("id", "")).strip(),
                 "title": str(record.get("title", "")).strip(),
                 "source": str(record.get("source", "seed")).strip() or "seed",
+                "source_type": str(record.get("source_type", "")).strip(),
+                "department": str(record.get("department", "unknown")).strip(),
+                "version": str(record.get("version", "v1")).strip(),
+                "status": str(record.get("status", "active")).strip(),
+                "effective_from": record.get("effective_from"),
+                "effective_to": record.get("effective_to"),
+                "owner": str(record.get("owner", "未指定")).strip(),
                 "original_filename": str(record.get("original_filename", "")).strip(),
                 "preview": content[:120],
                 "content_fingerprint": str(record.get("content_fingerprint", "")).strip(),
+                "content_checksum": str(record.get("content_checksum", "")).strip(),
             }
         )
     return items

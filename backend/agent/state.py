@@ -24,6 +24,7 @@ class AgentState(TypedDict, total=False):
     conversation_summary: str
     rewritten_query: str
     retrieved_docs: list[Document]
+    retrieval_metadata: dict[str, object]
     is_relevant: bool
     retrieval_retry_count: int
     answer: str
