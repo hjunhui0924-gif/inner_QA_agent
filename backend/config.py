@@ -22,8 +22,8 @@ class Settings(BaseSettings):
 
     dashscope_api_key: str = Field(default="", validation_alias="DASHSCOPE_API_KEY")
     dashscope_base_url: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-    model_name: str = "qwen3.7-flash"
-    judge_model_name: str = "qwen3.7-flash"
+    model_name: str = "qwen3.5-ocr"
+    judge_model_name: str = "qwen3.5-ocr"
     qwen_enable_thinking: bool = False
     chroma_persist_dir: str = str(BASE_DIR / "data" / "chroma_db")
     sqlite_db_path: str = str(BASE_DIR / "data" / "memory.db")

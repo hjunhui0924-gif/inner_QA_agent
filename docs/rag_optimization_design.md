@@ -82,6 +82,6 @@ SHA-256（文本换行统一为 LF），并与人工核验后固定在 manifest 
 
 每次线上问答可写入有界 JSONL Trace，保存问题、最终答案、召回 Chunk 摘要、引用、节点轨迹和失败类型。运行时可识别检索缺失、生成失败与引用失败；评测环境结合 Gold Evidence 进一步区分解析失败、召回失败、排序错误、生成错误、引用错误和拒答错误。
 
-当前回答生成模型与自动 Judge 默认均为 `qwen3.7-flash`，分别由 `MODEL_NAME` 和 `JUDGE_MODEL_NAME` 配置。两者保持独立配置，是为了后续使用不同模型交叉评判，降低同模型自评偏差。当前默认 Embedding 为 DashScope `qwen3.7-text-embedding`，模型切换后索引版本升级为 `v4`，避免新旧向量混用。评测执行和指标计算全自动完成；现有 34 题属于开发集，后续新增样本采用模型生成、原文包含校验与冲突样本自动剔除，尽量减少人工标注。
+当前回答生成模型与自动 Judge 默认均为 `qwen3.5-ocr`，分别由 `MODEL_NAME` 和 `JUDGE_MODEL_NAME` 配置。两者保持独立配置，是为了后续使用不同模型交叉评判，降低同模型自评偏差。当前默认 Embedding 为 DashScope `qwen3.7-text-embedding`，模型切换后索引版本升级为 `v4`，避免新旧向量混用。评测执行和指标计算全自动完成；现有 34 题属于开发集，后续新增样本采用模型生成、原文包含校验与冲突样本自动剔除，尽量减少人工标注。
 
-模型切换前的历史 34 题自动评测中，Judge 回答正确率为 100%，Grounded 与引用语义支持率均为 94.12%，无答案拒答正确率为 100%，四项全部通过率为 94.12%。模型切换后的当前报告写入 `data/eval_reports/official_policy_answer_benchmark.json`，使用 `qwen3.7-flash` 和 `qwen3.7-text-embedding`，应以报告中的新结果为准。所有确定性代理指标和自动 Judge 结果均保留失败详情，不将其人工改判为通过。
+模型切换前的历史 34 题自动评测中，Judge 回答正确率为 100%，Grounded 与引用语义支持率均为 94.12%，无答案拒答正确率为 100%，四项全部通过率为 94.12%。模型切换后的当前报告写入 `data/eval_reports/official_policy_answer_benchmark.json`，应以报告中记录的 `qwen3.5-ocr` 和 `qwen3.7-text-embedding` 新结果为准。所有确定性代理指标和自动 Judge 结果均保留失败详情，不将其人工改判为通过。

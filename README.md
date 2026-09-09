@@ -81,8 +81,8 @@ npm install
 
 ```env
 DASHSCOPE_API_KEY=你的DashScopeKey
-MODEL_NAME=qwen3.7-flash
-JUDGE_MODEL_NAME=qwen3.7-flash
+MODEL_NAME=qwen3.5-ocr
+JUDGE_MODEL_NAME=qwen3.5-ocr
 QWEN_ENABLE_THINKING=false
 CONVERSATION_TOKEN_BUDGET=12000
 CONVERSATION_SUMMARY_TRIGGER_TOKENS=10000
@@ -107,7 +107,7 @@ TRACE_RETENTION_DAYS=30
 ```
 
 会话上下文使用保守的中英文混合 Token 估算。达到 10000 Token 时，系统使用
-`qwen3.7-flash` 将较早对话压缩到约 1500 Token，保留最近 4 轮和当前问题；如果
+`qwen3.5-ocr` 将较早对话压缩到约 1500 Token，保留最近 4 轮和当前问题；如果
 最近对话本身过长，会继续压缩更早轮次以满足 12000 Token 的会话预算。摘要模型
 不可用时会退化为确定性截断。现有路由器会利用摘要判断短追问是否仍需进入 RAG；
 检索失败后，`rewrite_query` 会结合摘要和最近对话补全追问中的指代，再重新检索。
@@ -124,7 +124,7 @@ Checkpoint，因此复用原会话 ID 也不会恢复旧上下文。同一会话
 简短会话标题；标题只依据第一问生成，后续消息不会覆盖。旧版直接使用问题文本作为
 标题的会话，会在首次读取会话列表时尝试批量回填模型摘要标题。
 
-回答生成默认使用 `qwen3.7-flash`，并关闭思考模式，以提高抽取式回答和 JSON Judge 的指令稳定性。自动语义校验通过 `JUDGE_MODEL_NAME` 独立配置；当前同样设为 `qwen3.7-flash`，后续可以切换成不同模型做交叉评判。评测执行和指标计算全自动运行；原有 34 题继续作为法规开发集，同时新增企业制度分层评测集。
+回答生成默认使用 `qwen3.5-ocr`，并关闭思考模式，以提高抽取式回答和 JSON Judge 的指令稳定性。自动语义校验通过 `JUDGE_MODEL_NAME` 独立配置；当前同样设为 `qwen3.5-ocr`，后续可以切换成不同模型做交叉评判。评测执行和指标计算全自动运行；原有 34 题继续作为法规开发集，同时新增企业制度分层评测集。
 
 默认使用 DashScope `qwen3.7-text-embedding` 作为中文语义检索模型。Embedding
 提供方、模型、维度或索引版本发生变化时，系统会自动使用新的 Chroma
@@ -340,7 +340,7 @@ python scripts/run_unified_rag_benchmark.py --mode all --enable-judge
 
 统一报告写入 `data/eval_reports/unified_rag_benchmark.json`。`official_policy` 和 `enterprise_rag` 是阻断门禁，`dongshan_legacy` 只作非阻断兼容参考；`--offline` 或 `--limit` 的结果会标记为 `smoke_only`。
 
-答案层开发基准复用上面的 4 份权威法规和 34 个问题，其中 30 个可回答、4 个无答案。它运行 BM25 + 向量检索 + RRF + Rerank、一次 `qwen3.7-flash` 生成和一次自动 Judge，用来快速迭代生成与引用协议；不经过路由、查询改写、生产幻觉重试和安全 fallback，不能替代完整 Agent 的端到端验收。
+答案层开发基准复用上面的 4 份权威法规和 34 个问题，其中 30 个可回答、4 个无答案。它运行 BM25 + 向量检索 + RRF + Rerank、一次 `qwen3.5-ocr` 生成和一次自动 Judge，用来快速迭代生成与引用协议；不经过路由、查询改写、生产幻觉重试和安全 fallback，不能替代完整 Agent 的端到端验收。
 
 - Gold Evidence Phrase 是否近逐字出现在回答中；
 - 数字与日期是否匹配；
@@ -355,7 +355,7 @@ python scripts/run_answer_benchmark.py --top-k 5
 
 完整运行会把报告写入 `data/eval_reports/official_policy_answer_benchmark.json`。这 34 题参与过提示词与规则迭代，属于开发集而非独立留出测试集。报告中的 Gold Phrase、数字、引用出处、引用完整性和抽取重合均为确定性代理指标，不应表述为人工验证的“回答准确率”或“忠实度”。只有 `verification_status=provenance_only` 的引用出处可以被确定性验证；语义支持需要独立 Judge/NLI 或人工标注集。
 
-当前使用 `qwen3.7-flash` 生成与 Judge、`qwen3.7-text-embedding` 检索的完整自动评测结果：
+当前使用 `qwen3.5-ocr` 生成与 Judge、`qwen3.7-text-embedding` 检索的完整自动评测结果：
 
 | 指标 | 结果 | 样本数 |
 | --- | ---: | ---: |
