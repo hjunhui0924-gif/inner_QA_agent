@@ -20,7 +20,11 @@ def route_after_hallucination_check(state: AgentState) -> str:
     """Choose whether to accept, retry, or persist the current answer."""
 
     if state.get("hallucination_pass"):
-        return "__end__"
+        return "commit_answer"
+    if state.get("failure_stage") in {"generation", "tool", "runtime"} or state.get(
+        "generation_error"
+    ):
+        return "fallback_answer"
     if state.get("hallucination_retry_count", 0) > settings.max_hallucination_retries:
         return "fallback_answer"
     return "generate"

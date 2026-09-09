@@ -156,7 +156,7 @@ async function openSession(targetSessionId: string): Promise<void> {
     webSearchEnabled.value = false
     messages.value = history.map((message) => ({
       ...message,
-      id: createId(message.role),
+      id: message.message_id || createId(message.role),
       citations: message.citations ?? [],
       state: 'complete',
     }))
@@ -206,17 +206,22 @@ async function sendMessage(rawMessage: string): Promise<void> {
   const content = rawMessage.trim()
   if (!content || sending.value) return
 
+  const turnId = generateUuid()
   const userMessage: UiMessage = {
-    id: createId('user'),
+    id: `${turnId}:user`,
     role: 'user',
     content,
+    turn_id: turnId,
+    message_id: `${turnId}:user`,
     citations: [],
     state: 'complete',
   }
   const assistant: UiMessage = {
-    id: createId('assistant'),
+    id: `${turnId}:assistant`,
     role: 'assistant',
     content: '',
+    turn_id: turnId,
+    message_id: `${turnId}:assistant`,
     citations: [],
     state: 'streaming',
   }
@@ -235,6 +240,7 @@ async function sendMessage(rawMessage: string): Promise<void> {
         session_id: sessionId.value,
         mode: chatMode.value,
         web_search: webSearchEnabled.value,
+        turn_id: turnId,
       },
       (event) => applyStreamEvent(event, assistant),
       activeController.signal,

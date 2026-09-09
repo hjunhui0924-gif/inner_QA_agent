@@ -69,12 +69,29 @@ def build_trace(
     return {
         "trace_id": trace_id,
         "created_at": datetime.now(UTC).isoformat(),
+        "turn_id": str(state.get("turn_id", "")),
         "route": str(state.get("route", "")),
         "query": query[:4000] if include_content else _redact_text(query),
         "answer": answer[:12000] if include_content else _redact_text(answer),
         "generation_error": str(state.get("generation_error", ""))[:500],
         "fallback_reason": str(state.get("fallback_reason", ""))[:80],
         "failure_type": classify_runtime_failure(state),
+        "failure_stage": state.get("failure_stage"),
+        "failure_reason": str(state.get("failure_reason") or "")[:500],
+        "attempt_history": [
+            {
+                "stage": str(item.get("stage", ""))[:40],
+                "passed": bool(item.get("passed", False)),
+                "reason": str(item.get("reason", ""))[:500],
+                "retry_count": int(item.get("retry_count", 0)),
+            }
+            for item in state.get("attempt_history", [])[-10:]
+            if isinstance(item, dict)
+        ],
+        "request_call_count": int(state.get("request_call_count", 0)),
+        "model_call_count": int(state.get("model_call_count", 0)),
+        "tool_call_count": int(state.get("tool_call_count", 0)),
+        "total_latency_ms": float(state.get("total_latency_ms", 0.0)),
         "status_events": [str(item)[:300] for item in state.get("status_events", [])][-50:],
         "retrieval": trace_metadata,
         "retrieved_chunks": retrieved_chunks,
@@ -103,6 +120,13 @@ def classify_runtime_failure(state: dict[str, Any]) -> str:
     documents = state.get("retrieved_docs", [])
     citations = state.get("citations", [])
     if str(state.get("generation_error", "")).strip():
+        return "generation_error"
+    failure_stage = str(state.get("failure_stage", "")).strip()
+    if failure_stage in {"retrieval", "relevance", "evidence"}:
+        return "retrieval_miss"
+    if failure_stage == "citation":
+        return "citation_error"
+    if failure_stage in {"generation", "hallucination", "tool", "runtime"}:
         return "generation_error"
     fallback_reason = str(state.get("fallback_reason", "")).strip()
     if fallback_reason == "retrieval_exhausted":

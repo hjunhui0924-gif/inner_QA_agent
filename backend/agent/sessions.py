@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import threading
+import uuid
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
@@ -62,11 +63,14 @@ def create_turn_state(
     trace_id: str,
     mode: str = "knowledge",
     web_search: bool = False,
+    turn_id: str | None = None,
 ) -> dict[str, Any]:
     """Create one turn input while preserving only checkpointed conversation memory."""
 
+    normalized_turn_id = turn_id.strip() if turn_id and turn_id.strip() else ""
+    turn_id = normalized_turn_id or str(uuid.uuid4())
     return {
-        "messages": [HumanMessage(content=message)],
+        "messages": [HumanMessage(content=message, id=f"{turn_id}:user")],
         "query": message,
         "user_id": user_id,
         "session_id": session_id,
@@ -75,14 +79,31 @@ def create_turn_state(
         "web_search": web_search,
         "rewritten_query": "",
         "retrieved_docs": [],
+        "retrieval_metadata": {},
+        "is_relevant": None,
         "answer": "",
+        "candidate_answer": "",
+        "candidate_citations": [],
+        "answer_disposition": "pending",
+        "turn_id": turn_id,
+        "generation_instruction": "",
         "generation_error": "",
         "fallback_reason": "",
         "citations": [],
-        "hallucination_pass": False,
+        "hallucination_pass": None,
+        "hallucination_reason": "",
         "tool_output": "",
+        "tool_result": None,
         "retrieval_retry_count": 0,
         "hallucination_retry_count": 0,
+        "attempt_history": [],
+        "failure_stage": None,
+        "failure_reason": None,
+        "request_call_count": 0,
+        "model_call_count": 0,
+        "tool_call_count": 0,
+        "total_latency_ms": 0.0,
+        "budget_snapshot": None,
         "status_events": [],
     }
 

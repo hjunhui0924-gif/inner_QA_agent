@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import time
 import uuid
 from collections.abc import AsyncIterator
 from pathlib import Path
@@ -36,6 +37,7 @@ from backend.agent.sessions import (
 )
 from backend.config import settings
 from backend.observability.tracing import build_trace, record_trace
+from backend.observability.metrics import record_call_stats
 
 
 router = APIRouter()
@@ -51,6 +53,7 @@ NODE_STATUS_MESSAGES = {
     "tool_executor": "正在调用工具",
     "generate": "正在生成回答",
     "check_hallucination": "正在验证回答质量",
+    "commit_answer": "正在提交经过验证的回答",
     "update_memory": "正在更新用户偏好",
 }
 
@@ -63,6 +66,7 @@ class ChatRequest(BaseModel):
     session_id: str = Field(default="session_default")
     mode: Literal["knowledge", "general"] = "knowledge"
     web_search: bool = False
+    turn_id: str | None = Field(default=None, max_length=128)
 
     @field_validator("message")
     @classmethod
@@ -77,6 +81,36 @@ class ChatRequest(BaseModel):
                 "Message exceeds the configured conversation token budget."
             )
         return value
+
+    @field_validator("turn_id")
+    @classmethod
+    def validate_turn_id(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        if not normalized or any(ord(char) < 32 for char in normalized):
+            raise ValueError("turn_id must be a non-empty printable identifier.")
+        return normalized
+
+
+def _request_turn_id(request: Request, payload: ChatRequest) -> str | None:
+    """Resolve a replayable turn identity from the body or idempotency header."""
+
+    body_value = payload.turn_id
+    headers = getattr(request, "headers", {})
+    header_value = headers.get("Idempotency-Key") if hasattr(headers, "get") else None
+    candidates = [str(value).strip() for value in (body_value, header_value) if value]
+    if not candidates:
+        return None
+    if len(set(candidates)) > 1:
+        raise HTTPException(
+            status_code=400,
+            detail="turn_id and Idempotency-Key must identify the same turn.",
+        )
+    resolved = candidates[0]
+    if len(resolved) > 128 or any(ord(char) < 32 for char in resolved):
+        raise HTTPException(status_code=400, detail="Invalid turn identity.")
+    return resolved
 
 
 @router.get("/health")
@@ -201,6 +235,8 @@ async def _stream_graph_unlocked(
 
     thread_id = thread_id_for(payload.user_id, payload.session_id)
     trace_id = str(uuid.uuid4())
+    request_started_at = time.perf_counter()
+    turn_id = _request_turn_id(request, payload)
     graph_input = create_turn_state(
         message=payload.message,
         user_id=payload.user_id,
@@ -208,11 +244,10 @@ async def _stream_graph_unlocked(
         trace_id=trace_id,
         mode=payload.mode,
         web_search=payload.web_search,
+        turn_id=turn_id,
     )
     config = {"configurable": {"thread_id": thread_id}}
     current_node = ""
-    assistant_text = ""
-    current_generation_text = ""
     final_state: dict[str, object] = dict(graph_input)
     observed_status_events: list[str] = []
     disconnected = False
@@ -238,8 +273,6 @@ async def _stream_graph_unlocked(
 
             if event_name == "on_chain_start" and node_name in NODE_STATUS_MESSAGES:
                 current_node = node_name
-                if node_name == "generate":
-                    current_generation_text = ""
                 observed_status_events.append(node_name)
                 yield _sse_event(
                     {
@@ -251,53 +284,25 @@ async def _stream_graph_unlocked(
                 continue
 
             if event_name == "on_chain_end" and node_name == current_node:
-                if node_name == "generate":
-                    assistant_text = current_generation_text
                 current_node = ""
                 continue
-
-            if event_name == "on_chat_model_stream" and current_node == "generate":
-                token = _extract_token(event)
-                if token:
-                    current_generation_text += token
 
         if disconnected:
             return
         final_state["status_events"] = observed_status_events
-        final_answer = str(final_state.get("answer", "")).strip() or assistant_text
+        final_answer = str(final_state.get("answer", "")).strip()
         if not final_answer:
-            final_answer = "未返回有效内容。"
-        trace_state = {
-            **final_state,
-            "trace_include_content": settings.trace_include_content,
-            "trace_retention_days": settings.trace_retention_days,
-        }
-        trace = build_trace(
-            trace_id=trace_id,
-            query=payload.message,
-            state=trace_state,
-        )
+            raise RuntimeError("Graph completed without a committed answer.")
         response_citations = final_state.get("citations", [])
         if not isinstance(response_citations, list):
             response_citations = []
-        if settings.trace_enabled:
-            try:
-                await asyncio.to_thread(
-                    record_trace,
-                    trace,
-                    settings.trace_log_path,
-                    max_bytes=settings.trace_max_bytes,
-                    backup_count=settings.trace_backup_count,
-                    retention_days=settings.trace_retention_days,
-                )
-            except Exception:
-                pass
 
         existing_sessions = await list_chat_sessions(payload.user_id)
         is_new_session = not any(
             item.get("session_id") == payload.session_id for item in existing_sessions
         )
         if is_new_session and settings.dashscope_api_key:
+            title_call_started_at = time.perf_counter()
             try:
                 title_model = ChatOpenAI(
                     model=settings.model_name,
@@ -319,12 +324,20 @@ async def _stream_graph_unlocked(
                     await upsert_chat_session(payload.user_id, payload.session_id, generated_title)
             except Exception:
                 pass
+            title_stats = record_call_stats(
+                final_state,
+                model_calls=1,
+                started_at=title_call_started_at,
+            )
+            final_state.update(title_stats)
 
         await append_chat_message(
             user_id=payload.user_id,
             session_id=payload.session_id,
             role="user",
             content=payload.message,
+            turn_id=str(graph_input["turn_id"]),
+            message_id=f"{graph_input['turn_id']}:user",
         )
         await append_chat_message(
             user_id=payload.user_id,
@@ -332,25 +345,83 @@ async def _stream_graph_unlocked(
             role="assistant",
             content=final_answer,
             citations=response_citations,
+            turn_id=str(graph_input["turn_id"]),
+            message_id=f"{graph_input['turn_id']}:assistant",
         )
         for chunk in _answer_chunks(final_answer):
             yield _sse_event({"type": "token", "content": chunk})
+
+        final_state["total_latency_ms"] = (
+            time.perf_counter() - request_started_at
+        ) * 1000
+        final_state["request_call_count"] = (
+            int(final_state.get("model_call_count", 0))
+            + int(final_state.get("tool_call_count", 0))
+        )
+        result_trace = build_trace(
+            trace_id=trace_id,
+            query=payload.message,
+            state={
+                **final_state,
+                "trace_include_content": settings.trace_include_content,
+                "trace_retention_days": settings.trace_retention_days,
+            },
+        )
         yield _sse_event(
             {
                 "type": "result",
                 "content": final_answer,
                 "citations": response_citations,
                 "trace_id": trace_id,
-                "failure_type": trace["failure_type"],
+                "turn_id": str(graph_input["turn_id"]),
+                "failure_type": result_trace["failure_type"],
+                "failure_stage": result_trace.get("failure_stage"),
+                "failure_reason": result_trace.get("failure_reason"),
             }
         )
         yield _sse_event({"type": "done", "trace_id": trace_id})
+
+        final_state["total_latency_ms"] = (
+            time.perf_counter() - request_started_at
+        ) * 1000
+        final_state["request_call_count"] = (
+            int(final_state.get("model_call_count", 0))
+            + int(final_state.get("tool_call_count", 0))
+        )
+        final_trace = build_trace(
+            trace_id=trace_id,
+            query=payload.message,
+            state={
+                **final_state,
+                "trace_include_content": settings.trace_include_content,
+                "trace_retention_days": settings.trace_retention_days,
+            },
+        )
+        if settings.trace_enabled:
+            try:
+                await asyncio.to_thread(
+                    record_trace,
+                    final_trace,
+                    settings.trace_log_path,
+                    max_bytes=settings.trace_max_bytes,
+                    backup_count=settings.trace_backup_count,
+                    retention_days=settings.trace_retention_days,
+                )
+            except Exception:
+                pass
     except Exception as exc:
         error_state = {
             **final_state,
             "answer": "",
+            "total_latency_ms": (time.perf_counter() - request_started_at) * 1000,
+            "failure_stage": "runtime",
+            "failure_reason": str(exc)[:500],
             "status_events": [*final_state.get("status_events", []), f"error:{exc}"],
         }
+        error_state["request_call_count"] = (
+            int(error_state.get("model_call_count", 0))
+            + int(error_state.get("tool_call_count", 0))
+        )
         error_state["trace_include_content"] = settings.trace_include_content
         error_state["trace_retention_days"] = settings.trace_retention_days
         trace = build_trace(trace_id=trace_id, query=payload.message, state=error_state)

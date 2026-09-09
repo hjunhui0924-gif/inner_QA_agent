@@ -249,6 +249,8 @@ async def ensure_user_memory_db(db_path: str | Path) -> None:
                 role TEXT NOT NULL,
                 content TEXT NOT NULL,
                 citations_json TEXT NOT NULL DEFAULT '[]',
+                turn_id TEXT,
+                message_id TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
             """
@@ -261,6 +263,15 @@ async def ensure_user_memory_db(db_path: str | Path) -> None:
                 "ALTER TABLE chat_messages "
                 "ADD COLUMN citations_json TEXT NOT NULL DEFAULT '[]'"
             )
+        if "turn_id" not in columns:
+            await db.execute("ALTER TABLE chat_messages ADD COLUMN turn_id TEXT")
+        if "message_id" not in columns:
+            await db.execute("ALTER TABLE chat_messages ADD COLUMN message_id TEXT")
+        await db.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_chat_messages_identity "
+            "ON chat_messages (user_id, session_id, message_id) "
+            "WHERE message_id IS NOT NULL"
+        )
         await db.commit()
 
 
@@ -305,8 +316,11 @@ async def append_chat_message(
     role: str,
     content: str,
     citations: list[dict[str, Any]] | None = None,
+    *,
+    turn_id: str | None = None,
+    message_id: str | None = None,
 ) -> None:
-    """Append one chat message and touch its session."""
+    """Append one chat message, idempotently when a stable message ID is supplied."""
 
     clean_content = content.strip()
     if not clean_content:
@@ -318,21 +332,63 @@ async def append_chat_message(
         title=_derive_session_title(clean_content) if role == "user" else "",
     )
     async with aiosqlite.connect(settings.sqlite_db_path) as db:
-        await db.execute(
-            """
-            INSERT INTO chat_messages (
-                user_id, session_id, role, content, citations_json
-            )
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (
-                user_id,
-                session_id,
-                role,
-                clean_content,
-                json.dumps(citations or [], ensure_ascii=False),
-            ),
+        clean_turn_id = turn_id.strip() if turn_id and turn_id.strip() else None
+        clean_message_id = (
+            message_id.strip() if message_id and message_id.strip() else None
         )
+        citations_json = json.dumps(citations or [], ensure_ascii=False)
+        if clean_message_id:
+            await db.execute(
+                """
+                INSERT OR IGNORE INTO chat_messages (
+                    user_id, session_id, role, content, citations_json,
+                    turn_id, message_id
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    user_id,
+                    session_id,
+                    role,
+                    clean_content,
+                    citations_json,
+                    clean_turn_id,
+                    clean_message_id,
+                ),
+            )
+            await db.execute(
+                """
+                UPDATE chat_messages
+                SET role = ?, content = ?, citations_json = ?, turn_id = ?
+                WHERE user_id = ? AND session_id = ? AND message_id = ?
+                """,
+                (
+                    role,
+                    clean_content,
+                    citations_json,
+                    clean_turn_id,
+                    user_id,
+                    session_id,
+                    clean_message_id,
+                ),
+            )
+        else:
+            await db.execute(
+                """
+                INSERT INTO chat_messages (
+                    user_id, session_id, role, content, citations_json, turn_id
+                )
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    user_id,
+                    session_id,
+                    role,
+                    clean_content,
+                    citations_json,
+                    clean_turn_id,
+                ),
+            )
         await db.execute(
             """
             UPDATE chat_sessions
@@ -446,7 +502,7 @@ async def load_chat_messages(user_id: str, session_id: str) -> list[dict[str, An
     async with aiosqlite.connect(settings.sqlite_db_path) as db:
         cursor = await db.execute(
             """
-            SELECT role, content, citations_json
+            SELECT role, content, citations_json, turn_id, message_id
             FROM chat_messages
             WHERE user_id = ? AND session_id = ?
             ORDER BY id ASC
@@ -457,7 +513,7 @@ async def load_chat_messages(user_id: str, session_id: str) -> list[dict[str, An
         await cursor.close()
 
     result: list[dict[str, Any]] = []
-    for role, content, citations_json in rows:
+    for role, content, citations_json, turn_id, message_id in rows:
         try:
             citations = json.loads(citations_json or "[]")
         except (json.JSONDecodeError, TypeError):
@@ -467,6 +523,8 @@ async def load_chat_messages(user_id: str, session_id: str) -> list[dict[str, An
                 "role": role,
                 "content": content,
                 "citations": citations if isinstance(citations, list) else [],
+                "turn_id": turn_id,
+                "message_id": message_id,
             }
         )
     return result

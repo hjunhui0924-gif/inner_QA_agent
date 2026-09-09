@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.api.routes import router
+from backend.agent.checkpoint import TransientStateFilteringAsyncSqliteSaver
 from backend.agent.graph import build_graph
 from backend.agent.memory import (
     ensure_data_directories,
@@ -14,7 +15,6 @@ from backend.agent.memory import (
     ensure_vectorstore,
 )
 from backend.config import settings
-from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
 
 @asynccontextmanager
@@ -25,7 +25,9 @@ async def lifespan(app: FastAPI):
     await ensure_user_memory_db(settings.sqlite_db_path)
     await ensure_vectorstore()
 
-    async with AsyncSqliteSaver.from_conn_string(settings.sqlite_db_path) as checkpointer:
+    async with TransientStateFilteringAsyncSqliteSaver.from_conn_string(
+        settings.sqlite_db_path
+    ) as checkpointer:
         await checkpointer.setup()
         app.state.checkpointer = checkpointer
         app.state.graph = build_graph(checkpointer)

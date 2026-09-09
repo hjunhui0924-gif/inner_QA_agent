@@ -25,14 +25,38 @@ class AgentState(TypedDict, total=False):
     rewritten_query: str
     retrieved_docs: list[Document]
     retrieval_metadata: dict[str, object]
-    is_relevant: bool
+    is_relevant: bool | None
     retrieval_retry_count: int
     answer: str
+    candidate_answer: str
+    candidate_citations: list[Citation]
+    answer_disposition: Literal["pending", "accepted", "fallback"]
+    turn_id: str
+    generation_instruction: str
     generation_error: str
     fallback_reason: str
     citations: list[Citation]
-    hallucination_pass: bool
+    hallucination_pass: bool | None
+    hallucination_reason: str
     hallucination_retry_count: int
+    attempt_history: list[dict[str, object]]
+    failure_stage: Literal[
+        "retrieval",
+        "relevance",
+        "evidence",
+        "citation",
+        "generation",
+        "hallucination",
+        "tool",
+        "runtime",
+    ] | None
+    failure_reason: str | None
+    request_call_count: int
+    model_call_count: int
+    tool_call_count: int
+    total_latency_ms: float
+    budget_snapshot: dict[str, object] | None
     route: Literal["rag", "tool_call", "direct"]
+    tool_result: dict[str, object] | None
     tool_output: str
     status_events: list[str]

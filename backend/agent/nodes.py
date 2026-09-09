@@ -5,6 +5,8 @@ from __future__ import annotations
 import asyncio
 import json
 import re
+import time
+import uuid
 from collections.abc import Sequence
 from typing import Any, Literal
 
@@ -39,6 +41,7 @@ from backend.agent.memory import (
 )
 from backend.agent.state import AgentState
 from backend.agent.tools import get_current_time, search_knowledge_base, search_web
+from backend.observability.metrics import record_call_stats
 
 
 class _RouteDecision(dict):
@@ -69,6 +72,7 @@ async def manage_conversation_context(state: AgentState) -> dict[str, Any]:
         f"已有摘要：\n{existing_summary or '无'}\n"
         f"待压缩旧对话：\n{old_conversation}\n"
     )
+    call_started_at = time.perf_counter()
     try:
         model = _build_model(
             temperature=0,
@@ -100,6 +104,7 @@ async def manage_conversation_context(state: AgentState) -> dict[str, Any]:
         "conversation_summary": summary,
         "messages": removals,
         "status_events": ["manage_conversation_context:summarized"],
+        **record_call_stats(state, model_calls=1, started_at=call_started_at),
     }
 
 
@@ -173,6 +178,27 @@ def _format_documents(documents: Sequence[Document]) -> str:
     """Render retrieved documents for prompting."""
 
     return format_documents_for_prompt(documents)
+
+
+def _append_attempt(
+    state: AgentState,
+    *,
+    stage: str,
+    passed: bool,
+    reason: str = "",
+) -> list[dict[str, object]]:
+    """Keep a bounded, serializable record of validation attempts."""
+
+    history = list(state.get("attempt_history", []))
+    history.append(
+        {
+            "stage": stage,
+            "passed": passed,
+            "reason": reason[:500],
+            "retry_count": int(state.get("hallucination_retry_count", 0)),
+        }
+    )
+    return history[-10:]
 
 
 def _heuristic_route(query: str) -> Literal["rag", "tool_call", "direct"]:
@@ -321,6 +347,7 @@ async def route_query(state: AgentState) -> dict[str, Any]:
             route = "tool_call" if _looks_like_web_query(heuristic_input) else "direct"
     elif mode == "knowledge" and route == "direct":
         route = "rag"
+    call_started_at = time.perf_counter()
     try:
         model = _build_model(temperature=0)
         response = await model.ainvoke([SystemMessage(content=prompt)])
@@ -333,7 +360,11 @@ async def route_query(state: AgentState) -> dict[str, Any]:
     except Exception:
         pass
 
-    return {"route": route, "status_events": [f"route_query:{route}"]}
+    return {
+        "route": route,
+        "status_events": [f"route_query:{route}"],
+        **record_call_stats(state, model_calls=1, started_at=call_started_at),
+    }
 
 
 async def retrieve(state: AgentState) -> dict[str, Any]:
@@ -365,9 +396,18 @@ async def retrieve(state: AgentState) -> dict[str, Any]:
             "strategy": settings.retrieval_strategy,
             "runtime_error": f"{type(exc).__name__}: {exc}"[:300],
         }
+        return {
+            "retrieved_docs": documents,
+            "retrieval_metadata": retrieval_metadata,
+            "failure_stage": "retrieval",
+            "failure_reason": "知识库检索调用失败。",
+            "status_events": ["retrieve:error"],
+        }
     return {
         "retrieved_docs": documents,
         "retrieval_metadata": retrieval_metadata,
+        "failure_stage": None,
+        "failure_reason": None,
         "status_events": ["retrieve"],
     }
 
@@ -378,7 +418,18 @@ async def grade_documents(state: AgentState) -> dict[str, Any]:
     query = state.get("rewritten_query") or state.get("query", "")
     documents = state.get("retrieved_docs", [])
     if not documents:
-        return {"is_relevant": False, "status_events": ["grade_documents:no_docs"]}
+        previous_stage = state.get("failure_stage")
+        previous_reason = state.get("failure_reason")
+        return {
+            "is_relevant": False,
+            "failure_stage": (
+                previous_stage
+                if previous_stage in {"retrieval", "evidence"}
+                else "evidence"
+            ),
+            "failure_reason": previous_reason or "检索没有返回候选文档。",
+            "status_events": ["grade_documents:no_docs"],
+        }
 
     prompt = (
         "你是一个企业内部知识库相关性判断器。请仅返回JSON对象。\n"
@@ -388,6 +439,7 @@ async def grade_documents(state: AgentState) -> dict[str, Any]:
     )
     score = keyword_overlap_score(query, [doc.page_content for doc in documents])
     is_relevant = score >= 0.08
+    call_started_at = time.perf_counter()
     try:
         model = _build_model(temperature=0)
         response = await model.ainvoke([SystemMessage(content=prompt)])
@@ -400,7 +452,10 @@ async def grade_documents(state: AgentState) -> dict[str, Any]:
 
     return {
         "is_relevant": is_relevant,
+        "failure_stage": None if is_relevant else "relevance",
+        "failure_reason": None if is_relevant else "检索候选与当前问题不够相关。",
         "status_events": [f"grade_documents:{is_relevant}"],
+        **record_call_stats(state, model_calls=1, started_at=call_started_at),
     }
 
 
@@ -440,6 +495,7 @@ async def rewrite_query(state: AgentState) -> dict[str, Any]:
         f"最近对话：\n{recent_conversation or '无'}\n"
         f"当前用户问题：{query}\n"
     )
+    call_started_at = time.perf_counter()
     try:
         model = _build_model(temperature=0)
         response = await model.ainvoke([SystemMessage(content=prompt)])
@@ -470,35 +526,108 @@ async def rewrite_query(state: AgentState) -> dict[str, Any]:
     return {
         "rewritten_query": rewritten_query,
         "retrieval_retry_count": retry_count,
+        "failure_stage": None,
+        "failure_reason": None,
         "status_events": [f"rewrite_query:{retry_count}"],
+        **record_call_stats(state, model_calls=1, started_at=call_started_at),
     }
 
 
 async def fallback_answer(state: AgentState) -> dict[str, Any]:
     """Return a safe fallback answer when retrieval fails."""
 
-    answer = (
-        "这个问题不属于当前知识问答模式的企业知识范围。"
-        "我只能依据企业知识库回答；如需开放问答，请切换到通用模式。"
-        if state.get("mode", "knowledge") == "knowledge" and not state.get("retrieved_docs")
-        else "我没有在企业内部知识库中找到足够相关的信息。请补充更具体的制度名称、流程名称或部门信息，我再继续检索。"
-    )
-    if state.get("generation_error"):
+    failure_stage = state.get("failure_stage")
+    if state.get("generation_error") or failure_stage == "generation":
+        answer = "回答生成服务暂时不可用，当前无法可靠作答，请稍后重试。"
         fallback_reason = "generation_error"
+        failure_stage = "generation"
+        failure_reason = "回答生成失败，无法交付未经验证的模型输出。"
+    elif failure_stage == "tool":
+        answer = "当前工具暂时不可用，无法可靠获取所需信息，请稍后重试。"
+        fallback_reason = "tool_error"
+        failure_reason = state.get("failure_reason") or "工具调用失败。"
     elif state.get("is_relevant") is False or not state.get("retrieved_docs"):
+        answer = (
+            "这个问题不属于当前知识问答模式的企业知识范围。"
+            "我只能依据企业知识库回答；如需开放问答，请切换到通用模式。"
+            if state.get("mode", "knowledge") == "knowledge"
+            else "我没有在企业内部知识库中找到足够相关的信息。请补充更具体的制度名称、流程名称或部门信息，我再继续检索。"
+        )
         fallback_reason = "retrieval_exhausted"
+        failure_stage = state.get("failure_stage") or "retrieval"
+        failure_reason = (
+            state.get("failure_reason")
+            or "检索重试耗尽，仍未找到足够相关的企业知识证据。"
+        )
     elif state.get("hallucination_pass") is False:
+        answer = "我没有在企业内部知识库中找到足够支持该回答的证据。请补充更具体的制度名称、流程名称或部门信息，我再继续检索。"
         fallback_reason = "hallucination_exhausted"
+        failure_stage = state.get("failure_stage") or "hallucination"
+        failure_reason = (
+            state.get("failure_reason")
+            or state.get("hallucination_reason")
+            or "回答未通过证据一致性校验。"
+        )
     else:
+        answer = "当前无法生成经过验证的回答，请稍后重试。"
         fallback_reason = "unknown"
+        failure_stage = "runtime"
+        failure_reason = "流程未生成可提交的正式答案。"
     return {
-        "answer": answer,
-        "citations": [],
-        "messages": [AIMessage(content=answer)],
+        "candidate_answer": answer,
+        "candidate_citations": [],
+        "answer_disposition": "fallback",
+        "generation_instruction": "",
+        "attempt_history": list(state.get("attempt_history", []))[-10:],
         "status_events": ["fallback_answer"],
-        "hallucination_pass": True,
+        "hallucination_pass": False,
+        "citations": [],
         "fallback_reason": fallback_reason,
+        "failure_stage": failure_stage,
+        "failure_reason": str(failure_reason)[:500],
     }
+
+
+async def commit_answer(state: AgentState) -> dict[str, Any]:
+    """Persist the only answer that is allowed into conversation history."""
+
+    disposition = state.get("answer_disposition", "pending")
+    candidate = str(state.get("candidate_answer", "")).strip()
+    if (
+        disposition not in {"accepted", "fallback"}
+        or not candidate
+        or (disposition == "accepted" and str(state.get("generation_error", "")).strip())
+        or (disposition == "accepted" and state.get("hallucination_pass") is not True)
+    ):
+        return {"status_events": ["commit_answer:pending"]}
+
+    turn_id = str(state.get("turn_id", "")).strip() or str(uuid.uuid4())
+    citations = state.get("candidate_citations", []) if disposition == "accepted" else []
+    if not isinstance(citations, list):
+        citations = []
+    result: dict[str, Any] = {
+        "turn_id": turn_id,
+        "answer": candidate,
+        "citations": citations,
+        "messages": [AIMessage(content=candidate, id=f"{turn_id}:assistant")],
+        "candidate_answer": "",
+        "candidate_citations": [],
+        "generation_instruction": "",
+        "attempt_history": list(state.get("attempt_history", []))[-10:],
+        "status_events": ["commit_answer"],
+    }
+    if disposition == "accepted":
+        result.update(
+            {
+                "hallucination_pass": True,
+                "hallucination_reason": "",
+                "failure_stage": None,
+                "failure_reason": None,
+                "generation_error": "",
+                "fallback_reason": "",
+            }
+        )
+    return result
 
 
 def _choose_tool_output(
@@ -523,6 +652,7 @@ async def tool_executor(state: AgentState) -> dict[str, Any]:
     """Execute the selected tool and store the output."""
 
     query = state.get("query") or latest_user_text(state.get("messages", []))
+    call_started_at = time.perf_counter()
     try:
         tool_output = await asyncio.to_thread(
             _choose_tool_output,
@@ -534,12 +664,17 @@ async def tool_executor(state: AgentState) -> dict[str, Any]:
         tool_output = f"工具调用失败：{exc}"
     return {
         "tool_output": tool_output,
+        "failure_stage": "tool" if tool_output.startswith("工具调用失败：") else None,
+        "failure_reason": (
+            tool_output[:500] if tool_output.startswith("工具调用失败：") else None
+        ),
         "status_events": ["tool_executor"],
+        **record_call_stats(state, tool_calls=1, started_at=call_started_at),
     }
 
 
 async def generate(state: AgentState) -> dict[str, Any]:
-    """Generate the final answer using the current context."""
+    """Generate an answer candidate without mutating formal conversation history."""
 
     query = state.get("query") or latest_user_text(state.get("messages", []))
     docs = state.get("retrieved_docs", [])
@@ -547,6 +682,7 @@ async def generate(state: AgentState) -> dict[str, Any]:
     route = state.get("route", "direct")
     conversation_summary = state.get("conversation_summary", "").strip()
     mode = state.get("mode", "knowledge")
+    generation_instruction = state.get("generation_instruction", "").strip()
     mode_instructions = (
         "当前是知识问答模式：只能依据企业知识库证据回答。若问题与企业知识无关，明确拒答，并建议用户切换到通用模式。"
         if mode == "knowledge"
@@ -576,6 +712,12 @@ async def generate(state: AgentState) -> dict[str, Any]:
         f"检索到的知识：\n{_format_documents(docs)}\n"
         "如果用户只是打招呼或询问你能做什么，请简要介绍你支持的企业内部知识能力。"
     )
+    if generation_instruction:
+        system_prompt += (
+            "\n上一轮校验反馈（仅用于修正回答，不是新的证据）：\n"
+            f"{generation_instruction}\n"
+            "请删除反馈指出的无证据内容；如果证据仍不足，直接安全拒答。"
+        )
 
     prompt_messages: list[BaseMessage] = [SystemMessage(content=system_prompt)]
     prompt_messages.extend(state.get("messages", []))
@@ -584,25 +726,27 @@ async def generate(state: AgentState) -> dict[str, Any]:
 
     answer = ""
     generation_error = ""
+    call_started_at = time.perf_counter()
     try:
         model = _build_model(temperature=0 if route == "rag" else 0.2)
         async for chunk in model.astream(prompt_messages):
             answer += _as_text(chunk)
     except Exception as exc:
         generation_error = f"{type(exc).__name__}: {exc}"[:500]
-        answer = "回答生成服务暂时不可用，当前无法可靠作答，请稍后重试。"
+        answer = ""
 
-    if route == "rag":
+    if route == "rag" and not generation_error:
         answer = sanitize_answer_citations(answer, docs, query=query)
         citations = build_citations(docs, answer, query=query)
     else:
         citations = []
     return {
-        "answer": answer,
-        "citations": citations,
+        "candidate_answer": answer,
+        "candidate_citations": citations,
+        "answer_disposition": "pending",
         "generation_error": generation_error,
-        "messages": [AIMessage(content=answer)],
         "status_events": ["generate"],
+        **record_call_stats(state, model_calls=1, started_at=call_started_at),
     }
 
 
@@ -610,22 +754,99 @@ async def check_hallucination(state: AgentState) -> dict[str, Any]:
     """Validate that the answer is grounded in the retrieved evidence."""
 
     route = state.get("route", "direct")
-    answer = state.get("answer", "")
+    answer = str(state.get("candidate_answer", state.get("answer", "")))
     docs = state.get("retrieved_docs", [])
-    if route in {"tool_call", "direct"}:
-        return {
-            "hallucination_pass": True,
-            "status_events": ["check_hallucination:skip"],
-        }
-    if not docs:
+    generation_error = str(state.get("generation_error", "")).strip()
+    if generation_error:
         return {
             "hallucination_pass": False,
+            "answer_disposition": "pending",
+            "candidate_citations": [],
+            "attempt_history": _append_attempt(
+                state,
+                stage="generation",
+                passed=False,
+                reason="回答生成模型调用失败。",
+            ),
+            **record_call_stats(state, model_calls=0),
+            "failure_stage": "generation",
+            "failure_reason": "回答生成模型调用失败。",
+            "hallucination_reason": "回答生成模型调用失败。",
+            "status_events": ["check_hallucination:generation_error"],
+        }
+    if state.get("failure_stage") in {"tool", "runtime"}:
+        reason = str(state.get("failure_reason") or "工具或运行时调用失败。")[:500]
+        return {
+            "hallucination_pass": False,
+            "answer_disposition": "pending",
+            "candidate_citations": [],
+            "attempt_history": _append_attempt(
+                state,
+                stage=str(state.get("failure_stage")),
+                passed=False,
+                reason=reason,
+            ),
+            **record_call_stats(state, model_calls=0),
+            "failure_stage": state.get("failure_stage"),
+            "failure_reason": reason,
+            "hallucination_reason": reason,
+            "generation_instruction": "外部调用失败，请不要基于错误文本生成答案。",
+            "status_events": ["check_hallucination:external_error"],
+        }
+    if route == "rag" and not docs:
+        return {
+            "hallucination_pass": False,
+            "answer_disposition": "pending",
+            "candidate_citations": [],
             "hallucination_retry_count": (
                 state.get("hallucination_retry_count", 0) + 1
             ),
+            "attempt_history": _append_attempt(
+                state,
+                stage="evidence",
+                passed=False,
+                reason="没有可供回答的检索证据。",
+            ),
+            **record_call_stats(state, model_calls=0),
+            "failure_stage": "evidence",
+            "failure_reason": "没有可供回答的检索证据。",
+            "hallucination_reason": "没有可供回答的检索证据。",
+            "generation_instruction": "没有可供回答的检索证据，请安全拒答。",
             "status_events": ["check_hallucination:no_docs"],
         }
-
+    if not answer.strip():
+        return {
+            "hallucination_pass": False,
+            "answer_disposition": "pending",
+            "candidate_citations": [],
+            "attempt_history": _append_attempt(
+                state,
+                stage="generation",
+                passed=False,
+                reason="模型没有生成可提交的答案。",
+            ),
+            **record_call_stats(state, model_calls=0),
+            "failure_stage": "generation",
+            "failure_reason": "模型没有生成可提交的答案。",
+            "hallucination_reason": "模型没有生成可提交的答案。",
+            "status_events": ["check_hallucination:empty_answer"],
+        }
+    if route in {"tool_call", "direct"}:
+        return {
+            "hallucination_pass": True,
+            "answer_disposition": "accepted",
+            "candidate_citations": [],
+            "attempt_history": _append_attempt(
+                state,
+                stage="semantic_skip",
+                passed=True,
+            ),
+            **record_call_stats(state, model_calls=0),
+            "hallucination_reason": "",
+            "failure_stage": None,
+            "failure_reason": None,
+            "status_events": ["check_hallucination:skip"],
+        }
     prompt = (
         "请判断回答是否忠实于给定的企业内部知识，仅返回JSON。\n"
         '返回格式：{"hallucination_pass": true|false, "reason": "简短原因"}\n'
@@ -635,6 +856,8 @@ async def check_hallucination(state: AgentState) -> dict[str, Any]:
     )
 
     pass_check = False
+    judge_reason = ""
+    call_started_at = time.perf_counter()
     try:
         model = _build_model(
             temperature=0,
@@ -645,18 +868,39 @@ async def check_hallucination(state: AgentState) -> dict[str, Any]:
         candidate = parsed.get("hallucination_pass")
         if isinstance(candidate, bool):
             pass_check = candidate
+        judge_reason = str(parsed.get("reason", "")).strip()
     except Exception:
         pass_check = False
+        judge_reason = "证据一致性判断服务不可用，已安全拒绝未经验证的回答。"
 
     resolved_citations = build_citations(docs, answer, query=state.get("query", ""))
     resolved_ids = {citation["citation_id"] for citation in resolved_citations}
     markers = citation_markers(answer)
-    pass_check = pass_check and bool(markers) and markers == resolved_ids
+    citations_valid = bool(markers) and markers == resolved_ids and bool(resolved_citations)
+    pass_check = pass_check and citations_valid
+    if pass_check:
+        reason = ""
+    elif not citations_valid:
+        reason = "回答中的引用标记缺失、越界或无法对应当前检索证据。"
+    else:
+        reason = judge_reason or "回答包含检索证据未支持的事实。"
 
     result: dict[str, Any] = {
         "hallucination_pass": pass_check,
-        "citations": resolved_citations,
+        "candidate_citations": resolved_citations,
+        "answer_disposition": "accepted" if pass_check else "pending",
+        "attempt_history": _append_attempt(
+            state,
+            stage="citation" if not citations_valid else "hallucination",
+            passed=pass_check,
+            reason=reason,
+        ),
+        "hallucination_reason": reason,
+        "failure_stage": None if pass_check else ("citation" if not citations_valid else "hallucination"),
+        "failure_reason": None if pass_check else reason,
+        "generation_instruction": "" if pass_check else reason,
         "status_events": [f"check_hallucination:{pass_check}"],
+        **record_call_stats(state, model_calls=1, started_at=call_started_at),
     }
     if not pass_check:
         result["hallucination_retry_count"] = (

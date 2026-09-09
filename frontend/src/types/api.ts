@@ -1,5 +1,6 @@
 export interface Citation {
   citation_id: string
+  source_id?: string
   document_id?: string
   title: string
   source?: string
@@ -25,6 +26,8 @@ export interface ChatHistoryItem {
   role: 'user' | 'assistant'
   content: string
   citations?: Citation[]
+  turn_id?: string | null
+  message_id?: string | null
 }
 
 export interface KnowledgeRecord {
@@ -57,8 +60,11 @@ export type StreamEvent =
       content: string
       citations: Citation[]
       trace_id: string
+      turn_id?: string
       failure_type: string
-    }
+      failure_stage?: string | null
+      failure_reason?: string | null
+  }
   | { type: 'done'; trace_id: string }
 
 export interface UiMessage extends ChatHistoryItem {
