@@ -52,6 +52,48 @@ class StructuredDataTests(unittest.TestCase):
 
 
 class RetrievalFilterTests(unittest.TestCase):
+    def test_filter_by_version_excludes_other_versions(self) -> None:
+        documents = [
+            Document(
+                page_content="旧版规则。",
+                metadata={
+                    "chunk_id": "leave-v1:0",
+                    "source_id": "leave-v1",
+                    "document_id": "leave-v1",
+                    "version": "v1",
+                    "status": "deprecated",
+                },
+            ),
+            Document(
+                page_content="当前规则。",
+                metadata={
+                    "chunk_id": "leave-v2:0",
+                    "source_id": "leave-v2",
+                    "document_id": "leave-v2",
+                    "version": "v2",
+                    "status": "active",
+                },
+            ),
+        ]
+        store = memory._LocalVectorStore(HashingEmbeddings(64), documents)
+        engine = RetrievalEngine(
+            store,
+            documents,
+            config=RetrievalConfig(production_strategy="fusion"),
+        )
+
+        result = engine.retrieve(
+            "请假规则",
+            top_k=4,
+            filters=RetrievalFilter(versions=frozenset({"v1"})),
+        )
+
+        self.assertEqual(
+            [doc.metadata["version"] for doc in result.documents],
+            ["v1"],
+        )
+        self.assertEqual(result.applied_filter["versions"], ["v1"])
+
     def test_filter_and_current_version_preference(self) -> None:
         old = Document(
             page_content="请假超过五天需抄送部门负责人。",

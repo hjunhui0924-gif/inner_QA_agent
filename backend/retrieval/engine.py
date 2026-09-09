@@ -53,6 +53,7 @@ class RetrievalFilter:
     """Optional metadata constraints for one retrieval call."""
 
     source_ids: frozenset[str] | None = None
+    versions: frozenset[str] | None = None
     departments: frozenset[str] | None = None
     statuses: frozenset[str] | None = None
     access_scopes: frozenset[str] | None = None
@@ -62,6 +63,7 @@ class RetrievalFilter:
     def validate(self) -> None:
         for name, values in (
             ("source_ids", self.source_ids),
+            ("versions", self.versions),
             ("departments", self.departments),
             ("statuses", self.statuses),
             ("access_scopes", self.access_scopes),
@@ -81,6 +83,7 @@ class RetrievalFilter:
 
         return {
             "source_ids": sorted(self.source_ids) if self.source_ids is not None else None,
+            "versions": sorted(self.versions) if self.versions is not None else None,
             "departments": sorted(self.departments)
             if self.departments is not None
             else None,
@@ -513,6 +516,8 @@ def _matches_filter(document: Document, filters: RetrievalFilter) -> bool:
     if filters.source_ids is not None and str(
         metadata.get("source_id", metadata.get("document_id", ""))
     ).strip() not in filters.source_ids:
+        return False
+    if filters.versions is not None and str(metadata.get("version", "")).strip() not in filters.versions:
         return False
     if filters.departments is not None and str(metadata.get("department", "")).strip() not in filters.departments:
         return False

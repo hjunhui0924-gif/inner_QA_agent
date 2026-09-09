@@ -14,7 +14,13 @@ from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
 from backend.agent.graph import build_graph
 from backend.agent.edges import route_after_hallucination_check
-from backend.agent.memory import append_chat_message, ensure_user_memory_db, load_chat_messages
+from backend.agent.memory import (
+    append_chat_message,
+    ensure_user_memory_db,
+    load_chat_messages,
+    load_completed_turn,
+    persist_completed_turn,
+)
 from backend.agent.nodes import commit_answer, generate
 from backend.agent.sessions import create_turn_state, thread_id_for
 from backend.api.routes import ChatRequest, _stream_graph_unlocked
@@ -131,10 +137,19 @@ class CandidateCommitTests(unittest.IsolatedAsyncioTestCase):
 
             async def astream(self, prompt_messages: list[object]):
                 self.generation_count += 1
-                answer = "坏候选 [C1]" if self.generation_count == 1 else "好候选 [C1]"
+                answer = (
+                    "坏候选 制度文本 [C1]"
+                    if self.generation_count == 1
+                    else "好候选 制度文本 [C1]"
+                )
                 yield AIMessageChunk(content=answer)
 
-        async def search_documents(query: str, top_k: int) -> RetrievalResult:
+        async def search_documents(
+            query: str,
+            top_k: int,
+            *,
+            filters: object | None = None,
+        ) -> RetrievalResult:
             document = Document(
                 page_content="制度文本",
                 metadata={
@@ -194,10 +209,13 @@ class CandidateCommitTests(unittest.IsolatedAsyncioTestCase):
                     ]
 
         messages = state["messages"]
-        self.assertEqual(state["answer"], "好候选 [C1]")
+        self.assertEqual(state["answer"], "好候选 制度文本 [C1]")
         self.assertEqual(state["candidate_answer"], "")
         self.assertEqual(state["answer_disposition"], "accepted")
-        self.assertEqual([message.content for message in messages if message.type == "ai"], ["好候选 [C1]"])
+        self.assertEqual(
+            [message.content for message in messages if message.type == "ai"],
+            ["好候选 制度文本 [C1]"],
+        )
         self.assertNotIn("坏候选", "\n".join(str(message.content) for message in messages))
         self.assertEqual(state["model_call_count"], 6)
         self.assertEqual(
@@ -296,6 +314,68 @@ class ApiAuthoritativeOutputTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(history[0]["message_id"].endswith(":user"))
         self.assertTrue(history[1]["message_id"].endswith(":assistant"))
 
+    async def test_replaying_same_turn_returns_the_original_result_without_rerunning_graph(self) -> None:
+        class ReplayGraph:
+            def __init__(self) -> None:
+                self.calls = 0
+
+            async def astream_events(self, graph_input, *, config, version):
+                self.calls += 1
+                answer = f"答案{self.calls} [C1]"
+                final_state = {
+                    "candidate_answer": "",
+                    "answer": answer,
+                    "candidate_citations": [],
+                    "citations": [{"citation_id": "C1", "quote": "证据"}],
+                    "answer_disposition": "accepted",
+                    "hallucination_pass": True,
+                    "failure_stage": None,
+                    "failure_reason": None,
+                    "request_call_count": 1,
+                    "model_call_count": 1,
+                    "tool_call_count": 0,
+                    "total_latency_ms": 1.0,
+                }
+                yield {
+                    "event": "on_chain_end",
+                    "name": "commit_answer",
+                    "metadata": {"langgraph_node": "commit_answer"},
+                    "data": {"output": final_state},
+                }
+
+        graph = ReplayGraph()
+        async def disconnected() -> bool:
+            return False
+
+        with tempfile.TemporaryDirectory() as directory:
+            database = Path(directory) / "memory.db"
+            with patch.object(settings, "sqlite_db_path", str(database)), patch.object(
+                settings, "dashscope_api_key", ""
+            ):
+                await ensure_user_memory_db(database)
+                request = SimpleNamespace(
+                    app=SimpleNamespace(state=SimpleNamespace(graph=graph)),
+                    is_disconnected=disconnected,
+                )
+                payload = ChatRequest(
+                    message="问题",
+                    user_id="replay-user",
+                    session_id="replay-session",
+                    turn_id="stable-replay-turn",
+                )
+                first_events = [
+                    event async for event in _stream_graph_unlocked(request, payload)
+                ]
+                replay_events = [
+                    event async for event in _stream_graph_unlocked(request, payload)
+                ]
+
+        self.assertEqual(graph.calls, 1)
+        self.assertIn("答案1 [C1]", "".join(first_events))
+        self.assertIn("答案1 [C1]", "".join(replay_events))
+        self.assertNotIn("答案2 [C1]", "".join(replay_events))
+        self.assertIn('"replayed": true', "".join(replay_events))
+
 
 class RetryBoundaryTests(unittest.TestCase):
     def test_zero_retry_falls_back_after_first_failed_validation(self) -> None:
@@ -324,6 +404,34 @@ class RetryBoundaryTests(unittest.TestCase):
 
 
 class PersistenceAndMetricsTests(unittest.IsolatedAsyncioTestCase):
+    async def test_completed_turn_is_first_writer_wins(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            database = Path(directory) / "memory.db"
+            with patch("backend.agent.memory.settings.sqlite_db_path", str(database)):
+                await ensure_user_memory_db(database)
+                first = await persist_completed_turn(
+                    "u",
+                    "s",
+                    "turn",
+                    "question",
+                    "first answer",
+                    [{"citation_id": "C1"}],
+                )
+                second = await persist_completed_turn(
+                    "u",
+                    "s",
+                    "turn",
+                    "question",
+                    "second answer",
+                    [{"citation_id": "C2"}],
+                )
+                loaded = await load_completed_turn("u", "s", "turn")
+
+        self.assertEqual(first["content"], "first answer")
+        self.assertEqual(second["content"], "first answer")
+        self.assertEqual(loaded["content"], "first answer")
+        self.assertEqual(loaded["citations"], [{"citation_id": "C1"}])
+
     async def test_sqlite_message_identity_is_idempotent(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             database = Path(directory) / "memory.db"

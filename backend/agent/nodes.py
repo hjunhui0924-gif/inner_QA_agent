@@ -26,6 +26,7 @@ from backend.agent.citations import (
     build_citations,
     citation_markers,
     format_documents_for_prompt,
+    validate_citation_claim_alignment,
 )
 from backend.agent.conversation import (
     merge_fallback_summary,
@@ -42,6 +43,7 @@ from backend.agent.memory import (
 from backend.agent.state import AgentState
 from backend.agent.tools import get_current_time, search_knowledge_base, search_web
 from backend.observability.metrics import record_call_stats
+from backend.retrieval.engine import RetrievalFilter
 
 
 class _RouteDecision(dict):
@@ -67,8 +69,8 @@ async def manage_conversation_context(state: AgentState) -> dict[str, Any]:
     old_conversation = render_messages(plan.messages_to_summarize)
     prompt = (
         "你负责压缩企业知识助手的旧对话。请只返回简洁的结构化摘要，不要回答当前问题。\n"
-        "保留用户目标、明确的实体/制度名称、金额、时间、限制条件、已做决定、"
-        "尚未解决的问题和代词指向。不要把助手的推测写成已确认事实。\n"
+        "保留用户目标、明确的实体/制度名称、金额、时间、限制条件、版本（旧版/现行版）、"
+        "来源状态、已做决定、尚未解决的问题和代词指向。不要把助手的推测写成已确认事实。\n"
         f"已有摘要：\n{existing_summary or '无'}\n"
         f"待压缩旧对话：\n{old_conversation}\n"
     )
@@ -315,12 +317,127 @@ def _rewrite_preserves_context(candidate: str, context: str) -> bool:
     return bool(required_terms & candidate_terms)
 
 
+def _previous_assistant_citations(messages: Sequence[BaseMessage]) -> list[dict[str, Any]]:
+    """Read structured citations from the latest committed assistant message."""
+
+    for message in reversed(messages):
+        if getattr(message, "type", "") != "ai":
+            continue
+        additional_kwargs = getattr(message, "additional_kwargs", {})
+        if not isinstance(additional_kwargs, dict):
+            continue
+        citations = additional_kwargs.get("citations")
+        if isinstance(citations, list):
+            return [item for item in citations if isinstance(item, dict)]
+    return []
+
+
+def _contextual_retrieval_filter(
+    messages: Sequence[BaseMessage],
+    query: str,
+    conversation_summary: str = "",
+) -> dict[str, object] | None:
+    """Carry the previous answer's source/version constraints into a follow-up."""
+
+    previous_user_query = _previous_user_text(messages, query)
+    explicit_filter = _explicit_version_filter(query)
+    if explicit_filter is not None:
+        return explicit_filter
+    if not _looks_like_contextual_follow_up(query):
+        return None
+    citations = _previous_assistant_citations(messages)
+    if not citations:
+        return _explicit_version_filter(
+            f"{conversation_summary}\n{previous_user_query}"
+        )
+    source_ids = sorted(
+        {
+            str(item.get("source_id", "")).strip()
+            for item in citations
+            if str(item.get("source_id", "")).strip()
+        }
+    )
+    versions = sorted(
+        {
+            str(item.get("version", "")).strip()
+            for item in citations
+            if str(item.get("version", "")).strip()
+        }
+    )
+    statuses = sorted(
+        {
+            str(item.get("status", "")).strip()
+            for item in citations
+            if str(item.get("status", "")).strip()
+        }
+    )
+    result: dict[str, object] = {}
+    if source_ids:
+        result["source_ids"] = source_ids
+    if versions:
+        result["versions"] = versions
+    if statuses:
+        result["statuses"] = statuses
+    return result or None
+
+
+def _explicit_version_filter(query: str) -> dict[str, object] | None:
+    """Turn explicit current/old version language into retrieval constraints."""
+
+    normalized_query = "".join(query.casefold().split())
+    if any(
+        marker in normalized_query
+        for marker in ["现行", "当前", "最新", "目前", "现在", "有效", "生效"]
+    ):
+        return {"statuses": ["active"], "prefer_current": True}
+    if any(
+        marker in normalized_query
+        for marker in ["旧版", "历史版本", "过期版", "之前版本"]
+    ):
+        return {"statuses": ["deprecated"], "prefer_current": False}
+    version_match = re.search(r"(?<![a-z])v(\d+)(?!\d)", normalized_query)
+    if version_match:
+        return {"versions": [f"v{version_match.group(1)}"], "prefer_current": False}
+    return None
+
+
+def _retrieval_filter_from_state(state: AgentState) -> RetrievalFilter | None:
+    raw = state.get("retrieval_filter")
+    if not isinstance(raw, dict):
+        return None
+
+    def values(name: str) -> frozenset[str] | None:
+        value = raw.get(name)
+        if not isinstance(value, (list, tuple, set, frozenset)):
+            return None
+        clean = {str(item).strip() for item in value if str(item).strip()}
+        return frozenset(clean) if clean else None
+
+    return RetrievalFilter(
+        source_ids=values("source_ids"),
+        versions=values("versions"),
+        departments=values("departments"),
+        statuses=values("statuses"),
+        access_scopes=values("access_scopes"),
+        as_of=raw.get("as_of"),
+        prefer_current=raw.get("prefer_current")
+        if isinstance(raw.get("prefer_current"), bool)
+        else None,
+    )
+
+
 async def route_query(state: AgentState) -> dict[str, Any]:
     """Use the LLM to select the execution route."""
 
     query = state.get("query") or latest_user_text(state.get("messages", []))
     conversation_summary = state.get("conversation_summary", "").strip()
     recent_conversation = render_messages(list(state.get("messages", [])))
+    should_rewrite_query = _looks_like_contextual_follow_up(query)
+    retrieval_filter = _contextual_retrieval_filter(
+        list(state.get("messages", [])),
+        query,
+        conversation_summary,
+    )
     mode = state.get("mode", "knowledge")
     prompt = (
         "你是一个企业内部知识助手的路由器。请仅返回JSON对象，不要输出多余文字。\n"
@@ -362,6 +479,8 @@ async def route_query(state: AgentState) -> dict[str, Any]:
 
     return {
         "route": route,
+        "should_rewrite_query": should_rewrite_query,
+        "retrieval_filter": retrieval_filter,
         "status_events": [f"route_query:{route}"],
         **record_call_stats(state, model_calls=1, started_at=call_started_at),
     }
@@ -377,6 +496,7 @@ async def retrieve(state: AgentState) -> dict[str, Any]:
         retrieval = await search_documents_with_metadata(
             query,
             top_k=settings.retrieval_top_k,
+            filters=_retrieval_filter_from_state(state),
         )
         documents = retrieval.documents
         retrieval_metadata = {
@@ -463,7 +583,10 @@ async def rewrite_query(state: AgentState) -> dict[str, Any]:
     """Use conversation context to produce a standalone retrieval query."""
 
     query = state.get("query", "")
-    retry_count = state.get("retrieval_retry_count", 0) + 1
+    contextual_rewrite = bool(state.get("should_rewrite_query"))
+    retry_count = state.get("retrieval_retry_count", 0) + (
+        0 if contextual_rewrite else 1
+    )
     rewritten_query = query
     conversation_summary = state.get("conversation_summary", "").strip()
     messages = list(state.get("messages", []))
@@ -525,6 +648,7 @@ async def rewrite_query(state: AgentState) -> dict[str, Any]:
 
     return {
         "rewritten_query": rewritten_query,
+        "should_rewrite_query": False,
         "retrieval_retry_count": retry_count,
         "failure_stage": None,
         "failure_reason": None,
@@ -609,7 +733,13 @@ async def commit_answer(state: AgentState) -> dict[str, Any]:
         "turn_id": turn_id,
         "answer": candidate,
         "citations": citations,
-        "messages": [AIMessage(content=candidate, id=f"{turn_id}:assistant")],
+        "messages": [
+            AIMessage(
+                content=candidate,
+                id=f"{turn_id}:assistant",
+                additional_kwargs={"citations": citations},
+            )
+        ],
         "candidate_answer": "",
         "candidate_citations": [],
         "generation_instruction": "",
@@ -847,12 +977,22 @@ async def check_hallucination(state: AgentState) -> dict[str, Any]:
             "failure_reason": None,
             "status_events": ["check_hallucination:skip"],
         }
+    resolved_citations = build_citations(docs, answer, query=state.get("query", ""))
+    citation_evidence = [
+        {
+            "citation_id": citation["citation_id"],
+            "quote": citation["quote"],
+        }
+        for citation in resolved_citations
+    ]
     prompt = (
         "请判断回答是否忠实于给定的企业内部知识，仅返回JSON。\n"
         '返回格式：{"hallucination_pass": true|false, "reason": "简短原因"}\n'
         f"问题：{state.get('query', '')}\n"
         f"回答：{answer}\n"
-        f"知识：\n{_format_documents(docs)}"
+        f"知识：\n{_format_documents(docs)}\n"
+        "引用与对应原文（只能用对应引用支持对应断言）：\n"
+        f"{json.dumps(citation_evidence, ensure_ascii=False)}"
     )
 
     pass_check = False
@@ -873,15 +1013,34 @@ async def check_hallucination(state: AgentState) -> dict[str, Any]:
         pass_check = False
         judge_reason = "证据一致性判断服务不可用，已安全拒绝未经验证的回答。"
 
-    resolved_citations = build_citations(docs, answer, query=state.get("query", ""))
     resolved_ids = {citation["citation_id"] for citation in resolved_citations}
     markers = citation_markers(answer)
-    citations_valid = bool(markers) and markers == resolved_ids and bool(resolved_citations)
+    basic_citations_valid = (
+        bool(markers)
+        and markers == resolved_ids
+        and bool(resolved_citations)
+    )
+    citation_alignment_valid, citation_alignment_reason = (
+        validate_citation_claim_alignment(answer, resolved_citations)
+        if basic_citations_valid
+        else validate_citation_claim_alignment(answer, resolved_citations)
+    )
+    citationless_abstention = (
+        not markers
+        and not resolved_citations
+        and citation_alignment_valid
+    )
+    citations_valid = (
+        (basic_citations_valid or citationless_abstention)
+        and citation_alignment_valid
+    )
     pass_check = pass_check and citations_valid
     if pass_check:
         reason = ""
-    elif not citations_valid:
+    elif not basic_citations_valid:
         reason = "回答中的引用标记缺失、越界或无法对应当前检索证据。"
+    elif not citation_alignment_valid:
+        reason = citation_alignment_reason
     else:
         reason = judge_reason or "回答包含检索证据未支持的事实。"
 

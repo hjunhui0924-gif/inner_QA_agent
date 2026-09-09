@@ -78,6 +78,8 @@ def create_turn_state(
         "mode": mode if mode in {"knowledge", "general"} else "knowledge",
         "web_search": web_search,
         "rewritten_query": "",
+        "should_rewrite_query": False,
+        "retrieval_filter": None,
         "retrieved_docs": [],
         "retrieval_metadata": {},
         "is_relevant": None,

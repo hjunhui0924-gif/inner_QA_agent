@@ -23,6 +23,8 @@ class AgentState(TypedDict, total=False):
     query: str
     conversation_summary: str
     rewritten_query: str
+    should_rewrite_query: bool
+    retrieval_filter: dict[str, object] | None
     retrieved_docs: list[Document]
     retrieval_metadata: dict[str, object]
     is_relevant: bool | None

@@ -21,9 +21,11 @@ from backend.agent.memory import (
     append_chat_message,
     extract_document_from_upload,
     list_knowledge_records,
+    load_completed_turn,
     list_chat_sessions,
     list_session_title_candidates,
     load_chat_messages,
+    persist_completed_turn,
     save_uploaded_file,
     update_chat_session_title,
     upsert_chat_session,
@@ -229,14 +231,63 @@ async def _stream_graph_unlocked(
 ) -> AsyncIterator[str]:
     """Run the graph and emit SSE events."""
 
-    graph = getattr(request.app.state, "graph", None)
-    if graph is None:
-        raise HTTPException(status_code=503, detail="Graph is not initialized.")
-
     thread_id = thread_id_for(payload.user_id, payload.session_id)
     trace_id = str(uuid.uuid4())
     request_started_at = time.perf_counter()
     turn_id = _request_turn_id(request, payload)
+    if turn_id:
+        completed_turn = await load_completed_turn(
+            payload.user_id,
+            payload.session_id,
+            turn_id,
+        )
+        if completed_turn is not None:
+            if completed_turn.get("user_content") not in {"", payload.message}:
+                raise HTTPException(
+                    status_code=409,
+                    detail="turn_id is already associated with a different message.",
+                )
+            replay_answer = str(completed_turn.get("content", "")).strip()
+            replay_citations = completed_turn.get("citations", [])
+            if not isinstance(replay_citations, list):
+                replay_citations = []
+            await append_chat_message(
+                user_id=payload.user_id,
+                session_id=payload.session_id,
+                role="user",
+                content=payload.message,
+                turn_id=turn_id,
+                message_id=f"{turn_id}:user",
+            )
+            await append_chat_message(
+                user_id=payload.user_id,
+                session_id=payload.session_id,
+                role="assistant",
+                content=replay_answer,
+                citations=replay_citations,
+                turn_id=turn_id,
+                message_id=f"{turn_id}:assistant",
+            )
+            for chunk in _answer_chunks(replay_answer):
+                yield _sse_event({"type": "token", "content": chunk})
+            yield _sse_event(
+                {
+                    "type": "result",
+                    "content": replay_answer,
+                    "citations": replay_citations,
+                    "trace_id": trace_id,
+                    "turn_id": turn_id,
+                    "failure_type": "none",
+                    "failure_stage": None,
+                    "failure_reason": None,
+                    "replayed": True,
+                }
+            )
+            yield _sse_event({"type": "done", "trace_id": trace_id})
+            return
+    graph = getattr(request.app.state, "graph", None)
+    if graph is None:
+        raise HTTPException(status_code=503, detail="Graph is not initialized.")
     graph_input = create_turn_state(
         message=payload.message,
         user_id=payload.user_id,
@@ -294,6 +345,23 @@ async def _stream_graph_unlocked(
         if not final_answer:
             raise RuntimeError("Graph completed without a committed answer.")
         response_citations = final_state.get("citations", [])
+        if not isinstance(response_citations, list):
+            response_citations = []
+        completed_turn = await persist_completed_turn(
+            user_id=payload.user_id,
+            session_id=payload.session_id,
+            turn_id=str(graph_input["turn_id"]),
+            request_message=payload.message,
+            answer=final_answer,
+            citations=response_citations,
+        )
+        if completed_turn.get("user_content") != payload.message:
+            raise HTTPException(
+                status_code=409,
+                detail="turn_id is already associated with a different message.",
+            )
+        final_answer = str(completed_turn["content"]).strip()
+        response_citations = completed_turn.get("citations", [])
         if not isinstance(response_citations, list):
             response_citations = []
 

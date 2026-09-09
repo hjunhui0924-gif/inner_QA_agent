@@ -118,6 +118,131 @@ def citation_markers(answer: str) -> set[str]:
     return {f"C{item}" for item in _MARKER_PATTERN.findall(answer)}
 
 
+def validate_citation_claim_alignment(
+    answer: str,
+    citations: Sequence[Citation],
+) -> tuple[bool, str]:
+    """Check that each factual claim is tied to supporting cited text.
+
+    Citation numbering alone only proves that a marker is in range.  This
+    guard additionally compares every cited claim with the quote resolved for
+    that marker.  It is intentionally conservative: an unsupported or
+    uncited claim fails closed and is sent through the existing retry path.
+    """
+
+    citations_by_id = {
+        str(citation.get("citation_id", "")).strip(): citation
+        for citation in citations
+        if str(citation.get("citation_id", "")).strip()
+    }
+    claims = _answer_claims(answer)
+    if not claims:
+        return False, "回答没有可验证的事实断言。"
+    for index, claim in enumerate(claims):
+        if _is_structural_claim(claim) or _is_abstention_claim(claim):
+            continue
+        if (
+            _is_short_conclusion_claim(claim)
+            and any(citation_markers(item) for item in claims[index + 1 : index + 2])
+        ):
+            continue
+        markers = citation_markers(claim)
+        if not markers:
+            return False, "回答存在未绑定引用的事实断言。"
+        supported = False
+        for marker in markers:
+            citation = citations_by_id.get(marker)
+            if citation is None:
+                continue
+            quote = str(citation.get("quote", "")).strip()
+            if quote and _claim_has_quote_support(claim, quote):
+                supported = True
+                break
+        if not supported:
+            return False, "引用原文不支持对应的事实断言。"
+    return True, ""
+
+
+def _is_short_conclusion_claim(claim: str) -> bool:
+    """Allow a short conclusion when the following sentence carries evidence."""
+
+    normalized = re.sub(r"[^a-zA-Z\u4e00-\u9fff]", "", claim).casefold()
+    return normalized in {"不适用", "适用", "可以", "不可以"}
+
+
+def _answer_claims(answer: str) -> list[str]:
+    claims: list[str] = []
+    for raw_line in answer.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        line = re.sub(r"^(?:[-*]\s+|\d+[.、)]\s*)", "", line).strip()
+        if not line or line.endswith(("：", ":")):
+            continue
+        claims.extend(
+            item.strip()
+            for item in re.findall(r"[^。！？!?]+[。！？!?]?", line)
+            if item.strip()
+        )
+    return claims
+
+
+def _claim_has_quote_support(claim: str, quote: str) -> bool:
+    clean_claim = _MARKER_PATTERN.sub("", claim).replace("**", "").strip()
+    clean_quote = " ".join(quote.split())
+    if not clean_claim or not clean_quote:
+        return False
+    if not _claim_numbers_are_supported(clean_claim, clean_quote):
+        return False
+    if extractive_clause_match(clean_claim, clean_quote):
+        return True
+
+    if not _relation_modes_are_compatible(clean_claim, clean_quote):
+        return False
+    claim_tokens = {
+        token
+        for token in tokenize(clean_claim)
+        if len(token) >= 2 or any(character.isdigit() for character in token)
+    }
+    quote_tokens = set(tokenize(_remove_normative_fillers(clean_quote)))
+    claim_tokens = set(tokenize(_remove_normative_fillers(clean_claim))) or claim_tokens
+    if not claim_tokens:
+        return False
+    overlap = claim_tokens & quote_tokens
+    overlap_ratio = len(overlap) / len(claim_tokens)
+    numeric_overlap = {
+        token for token in overlap if any(character.isdigit() for character in token)
+    }
+    return (
+        overlap_ratio >= 0.25 and len(overlap) >= 2
+    ) or (bool(numeric_overlap) and len(overlap) >= 2)
+
+
+def _relation_modes_are_compatible(claim: str, quote: str) -> bool:
+    """Reject explicit opposite relations without rejecting broader quotes."""
+
+    for family in _RELATION_FAMILIES:
+        claim_modes = _relation_modes(claim, family)
+        quote_modes = _relation_modes(quote, family)
+        if claim_modes and quote_modes and claim_modes.isdisjoint(quote_modes):
+            return False
+    return True
+
+
+def _remove_normative_fillers(text: str) -> str:
+    """Ignore harmless legal drafting fillers for paraphrase alignment."""
+
+    return re.sub(r"(?:应当|应该|需|需要|可以|是指|其中|根据|本法|本办法)", "", text)
+
+
+def _claim_numbers_are_supported(claim: str, quote: str) -> bool:
+    """Do not accept a citation when an explicit claim number is absent."""
+
+    claim_numbers = set(re.findall(r"\d+(?:\.\d+)?", claim))
+    quote_numbers = set(re.findall(r"\d+(?:\.\d+)?", quote))
+    return claim_numbers <= quote_numbers
+
+
 def sanitize_answer_citations(
     answer: str,
     documents: Sequence[Document],
@@ -186,7 +311,15 @@ def polarity_matches(claim: str, evidence: str) -> bool:
 _RELATION_FAMILIES: tuple[dict[str, tuple[str, ...]], ...] = (
     {
         "permission": (r"\bmay\b", r"\bcan\b", r"\bpermitted?\b", r"可以", r"允许", r"可(?:以)?"),
-        "obligation": (r"\bmust\b", r"\bshall\b", r"\brequired?\b", r"必须", r"应当", r"需要", r"须"),
+        "obligation": (
+            r"\bmust\b",
+            r"\bshall\b",
+            r"\brequired?\b",
+            r"必须",
+            r"应(?:当)?",
+            r"需要",
+            r"须",
+        ),
         "prohibition": (r"\bprohibit", r"\bforbid", r"不得", r"禁止", r"不可", r"不能"),
     },
     {

@@ -255,6 +255,20 @@ async def ensure_user_memory_db(db_path: str | Path) -> None:
             )
             """
         )
+        await db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS chat_turn_results (
+                user_id TEXT NOT NULL,
+                session_id TEXT NOT NULL,
+                turn_id TEXT NOT NULL,
+                request_message TEXT NOT NULL,
+                answer TEXT NOT NULL,
+                citations_json TEXT NOT NULL DEFAULT '[]',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, session_id, turn_id)
+            )
+            """
+        )
         cursor = await db.execute("PRAGMA table_info(chat_messages)")
         columns = {str(row[1]) for row in await cursor.fetchall()}
         await cursor.close()
@@ -530,10 +544,144 @@ async def load_chat_messages(user_id: str, session_id: str) -> list[dict[str, An
     return result
 
 
+async def load_completed_turn(
+    user_id: str,
+    session_id: str,
+    turn_id: str,
+) -> dict[str, Any] | None:
+    """Return a previously persisted assistant result for one turn, if any."""
+
+    clean_turn_id = turn_id.strip()
+    if not clean_turn_id:
+        return None
+    async with aiosqlite.connect(settings.sqlite_db_path) as db:
+        cursor = await db.execute(
+            """
+            SELECT request_message, answer, citations_json
+            FROM chat_turn_results
+            WHERE user_id = ? AND session_id = ? AND turn_id = ?
+            """,
+            (user_id, session_id, clean_turn_id),
+        )
+        result_row = await cursor.fetchone()
+        await cursor.close()
+        if result_row is not None:
+            request_message, answer, citations_json = result_row
+            try:
+                citations = json.loads(citations_json or "[]")
+            except (json.JSONDecodeError, TypeError):
+                citations = []
+            return {
+                "user_content": str(request_message),
+                "content": str(answer),
+                "citations": citations if isinstance(citations, list) else [],
+                "turn_id": clean_turn_id,
+                "message_id": f"{clean_turn_id}:assistant",
+            }
+        cursor = await db.execute(
+            """
+            SELECT role, content, citations_json, message_id
+            FROM chat_messages
+            WHERE user_id = ? AND session_id = ? AND turn_id = ?
+            ORDER BY id ASC
+            """,
+            (user_id, session_id, clean_turn_id),
+        )
+        rows = await cursor.fetchall()
+        await cursor.close()
+
+    user_content = ""
+    assistant: dict[str, Any] | None = None
+    for role, content, citations_json, message_id in rows:
+        if role == "user" and not user_content:
+            user_content = str(content)
+        if role != "assistant" or assistant is not None:
+            continue
+        try:
+            citations = json.loads(citations_json or "[]")
+        except (json.JSONDecodeError, TypeError):
+            citations = []
+        assistant = {
+            "user_content": user_content,
+            "content": str(content),
+            "citations": citations if isinstance(citations, list) else [],
+            "turn_id": clean_turn_id,
+            "message_id": message_id,
+        }
+    return assistant
+
+
+async def persist_completed_turn(
+    user_id: str,
+    session_id: str,
+    turn_id: str,
+    request_message: str,
+    answer: str,
+    citations: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Persist and return the first completed result for one stable turn ID."""
+
+    clean_turn_id = turn_id.strip()
+    clean_message = request_message.strip()
+    clean_answer = answer.strip()
+    if not clean_turn_id or not clean_message or not clean_answer:
+        raise ValueError("Completed turns require a turn ID, request, and answer.")
+    citations_json = json.dumps(citations or [], ensure_ascii=False)
+    async with aiosqlite.connect(settings.sqlite_db_path) as db:
+        await db.execute(
+            """
+            INSERT OR IGNORE INTO chat_turn_results (
+                user_id, session_id, turn_id, request_message, answer, citations_json
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                user_id,
+                session_id,
+                clean_turn_id,
+                clean_message,
+                clean_answer,
+                citations_json,
+            ),
+        )
+        cursor = await db.execute(
+            """
+            SELECT request_message, answer, citations_json
+            FROM chat_turn_results
+            WHERE user_id = ? AND session_id = ? AND turn_id = ?
+            """,
+            (user_id, session_id, clean_turn_id),
+        )
+        row = await cursor.fetchone()
+        await cursor.close()
+        await db.commit()
+    if row is None:
+        raise RuntimeError("Completed turn was not persisted.")
+    stored_message, stored_answer, stored_citations_json = row
+    try:
+        stored_citations = json.loads(stored_citations_json or "[]")
+    except (json.JSONDecodeError, TypeError):
+        stored_citations = []
+    return {
+        "user_content": str(stored_message),
+        "content": str(stored_answer),
+        "citations": stored_citations if isinstance(stored_citations, list) else [],
+        "turn_id": clean_turn_id,
+        "message_id": f"{clean_turn_id}:assistant",
+    }
+
+
 async def delete_chat_session(user_id: str, session_id: str) -> None:
     """Delete one session and all of its messages."""
 
     async with aiosqlite.connect(settings.sqlite_db_path) as db:
+        await db.execute(
+            """
+            DELETE FROM chat_turn_results
+            WHERE user_id = ? AND session_id = ?
+            """,
+            (user_id, session_id),
+        )
         await db.execute(
             """
             DELETE FROM chat_messages

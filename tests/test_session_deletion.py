@@ -17,6 +17,8 @@ from backend.agent.memory import (
     ensure_user_memory_db,
     list_chat_sessions,
     load_chat_messages,
+    load_completed_turn,
+    persist_completed_turn,
 )
 from backend.agent.sessions import (
     create_turn_state,
@@ -57,6 +59,13 @@ class CompleteSessionDeletionTests(unittest.IsolatedAsyncioTestCase):
             with patch("backend.agent.memory.settings.sqlite_db_path", str(database)):
                 await ensure_user_memory_db(database)
                 await append_chat_message("user-1", "session-1", "user", "hello")
+                await persist_completed_turn(
+                    "user-1",
+                    "session-1",
+                    "turn-1",
+                    "hello",
+                    "answer",
+                )
 
                 await delete_session_completely(
                     user_id="user-1",
@@ -67,6 +76,9 @@ class CompleteSessionDeletionTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(
                     await load_chat_messages("user-1", "session-1"),
                     [],
+                )
+                self.assertIsNone(
+                    await load_completed_turn("user-1", "session-1", "turn-1")
                 )
                 self.assertEqual(await list_chat_sessions("user-1"), [])
 

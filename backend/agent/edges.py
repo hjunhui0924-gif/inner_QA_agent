@@ -33,6 +33,8 @@ def route_after_hallucination_check(state: AgentState) -> str:
 def route_after_routing(state: AgentState) -> str:
     """Route to the correct branch based on the query type."""
 
+    if state.get("route") == "rag" and state.get("should_rewrite_query"):
+        return "rewrite_query"
     return {
         "rag": "retrieve",
         "tool_call": "tool_executor",

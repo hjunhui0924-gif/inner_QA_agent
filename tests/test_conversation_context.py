@@ -144,6 +144,138 @@ class ConversationCompressionTests(unittest.IsolatedAsyncioTestCase):
 
 
 class ContextualRewriteTests(unittest.IsolatedAsyncioTestCase):
+    async def test_follow_up_carries_previous_version_constraint_before_retrieval(self) -> None:
+        model = AsyncMock()
+        model.ainvoke.return_value = AIMessage(
+            content='{"route":"rag","reason":"follow-up"}'
+        )
+        messages = add_messages(
+            [],
+            [
+                HumanMessage(content="旧版请假制度是什么？"),
+                AIMessage(
+                    content="旧版制度回答",
+                    additional_kwargs={
+                        "citations": [
+                            {
+                                "source_id": "hr-leave-v1",
+                                "version": "v1",
+                                "status": "deprecated",
+                            }
+                        ]
+                    },
+                ),
+                HumanMessage(content="那连续请假超过几天需要抄送？"),
+            ],
+        )
+
+        with patch("backend.agent.nodes._build_model", return_value=model):
+            result = await route_query(
+                {
+                    "query": "那连续请假超过几天需要抄送？",
+                    "messages": messages,
+                    "conversation_summary": "",
+                    "mode": "knowledge",
+                }
+            )
+
+        self.assertTrue(result["should_rewrite_query"])
+        self.assertEqual(
+            result["retrieval_filter"]["source_ids"],
+            ["hr-leave-v1"],
+        )
+        self.assertEqual(
+            result["retrieval_filter"]["statuses"],
+            ["deprecated"],
+        )
+
+    async def test_follow_up_keeps_old_version_when_previous_answer_had_no_citation(self) -> None:
+        model = AsyncMock()
+        model.ainvoke.return_value = AIMessage(
+            content='{"route":"rag","reason":"follow-up"}'
+        )
+        messages = add_messages(
+            [],
+            [
+                HumanMessage(content="旧版请假制度是什么？"),
+                AIMessage(content="上一轮回答失败，未提供引用"),
+                HumanMessage(content="那连续请假超过几天需要抄送？"),
+            ],
+        )
+        with patch("backend.agent.nodes._build_model", return_value=model):
+            result = await route_query(
+                {
+                    "query": "那连续请假超过几天需要抄送？",
+                    "messages": messages,
+                    "conversation_summary": "",
+                    "mode": "knowledge",
+                }
+            )
+
+        self.assertEqual(result["retrieval_filter"]["statuses"], ["deprecated"])
+        self.assertFalse(result["retrieval_filter"]["prefer_current"])
+
+    async def test_contextual_rewrite_does_not_consume_retrieval_retry_budget(self) -> None:
+        model = AsyncMock()
+        model.ainvoke.return_value = AIMessage(
+            content='{"rewritten_query":"旧版请假制度的抄送天数"}'
+        )
+
+        with patch("backend.agent.nodes._build_model", return_value=model):
+            result = await rewrite_query(
+                {
+                    "query": "那连续请假超过几天需要抄送？",
+                    "messages": [
+                        HumanMessage(content="旧版请假制度是什么？"),
+                        HumanMessage(content="那连续请假超过几天需要抄送？"),
+                    ],
+                    "should_rewrite_query": True,
+                    "retrieval_retry_count": 0,
+                }
+            )
+
+        self.assertEqual(result["retrieval_retry_count"], 0)
+        self.assertFalse(result["should_rewrite_query"])
+
+    async def test_explicit_current_follow_up_overrides_previous_old_version(self) -> None:
+        model = AsyncMock()
+        model.ainvoke.return_value = AIMessage(
+            content='{"route":"rag","reason":"current version"}'
+        )
+        messages = add_messages(
+            [],
+            [
+                HumanMessage(content="旧版请假制度是什么？"),
+                AIMessage(
+                    content="旧版制度回答",
+                    additional_kwargs={
+                        "citations": [
+                            {
+                                "source_id": "hr-leave-v1",
+                                "version": "v1",
+                                "status": "deprecated",
+                            }
+                        ]
+                    },
+                ),
+                HumanMessage(content="那现行版呢？"),
+            ],
+        )
+
+        with patch("backend.agent.nodes._build_model", return_value=model):
+            result = await route_query(
+                {
+                    "query": "那现行版呢？",
+                    "messages": messages,
+                    "conversation_summary": "",
+                    "mode": "knowledge",
+                }
+            )
+
+        self.assertEqual(result["retrieval_filter"]["statuses"], ["active"])
+        self.assertTrue(result["retrieval_filter"]["prefer_current"])
+        self.assertNotIn("source_ids", result["retrieval_filter"])
+
     async def test_follow_up_routes_to_rag_using_conversation_context(self) -> None:
         model = AsyncMock()
 
