@@ -16,6 +16,7 @@ from langchain_core.messages import HumanMessage
 
 from backend.agent.memory import ensure_vectorstore, search_documents
 from backend.agent.nodes import generate
+from backend.evaluation.runtime import extract_generation_output
 
 EVAL_DIR = BASE_DIR / "data" / "evals"
 REPORT_DIR = BASE_DIR / "data" / "eval_reports"
@@ -88,7 +89,8 @@ async def _generate_answer_for_eval(
         result = await generate(state)
     except Exception as exc:
         return f"[GENERATION_ERROR] {exc}"
-    return str(result.get("answer", "")).strip()
+    answer, _ = extract_generation_output(result)
+    return answer
 
 
 async def _run_eval(eval_file: Path, top_k: int = 4) -> dict[str, Any]:

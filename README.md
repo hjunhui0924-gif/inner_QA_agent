@@ -22,6 +22,8 @@
 完整的项目建设顺序、技术选型依据、评测过程和失败闭环见
 [《企业内部知识助手：从原型到可评测 RAG 系统的建设思路》](docs/企业内部知识助手_项目建设思路.md)。
 Vue 前端的设计系统、目录和当前接入边界见 [frontend/README.md](frontend/README.md)。
+统一 RAG 评测目录、运行方式和门禁见
+[《统一 RAG 评测》](docs/unified_rag_evaluation.md)。
 
 ## 技术栈
 
@@ -322,6 +324,21 @@ python scripts/run_enterprise_rag_benchmark.py --split held_out --top-k 5
 线上回答评测仍需显式提供 API key 并单独运行。
 
 ## RAG 回答、引用与失败评估
+
+项目现在提供一个统一评测入口，目录中共管理 306 道题：34 道法规安全题、264 道企业制度题和 8 道东山法律意见书兼容题。三套语料保持独立检索引擎，报告同时输出分集指标和独立门禁；旧的单集脚本继续保留用于兼容和对比。
+
+```bash
+# 默认运行三套语料的在线检索评测
+python scripts/run_unified_rag_benchmark.py --mode retrieval --top-k 4
+
+# 只做本地入口和报告结构冒烟，不作为正式质量结论
+python scripts/run_unified_rag_benchmark.py --offline --mode retrieval
+
+# 需要消耗在线生成/Judge 配额时显式运行
+python scripts/run_unified_rag_benchmark.py --mode all --enable-judge
+```
+
+统一报告写入 `data/eval_reports/unified_rag_benchmark.json`。`official_policy` 和 `enterprise_rag` 是阻断门禁，`dongshan_legacy` 只作非阻断兼容参考；`--offline` 或 `--limit` 的结果会标记为 `smoke_only`。
 
 答案层开发基准复用上面的 4 份权威法规和 34 个问题，其中 30 个可回答、4 个无答案。它运行 BM25 + 向量检索 + RRF + Rerank、一次 `qwen3.7-flash` 生成和一次自动 Judge，用来快速迭代生成与引用协议；不经过路由、查询改写、生产幻觉重试和安全 fallback，不能替代完整 Agent 的端到端验收。
 

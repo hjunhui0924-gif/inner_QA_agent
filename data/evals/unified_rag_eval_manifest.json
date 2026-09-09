@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "suite_id": "unified_rag",
+  "description": "Unified evaluation catalog for the official, enterprise, and legacy document suites.",
+  "datasets": [
+    {
+      "id": "official_policy",
+      "path": "data/evals/official_policy_retrieval_eval.json",
+      "corpus_id": "official_policy_corpus",
+      "parser": "official_policy",
+      "role": "safety",
+      "default_split": "safety",
+      "default_domain": "Legal",
+      "gate": {
+        "blocking": true,
+        "source_hit_at_k_min": 0.95,
+        "evidence_recall_at_k_min": 0.95,
+        "retrieval_failure_count_max": 0
+      }
+    },
+    {
+      "id": "enterprise_rag",
+      "path": "data/evals/enterprise_rag_eval.json",
+      "corpus_id": "enterprise_knowledge_base",
+      "parser": "enterprise_rag",
+      "role": "main_regression",
+      "default_split": "development",
+      "default_domain": "enterprise",
+      "threshold_file": "data/evals/enterprise_regression_thresholds.json",
+      "gate": {
+        "blocking": true,
+        "regression_split": "regression"
+      }
+    },
+    {
+      "id": "dongshan_legacy",
+      "path": "data/evals/dongshan_legal_opinion_eval.json",
+      "corpus_id": "enterprise_knowledge_base",
+      "parser": "dongshan_legacy",
+      "role": "legacy_compatibility",
+      "default_split": "legacy",
+      "default_domain": "Legal",
+      "gate": {
+        "blocking": false,
+        "source_hit_at_k_min": 1.0,
+        "evidence_recall_at_k_min": 0.60
+      }
+    }
+  ]
+}

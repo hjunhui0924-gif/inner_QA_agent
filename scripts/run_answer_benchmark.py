@@ -22,6 +22,7 @@ from backend.agent.nodes import generate
 from backend.config import settings
 from backend.evaluation.answers import AnswerEvalCase, evaluate_answer
 from backend.evaluation.judge import AutomaticJudgeResult, evaluate_with_judge
+from backend.evaluation.runtime import extract_generation_output
 from scripts.run_retrieval_benchmark import (
     EVAL_PATH,
     PROVENANCE_PATH,
@@ -97,11 +98,8 @@ async def run_answer_benchmark(
             if not generation.get("generation_error"):
                 break
             await asyncio.sleep(2**attempt)
-        answer = str(generation.get("answer", "")).strip()
+        answer, citations = extract_generation_output(generation)
         generation_error = str(generation.get("generation_error", "")).strip()
-        citations = generation.get("citations", [])
-        if not isinstance(citations, list):
-            citations = []
         metrics = evaluate_answer(
             AnswerEvalCase(
                 answer=answer,
