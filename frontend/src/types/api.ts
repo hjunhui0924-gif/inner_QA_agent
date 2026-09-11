@@ -50,14 +50,37 @@ export interface ChatHistoryItem {
 }
 
 export interface KnowledgeRecord {
+  id?: number | string
+  source_id?: string
   title: string
   source: string
+  source_type?: string
+  department?: string
+  version?: string
+  status?: string
+  effective_from?: string | null
+  effective_to?: string | null
+  owner?: string
+  access_scope?: string
   original_filename?: string
   content?: string
   content_length?: number
+  preview?: string
+  content_fingerprint?: string
+  content_checksum?: string
   deduplicated?: boolean
   dedup_type?: 'exact' | 'near' | 'similar' | 'none' | string
   similarity?: number | null
+}
+
+export interface KnowledgeUploadMetadata {
+  department?: string
+  version?: string
+  status?: string
+  effective_from?: string
+  effective_to?: string
+  owner?: string
+  access_scope?: string
 }
 
 export interface UploadResponse {

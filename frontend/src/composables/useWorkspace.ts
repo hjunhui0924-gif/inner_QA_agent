@@ -19,7 +19,9 @@ import type {
   UiMessage,
   UploadResponse,
   ChatMode,
+  KnowledgeUploadMetadata,
 } from '../types/api'
+import { readableKnowledgeUploadError } from '../utils/knowledge'
 import {
   createStreamState,
   reduceStreamEvent,
@@ -341,10 +343,11 @@ async function uploadKnowledge(
   file: File,
   title: string,
   source: string,
+  metadata: KnowledgeUploadMetadata = {},
 ): Promise<UploadResponse> {
   uploading.value = true
   try {
-    const response = await uploadKnowledgeRequest(file, title, source)
+    const response = await uploadKnowledgeRequest(file, title, source, metadata)
     await loadKnowledge()
     if (response.record.deduplicated) {
       notify('warning', '检测到重复文件', response.message)
@@ -353,7 +356,7 @@ async function uploadKnowledge(
     }
     return response
   } catch (error) {
-    notify('error', '文件上传失败', readableError(error))
+    notify('error', '文件上传失败', readableKnowledgeUploadError(error))
     throw error
   } finally {
     uploading.value = false

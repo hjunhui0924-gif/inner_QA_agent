@@ -6,6 +6,7 @@ import type {
   StreamEvent,
   UploadResponse,
   ChatMode,
+  KnowledgeUploadMetadata,
 } from '../types/api'
 
 const configuredBase = import.meta.env.VITE_API_BASE_URL?.trim()
@@ -77,11 +78,15 @@ export function uploadKnowledge(
   file: File,
   title: string,
   source: string,
+  metadata: KnowledgeUploadMetadata = {},
 ): Promise<UploadResponse> {
   const body = new FormData()
   body.append('file', file)
   body.append('title', title)
   body.append('source', source || 'internal_upload')
+  Object.entries(metadata).forEach(([key, value]) => {
+    if (typeof value === 'string' && value.trim()) body.append(key, value.trim())
+  })
   return requestJson<UploadResponse>('/knowledge/upload', { method: 'POST', body })
 }
 
