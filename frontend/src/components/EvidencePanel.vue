@@ -1,17 +1,22 @@
 <script setup lang="ts">
-import { nextTick, ref, watch } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref, useId, watch } from 'vue'
 import type { Citation } from '../types/api'
+import { registerOverlay } from '../utils/overlayStack'
 
 const props = defineProps<{
   open: boolean
+  modal?: boolean
   citations: Citation[]
   selectedCitationId?: string | null
 }>()
 
 const emit = defineEmits<{ close: [] }>()
+const panel = ref<HTMLElement | null>(null)
 const evidenceList = ref<HTMLElement | null>(null)
 const evidenceClose = ref<HTMLButtonElement | null>(null)
 const copyFeedback = ref<Record<string, 'copied' | 'failed'>>({})
+const titleId = `evidence-title-${useId()}`
+let overlay: ReturnType<typeof registerOverlay> | null = null
 
 function citationElement(citationId: string | null | undefined): HTMLElement | null {
   if (!citationId || !evidenceList.value) return null
@@ -29,9 +34,51 @@ async function focusSelectedCitation(): Promise<void> {
   }
   const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
   target.focus({ preventScroll: true })
-  target.scrollIntoView({ block: 'nearest', behavior: reduceMotion ? 'auto' : 'smooth' })
+  const list = evidenceList.value
+  if (!list) return
+  const targetTop = Math.max(0, target.offsetTop - 20)
+  if (typeof list.scrollTo === 'function') {
+    list.scrollTo({ top: targetTop, behavior: reduceMotion ? 'auto' : 'smooth' })
+  } else {
+    list.scrollTop = targetTop
+  }
   target.classList.add('selected')
   window.setTimeout(() => target.classList.remove('selected'), 1600)
+}
+
+function trapFocus(event: KeyboardEvent): void {
+  const focusable = panel.value?.querySelectorAll<HTMLElement>(
+    'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+  )
+  if (!focusable?.length) {
+    event.preventDefault()
+    panel.value?.focus()
+    return
+  }
+  const first = focusable[0]
+  const last = focusable[focusable.length - 1]
+  if (!panel.value?.contains(document.activeElement)) {
+    event.preventDefault()
+    first.focus()
+    return
+  }
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault()
+    last.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault()
+    first.focus()
+  }
+}
+
+function handleKeydown(event: KeyboardEvent): void {
+  if (!props.open) return
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    emit('close')
+    return
+  }
+  if (props.modal && event.key === 'Tab') trapFocus(event)
 }
 
 watch(
@@ -40,6 +87,23 @@ watch(
     if (props.open) void focusSelectedCitation()
   },
   { flush: 'post' },
+)
+
+onMounted(() => {
+  overlay = registerOverlay(handleKeydown, { modal: props.modal })
+  overlay.setOpen(props.open)
+})
+onBeforeUnmount(() => {
+  overlay?.unregister()
+  overlay = null
+})
+
+watch(
+  () => [props.open, props.modal],
+  ([open, modal]) => {
+    overlay?.setModal(Boolean(modal))
+    overlay?.setOpen(Boolean(open))
+  },
 )
 
 async function copyQuote(citation: Citation, event: Event): Promise<void> {
@@ -78,16 +142,21 @@ async function copyQuote(citation: Citation, event: Event): Promise<void> {
 
 <template>
   <aside
+    ref="panel"
     class="evidence-panel"
     :class="{ open }"
+    :role="modal ? 'dialog' : 'complementary'"
+    :aria-modal="modal ? 'true' : undefined"
+    :aria-labelledby="titleId"
     aria-label="引用证据"
-    :aria-hidden="!open"
-    :inert="!open"
+    :aria-hidden="!open ? 'true' : undefined"
+    :inert="!open ? true : undefined"
+    tabindex="-1"
   >
     <div class="evidence-header">
       <div>
         <p class="eyebrow">VERIFIABLE ANSWERS</p>
-        <h2>引用证据</h2>
+        <h2 :id="titleId">引用证据</h2>
       </div>
       <button
         ref="evidenceClose"

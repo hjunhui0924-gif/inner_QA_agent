@@ -80,4 +80,17 @@ describe('DocumentDetailDrawer', () => {
     expect(buttonText).not.toContain('下载')
     expect(buttonText).not.toContain('删除文档')
   })
+
+  it('keeps keyboard focus inside the open drawer', async () => {
+    const { state } = mountDrawer()
+    state.open = true
+    await nextTick()
+    await nextTick()
+
+    const close = host?.querySelector<HTMLButtonElement>('.detail-drawer-header button')
+    close?.focus()
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }))
+
+    expect(document.activeElement).toBe(close)
+  })
 })

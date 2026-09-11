@@ -109,6 +109,10 @@ function chatFailureDetail(): string {
   return '请求未完成，候选内容已丢弃。请稍后重新发送。'
 }
 
+function sessionOperationFailureDetail(): string {
+  return '会话操作未完成，请稍后重试。'
+}
+
 function isAbortError(error: unknown): boolean {
   return error instanceof DOMException && error.name === 'AbortError'
 }
@@ -175,8 +179,7 @@ async function initialize(): Promise<void> {
   }
 }
 
-function newSession(): void {
-  if (sending.value) return
+function resetConversation(preserveHistoryError = false): void {
   historyRequestGeneration += 1
   loadingHistory.value = false
   sessionId.value = generateUuid()
@@ -184,10 +187,17 @@ function newSession(): void {
   agentSteps.value = []
   activeCitations.value = []
   sessionTitlePending.value = false
-  historyError.value = null
-  historyErrorSessionId.value = null
+  if (!preserveHistoryError) {
+    historyError.value = null
+    historyErrorSessionId.value = null
+  }
   chatMode.value = 'knowledge'
   webSearchEnabled.value = false
+}
+
+function newSession(): void {
+  if (sending.value) return
+  resetConversation()
 }
 
 async function openSession(targetSessionId: string): Promise<boolean> {
@@ -254,14 +264,20 @@ async function removeSession(targetSessionId: string): Promise<void> {
       const nextSessionId = nextSessionAfterDelete(sessionsBeforeDelete, targetSessionId)
       if (nextSessionId) {
         const opened = await openSession(nextSessionId)
-        if (!opened) newSession()
+        if (!opened) {
+          const failedSessionId = historyErrorSessionId.value
+          const failedHistoryError = historyError.value
+          resetConversation(true)
+          historyErrorSessionId.value = failedSessionId
+          historyError.value = failedHistoryError
+        }
       } else {
         newSession()
       }
     }
     notify('success', '会话已删除', '聊天记录与 Agent 状态已同步清除。')
   } catch (error) {
-    notify('error', '删除会话失败', readableError(error))
+    notify('error', '删除会话失败', sessionOperationFailureDetail())
     throw error
   }
 }

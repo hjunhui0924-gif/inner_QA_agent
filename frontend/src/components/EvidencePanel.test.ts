@@ -41,6 +41,7 @@ function mountPanel() {
     setup() {
       return () => h(EvidencePanel, {
         open: state.open,
+        modal: true,
         citations,
         selectedCitationId: state.selectedCitationId,
         onClose: () => events.push('close'),
@@ -110,5 +111,46 @@ describe('EvidencePanel', () => {
 
     host?.querySelector<HTMLButtonElement>('.evidence-close')?.click()
     expect(events).toEqual(['close'])
+  })
+
+  it('closes on Escape and keeps Tab focus inside the evidence dialog', async () => {
+    const { state, events } = mountPanel()
+    state.open = true
+    await nextTick()
+    await nextTick()
+
+    const close = host?.querySelector<HTMLButtonElement>('.evidence-close')
+    const copies = host?.querySelectorAll<HTMLButtonElement>('.copy-quote')
+    const lastCopy = copies?.[copies.length - 1]
+    if (!close || !lastCopy) throw new Error('evidence controls not found')
+    lastCopy.focus()
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }))
+    expect(document.activeElement).toBe(close)
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+    expect(events).toEqual(['close'])
+  })
+
+  it('uses complementary semantics when rendered as a desktop side panel', async () => {
+    const state = reactive({ open: true })
+    host = document.createElement('div')
+    document.body.appendChild(host)
+    const Root = defineComponent({
+      setup() {
+        return () => h(EvidencePanel, {
+          open: state.open,
+          modal: false,
+          citations,
+          onClose: () => { state.open = false },
+        })
+      },
+    })
+    app = createApp(Root)
+    app.mount(host)
+    await nextTick()
+
+    const panel = host.querySelector('.evidence-panel')
+    expect(panel?.getAttribute('role')).toBe('complementary')
+    expect(panel?.hasAttribute('aria-modal')).toBe(false)
   })
 })

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Connection, Collection, ArrowUp, Search } from '@element-plus/icons-vue'
 
 import AgentProgress from '../components/AgentProgress.vue'
@@ -25,11 +25,23 @@ const {
   showCitations,
 } = useWorkspace()
 const evidenceOpen = ref(false)
+const evidenceModal = ref(false)
 const evidenceTrigger = ref<HTMLButtonElement | null>(null)
 const selectedCitationId = ref<string | null>(null)
 const draft = ref('')
 const composer = ref<HTMLTextAreaElement | null>(null)
 const conversation = ref<HTMLElement | null>(null)
+
+function updateEvidenceViewport(): void {
+  evidenceModal.value = window.innerWidth <= 900
+}
+
+onMounted(() => {
+  updateEvidenceViewport()
+  window.addEventListener('resize', updateEvidenceViewport)
+})
+
+onBeforeUnmount(() => window.removeEventListener('resize', updateEvidenceViewport))
 
 const prompts = [
   '报销流程需要经过哪些审批？',
@@ -104,10 +116,14 @@ function selectMode(mode: 'knowledge' | 'general') {
 
 <template>
   <div class="chat-layout" :class="{ 'evidence-visible': evidenceOpen }">
-    <section class="chat-surface">
+    <section
+      class="chat-surface"
+      :aria-hidden="evidenceOpen && evidenceModal ? 'true' : undefined"
+      :inert="evidenceOpen && evidenceModal ? true : undefined"
+    >
       <header class="workspace-header">
         <div>
-          <div class="brand-heading"><img src="/knowledge-assistant.png" alt="" /><p class="eyebrow">KNOWLEDGE ASSISTANT</p></div>
+          <div class="brand-heading"><img src="/knowledge-assistant.png" alt="" width="20" height="20" /><p class="eyebrow">KNOWLEDGE ASSISTANT</p></div>
           <h1>{{ activeSessionTitle }}</h1>
         </div>
         <button
@@ -205,7 +221,7 @@ function selectMode(mode: 'knowledge' | 'general') {
             :disabled="sending"
             @click="selectMode(mode.id)"
           >
-            <el-icon><component :is="mode.icon" /></el-icon>
+            <el-icon aria-hidden="true"><component :is="mode.icon" /></el-icon>
             <span>{{ mode.label }}</span>
             <small>{{ mode.description }}</small>
           </button>
@@ -216,6 +232,8 @@ function selectMode(mode: 'knowledge' | 'general') {
           <textarea
             id="question"
             ref="composer"
+            name="question"
+            autocomplete="off"
             v-model="draft"
             rows="2"
             maxlength="12000"
@@ -233,14 +251,14 @@ function selectMode(mode: 'knowledge' | 'general') {
                 :class="{ active: webSearchEnabled }"
                 :disabled="sending"
                 @click="webSearchEnabled = !webSearchEnabled"
-              ><el-icon><Search /></el-icon> 联网搜索</button>
+              ><el-icon aria-hidden="true"><Search /></el-icon> 联网搜索</button>
               <span>{{ draft.length }} 字 · Ctrl / ⌘ + Enter 发送</span>
             </div>
             <button v-if="sending" class="secondary-button" type="button" @click="cancelMessage">
               取消请求
             </button>
             <button v-else class="primary-button" type="submit" :disabled="!canSend">
-              <el-icon><ArrowUp /></el-icon> 发送
+              <el-icon aria-hidden="true"><ArrowUp /></el-icon> 发送
             </button>
           </div>
         </form>
@@ -249,6 +267,7 @@ function selectMode(mode: 'knowledge' | 'general') {
 
     <EvidencePanel
       :open="evidenceOpen"
+      :modal="evidenceModal"
       :citations="activeCitations"
       :selected-citation-id="selectedCitationId"
       @close="closeEvidence"

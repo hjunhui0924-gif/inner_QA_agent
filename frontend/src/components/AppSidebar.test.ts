@@ -197,4 +197,25 @@ describe('AppSidebar', () => {
       Object.defineProperty(window, 'innerWidth', { configurable: true, value: originalWidth })
     }
   })
+
+  it('keeps Tab focus inside an open mobile sidebar', async () => {
+    const originalWidth = window.innerWidth
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 375 })
+    try {
+      const { state } = mountSidebar(false)
+      state.open = true
+      await vi.waitFor(() => expect(document.activeElement).toBe(
+        host?.querySelector('.start-chat-button'),
+      ))
+      const start = host?.querySelector<HTMLButtonElement>('.start-chat-button')
+      const deleteButtons = host?.querySelectorAll<HTMLButtonElement>('.session-delete')
+      const last = deleteButtons?.[deleteButtons.length - 1]
+      if (!start || !last) throw new Error('sidebar controls not found')
+      start.focus()
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true }))
+      expect(document.activeElement).toBe(last)
+    } finally {
+      Object.defineProperty(window, 'innerWidth', { configurable: true, value: originalWidth })
+    }
+  })
 })

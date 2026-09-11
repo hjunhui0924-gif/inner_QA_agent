@@ -149,7 +149,7 @@ function closeDetails(): void {
 
 <template>
   <section class="knowledge-page">
-    <header class="workspace-header knowledge-header">
+    <header class="workspace-header knowledge-header" :inert="detailOpen ? true : undefined" :aria-hidden="detailOpen ? 'true' : undefined">
       <div>
         <p class="eyebrow">KNOWLEDGE OPERATIONS</p>
         <h1>知识库</h1>
@@ -160,7 +160,7 @@ function closeDetails(): void {
       </div>
     </header>
 
-    <div class="knowledge-grid">
+    <div class="knowledge-grid" :inert="detailOpen ? true : undefined" :aria-hidden="detailOpen ? 'true' : undefined">
       <section class="upload-panel" aria-labelledby="upload-title">
         <span class="chapter-mark">01 / INGEST</span>
         <h2 id="upload-title">添加内部文档</h2>
@@ -169,23 +169,23 @@ function closeDetails(): void {
         <div class="form-grid upload-meta-grid">
           <label>
             <span>知识标题</span>
-            <input v-model="title" type="text" maxlength="200" placeholder="留空时使用文件名" :disabled="uploading" />
+            <input v-model="title" name="document-title" autocomplete="off" spellcheck="false" type="text" maxlength="200" placeholder="留空时使用文件名" :disabled="uploading" />
           </label>
           <label>
             <span>来源标签</span>
-            <input v-model="source" type="text" maxlength="100" placeholder="例如：internal_upload" :disabled="uploading" />
+            <input v-model="source" name="document-source" autocomplete="off" spellcheck="false" type="text" maxlength="100" placeholder="例如：internal_upload" :disabled="uploading" />
           </label>
           <label>
             <span>所属部门</span>
-            <input v-model="department" type="text" maxlength="100" placeholder="例如：Finance" :disabled="uploading" />
+            <input v-model="department" name="document-department" autocomplete="off" spellcheck="false" type="text" maxlength="100" placeholder="例如：Finance" :disabled="uploading" />
           </label>
           <label>
             <span>版本</span>
-            <input v-model="version" type="text" maxlength="50" placeholder="例如：v1" :disabled="uploading" />
+            <input v-model="version" name="document-version" autocomplete="off" spellcheck="false" type="text" maxlength="50" placeholder="例如：v1" :disabled="uploading" />
           </label>
           <label>
             <span>生效状态</span>
-            <select v-model="status" :disabled="uploading">
+            <select v-model="status" name="document-status" :disabled="uploading">
               <option value="active">已生效</option>
               <option value="draft">草稿</option>
               <option value="deprecated">已停用</option>
@@ -194,15 +194,15 @@ function closeDetails(): void {
           </label>
           <label>
             <span>负责人</span>
-            <input v-model="owner" type="text" maxlength="100" placeholder="可选" :disabled="uploading" />
+            <input v-model="owner" name="document-owner" autocomplete="off" spellcheck="false" type="text" maxlength="100" placeholder="可选" :disabled="uploading" />
           </label>
           <label>
             <span>生效日期</span>
-            <input v-model="effectiveFrom" type="date" :disabled="uploading" />
+            <input v-model="effectiveFrom" name="effective-from" autocomplete="off" type="date" :disabled="uploading" />
           </label>
           <label>
             <span>失效日期</span>
-            <input v-model="effectiveTo" type="date" :disabled="uploading" />
+            <input v-model="effectiveTo" name="effective-to" autocomplete="off" type="date" :disabled="uploading" />
           </label>
         </div>
 
@@ -216,13 +216,15 @@ function closeDetails(): void {
         >
           <input
             id="knowledge-file"
+            name="file"
+            autocomplete="off"
             type="file"
             :accept="KNOWLEDGE_FILE_ACCEPT"
             :disabled="uploading"
             @change="chooseFile"
           />
           <label for="knowledge-file" class="drop-zone-content">
-            <span class="drop-index"><el-icon><DocumentAdd /></el-icon></span>
+          <span class="drop-index"><el-icon aria-hidden="true"><DocumentAdd /></el-icon></span>
             <strong>{{ selectedFile?.name ?? '选择或拖入企业文档' }}</strong>
             <span>{{ fileSummary }}</span>
           </label>
@@ -233,7 +235,7 @@ function closeDetails(): void {
             aria-label="移除已选择的文件"
             @click.prevent="removeSelectedFile"
           >
-            <el-icon><Close /></el-icon>
+            <el-icon aria-hidden="true"><Close /></el-icon>
           </button>
         </div>
         <p v-if="uploadError" class="field-error" role="alert">{{ uploadError }}</p>
@@ -269,7 +271,7 @@ function closeDetails(): void {
             <h2 id="library-title">文档目录</h2>
           </div>
           <button class="secondary-button icon-text-button" type="button" :disabled="loadingKnowledge" @click="loadKnowledge">
-            <el-icon><Refresh /></el-icon>
+            <el-icon aria-hidden="true"><Refresh /></el-icon>
             {{ loadingKnowledge ? '刷新中…' : '刷新列表' }}
           </button>
         </div>
@@ -278,25 +280,25 @@ function closeDetails(): void {
           <label class="filter-search">
             <span class="sr-only">搜索文档</span>
             <el-icon aria-hidden="true"><Search /></el-icon>
-            <input v-model="filters.query" type="search" placeholder="搜索标题、文件名、来源或内容摘要" />
+            <input v-model="filters.query" name="knowledge-search" autocomplete="off" type="search" placeholder="搜索标题、文件名、来源或内容摘要" />
           </label>
           <label>
             <span class="sr-only">部门</span>
-            <select v-model="filters.department" aria-label="按部门筛选">
+            <select v-model="filters.department" name="filter-department" aria-label="按部门筛选">
               <option value="">全部部门</option>
               <option v-for="value in departments" :key="value" :value="value">{{ value }}</option>
             </select>
           </label>
           <label>
             <span class="sr-only">状态</span>
-            <select v-model="filters.status" aria-label="按状态筛选">
+            <select v-model="filters.status" name="filter-status" aria-label="按状态筛选">
               <option value="">全部状态</option>
               <option v-for="value in statuses" :key="value" :value="value">{{ knowledgeStatusLabel(value) }}</option>
             </select>
           </label>
           <label>
             <span class="sr-only">版本</span>
-            <select v-model="filters.version" aria-label="按版本筛选">
+            <select v-model="filters.version" name="filter-version" aria-label="按版本筛选">
               <option value="">全部版本</option>
               <option v-for="value in versions" :key="value" :value="value">{{ value }}</option>
             </select>

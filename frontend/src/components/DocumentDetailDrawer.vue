@@ -3,6 +3,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import type { KnowledgeRecord } from '../types/api'
 import { formatKnowledgeDateRange, knowledgeStatusLabel, knowledgeStatusTone } from '../utils/knowledge'
+import { registerOverlay } from '../utils/overlayStack'
 
 const props = defineProps<{
   open: boolean
@@ -10,10 +11,43 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{ close: [] }>()
+const drawer = ref<HTMLElement | null>(null)
 const closeButton = ref<HTMLButtonElement | null>(null)
+let overlay: ReturnType<typeof registerOverlay> | null = null
 
 function closeOnEscape(event: KeyboardEvent): void {
-  if (event.key === 'Escape' && props.open) emit('close')
+  if (!props.open) return
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    emit('close')
+    return
+  }
+  if (event.key === 'Tab') trapFocus(event)
+}
+
+function trapFocus(event: KeyboardEvent): void {
+  const focusable = drawer.value?.querySelectorAll<HTMLElement>(
+    'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+  )
+  if (!focusable?.length) {
+    event.preventDefault()
+    drawer.value?.focus()
+    return
+  }
+  const first = focusable[0]
+  const last = focusable[focusable.length - 1]
+  if (!drawer.value?.contains(document.activeElement)) {
+    event.preventDefault()
+    first.focus()
+    return
+  }
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault()
+    last.focus()
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault()
+    first.focus()
+  }
 }
 
 watch(
@@ -23,22 +57,35 @@ watch(
   },
 )
 
-onMounted(() => window.addEventListener('keydown', closeOnEscape))
-onBeforeUnmount(() => window.removeEventListener('keydown', closeOnEscape))
+onMounted(() => {
+  overlay = registerOverlay(closeOnEscape, { modal: true })
+  overlay.setOpen(props.open)
+})
+onBeforeUnmount(() => {
+  overlay?.unregister()
+  overlay = null
+})
+
+watch(
+  () => props.open,
+  (open) => overlay?.setOpen(open),
+)
 </script>
 
 <template>
   <div class="detail-drawer-shell" :class="{ open }">
     <div class="detail-drawer-scrim" :class="{ visible: open }" @click="emit('close')" />
     <aside
+      ref="drawer"
       class="document-detail-drawer"
       :class="{ open }"
       role="dialog"
       aria-modal="true"
       aria-labelledby="document-detail-title"
       aria-label="文档详情"
-      :aria-hidden="!open"
-      :inert="!open"
+      :aria-hidden="!open ? 'true' : undefined"
+      :inert="!open ? true : undefined"
+      tabindex="-1"
     >
       <header class="detail-drawer-header">
         <div>

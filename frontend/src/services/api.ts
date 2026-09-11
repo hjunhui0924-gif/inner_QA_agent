@@ -11,6 +11,15 @@ import type {
 
 const configuredBase = import.meta.env.VITE_API_BASE_URL?.trim()
 const API_BASE = (configuredBase || '/api').replace(/\/$/, '')
+const KNOWLEDGE_UPLOAD_METADATA_FIELDS = [
+  'department',
+  'version',
+  'status',
+  'effective_from',
+  'effective_to',
+  'owner',
+  'access_scope',
+] as const
 
 export class ApiError extends Error {
   constructor(
@@ -84,8 +93,9 @@ export function uploadKnowledge(
   body.append('file', file)
   body.append('title', title)
   body.append('source', source || 'internal_upload')
-  Object.entries(metadata).forEach(([key, value]) => {
-    if (typeof value === 'string' && value.trim()) body.append(key, value.trim())
+  KNOWLEDGE_UPLOAD_METADATA_FIELDS.forEach((key) => {
+    const value = metadata[key]
+    if (value?.trim()) body.append(key, value.trim())
   })
   return requestJson<UploadResponse>('/knowledge/upload', { method: 'POST', body })
 }

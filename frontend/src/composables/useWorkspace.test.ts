@@ -34,8 +34,15 @@ function resultEvent(
 
 afterEach(() => {
   serviceMocks.streamChat.mockReset()
+  serviceMocks.deleteSession.mockReset()
+  serviceMocks.fetchHistory.mockReset()
   serviceMocks.fetchSessions.mockClear()
   const workspace = useWorkspace()
+  workspace.sessions.value = []
+  workspace.sessionsError.value = null
+  workspace.historyError.value = null
+  workspace.historyErrorSessionId.value = null
+  workspace.toasts.value = []
   workspace.newSession()
 })
 
@@ -126,5 +133,78 @@ describe('useWorkspace answer delivery', () => {
     expect(assistant?.state).toBe('cancelled')
     expect(assistant?.content).toBe('')
     expect(workspace.agentSteps.value).toEqual([])
+  })
+
+  it('opens the next session after deleting the active session', async () => {
+    const workspace = useWorkspace()
+    workspace.sessions.value = [
+      { session_id: 'session-1', title: '第一个', created_at: '', updated_at: '', last_message: '' },
+      { session_id: 'session-2', title: '当前会话', created_at: '', updated_at: '', last_message: '' },
+      { session_id: 'session-3', title: '下一个', created_at: '', updated_at: '', last_message: '' },
+    ]
+    workspace.sessionId.value = 'session-2'
+    serviceMocks.deleteSession.mockResolvedValue({ message: 'ok' })
+    serviceMocks.fetchHistory.mockResolvedValue([
+      { role: 'user', content: '下一个问题', message_id: 'message-3' },
+    ])
+
+    await workspace.removeSession('session-2')
+
+    expect(workspace.sessionId.value).toBe('session-3')
+    expect(workspace.sessions.value.map((session) => session.session_id))
+      .toEqual(['session-1', 'session-3'])
+    expect(workspace.messages.value[0]?.content).toBe('下一个问题')
+  })
+
+  it('records history load failures and retries the same session', async () => {
+    const workspace = useWorkspace()
+    workspace.sessionId.value = 'current'
+    serviceMocks.fetchHistory
+      .mockRejectedValueOnce(new Error('history unavailable'))
+      .mockResolvedValueOnce([
+        { role: 'assistant', content: '已恢复', message_id: 'message-recovered' },
+      ])
+
+    expect(await workspace.openSession('session-1')).toBe(false)
+    expect(workspace.historyError.value).toContain('暂时无法加载')
+    expect(workspace.historyErrorSessionId.value).toBe('session-1')
+
+    expect(await workspace.retryOpenSession()).toBe(true)
+    expect(workspace.historyError.value).toBeNull()
+    expect(workspace.sessionId.value).toBe('session-1')
+    expect(workspace.messages.value[0]?.content).toBe('已恢复')
+  })
+
+  it('keeps a retryable error when the adjacent session cannot be loaded after deletion', async () => {
+    const workspace = useWorkspace()
+    workspace.sessions.value = [
+      { session_id: 'session-1', title: '当前会话', created_at: '', updated_at: '', last_message: '' },
+      { session_id: 'session-2', title: '邻近会话', created_at: '', updated_at: '', last_message: '' },
+    ]
+    workspace.sessionId.value = 'session-1'
+    serviceMocks.deleteSession.mockResolvedValue({ message: 'ok' })
+    serviceMocks.fetchHistory.mockRejectedValue(new Error('history unavailable'))
+
+    await workspace.removeSession('session-1')
+
+    expect(workspace.messages.value).toEqual([])
+    expect(workspace.historyError.value).toContain('暂时无法加载')
+    expect(workspace.historyErrorSessionId.value).toBe('session-2')
+    expect(workspace.sessions.value.map((session) => session.session_id)).toEqual(['session-2'])
+    expect(workspace.toasts.value.at(-1)?.title).toBe('会话已删除')
+    expect(workspace.toasts.value.at(-1)?.detail).toBe('聊天记录与 Agent 状态已同步清除。')
+  })
+
+  it('hides internal deletion errors from user-facing toasts', async () => {
+    const workspace = useWorkspace()
+    workspace.sessions.value = [
+      { session_id: 'session-1', title: '当前会话', created_at: '', updated_at: '', last_message: '' },
+    ]
+    workspace.sessionId.value = 'session-1'
+    serviceMocks.deleteSession.mockRejectedValue(new Error('Checkpointer is not initialized.'))
+
+    await expect(workspace.removeSession('session-1')).rejects.toThrow('Checkpointer is not initialized.')
+
+    expect(workspace.toasts.value.at(-1)?.detail).toBe('会话操作未完成，请稍后重试。')
   })
 })
