@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, useId } from 'vue'
+import { computed, ref, useId, watch } from 'vue'
 import type { AgentStep } from '../types/api'
 
 const props = defineProps<{ steps: AgentStep[]; active: boolean }>()
@@ -78,11 +78,25 @@ const currentStepLabel = computed(() => (
 function toggleExpanded(): void {
   expanded.value = !expanded.value
 }
+
+watch(
+  () => props.steps.length,
+  (length) => {
+    if (length === 0) expanded.value = false
+  },
+)
+
+watch(
+  () => props.active,
+  (active, wasActive) => {
+    if (active && !wasActive) expanded.value = false
+  },
+)
 </script>
 
 <template>
   <div v-if="active || steps.length" class="agent-progress">
-    <div class="progress-heading" role="status" aria-live="polite">
+    <div class="progress-heading">
       <span class="status-dot online" :class="{ pulse: active }" />
       <strong>{{ active ? 'Agent 正在处理' : 'Agent 路径' }}</strong>
     </div>
@@ -108,11 +122,12 @@ function toggleExpanded(): void {
       {{ expanded ? '收起处理过程' : '查看处理过程' }}
     </button>
     <div
-      v-if="expanded"
+      v-show="expanded"
       :id="detailsId"
       class="step-list"
       role="list"
       aria-label="Agent 处理步骤"
+      :aria-hidden="!expanded"
     >
       <div
         v-for="(step, index) in steps"

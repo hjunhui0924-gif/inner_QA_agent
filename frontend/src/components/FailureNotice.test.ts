@@ -53,6 +53,18 @@ describe('FailureNotice', () => {
     expect(host?.querySelector('.failure-retry')).toBeNull()
   })
 
+  it('keeps compatibility with historical abstention failures', () => {
+    mountNotice({
+      answerState: 'fallback',
+      failureType: 'abstention_error',
+      failureStage: 'evidence',
+      traceId: null,
+      retryable: false,
+    })
+
+    expect(host?.textContent).toContain('当前资料不足以回答这个问题')
+  })
+
   it('offers retry for an incomplete request and keeps technical details collapsed', async () => {
     const { events } = mountNotice({
       answerState: 'error',

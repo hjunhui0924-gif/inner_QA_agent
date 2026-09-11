@@ -1,4 +1,4 @@
-import { createApp, defineComponent, h, nextTick } from 'vue'
+import { createApp, defineComponent, h, nextTick, reactive } from 'vue'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import AgentProgress from './AgentProgress.vue'
@@ -8,15 +8,17 @@ let app: ReturnType<typeof createApp> | null = null
 let host: HTMLDivElement | null = null
 
 function mountProgress(steps: AgentStep[], active = true) {
+  const state = reactive({ steps, active })
   host = document.createElement('div')
   document.body.appendChild(host)
   const Root = defineComponent({
     setup() {
-      return () => h(AgentProgress, { steps, active })
+      return () => h(AgentProgress, { steps: state.steps, active: state.active })
     },
   })
   app = createApp(Root)
   app.mount(host)
+  return state
 }
 
 afterEach(() => {
@@ -38,7 +40,11 @@ describe('AgentProgress', () => {
     const toggle = host?.querySelector<HTMLButtonElement>('.progress-toggle')
     expect(toggle?.textContent).toContain('查看处理过程')
     expect(toggle?.getAttribute('aria-expanded')).toBe('false')
-    expect(host?.querySelector('.step-list')).toBeNull()
+    const details = host?.querySelector<HTMLElement>('.step-list')
+    expect(details).not.toBeNull()
+    expect(details?.getAttribute('aria-hidden')).toBe('true')
+    expect(details?.id).toBe(toggle?.getAttribute('aria-controls'))
+    expect(details?.style.display).toBe('none')
   })
 
   it('reveals status text and the timeline after the user expands it', async () => {
@@ -56,5 +62,25 @@ describe('AgentProgress', () => {
     expect(host?.textContent).toContain('失败')
     expect(host?.textContent).not.toContain('内部错误详情')
     expect(host?.querySelector('.step-error')).not.toBeNull()
+  })
+
+  it('resets the expanded state when a new request starts', async () => {
+    const state = mountProgress([
+      { node: 'retrieve', content: '正在检索知识库', status: 'complete' },
+    ], false)
+
+    host?.querySelector<HTMLButtonElement>('.progress-toggle')?.click()
+    await nextTick()
+    expect(host?.querySelector<HTMLButtonElement>('.progress-toggle')?.getAttribute('aria-expanded'))
+      .toBe('true')
+
+    state.steps = []
+    state.active = true
+    await nextTick()
+    state.steps = [{ node: 'generate', content: '正在组织回答', status: 'running' }]
+    await nextTick()
+
+    const toggle = host?.querySelector<HTMLButtonElement>('.progress-toggle')
+    expect(toggle?.getAttribute('aria-expanded')).toBe('false')
   })
 })

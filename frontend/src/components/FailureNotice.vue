@@ -41,6 +41,12 @@ const failureCopies: Record<string, FailureCopy> = {
     message: '本次回答没有通过完整的生成流程。',
     guidance: '可以点击“重新发送”再次尝试。',
   },
+  abstention_error: {
+    eyebrow: 'KNOWLEDGE LIMIT',
+    title: '当前资料不足以回答这个问题',
+    message: '系统没有提交未经验证的答案。',
+    guidance: '请补充制度名称、部门或关键词后重新提问。',
+  },
   request_error: {
     eyebrow: 'REQUEST INCOMPLETE',
     title: '本次回答未完成',
@@ -90,9 +96,10 @@ function toggleTechnical(event: MouseEvent): void {
   <section
     class="failure-notice"
     :class="`failure-${answerState}`"
-    role="status"
-    aria-live="polite"
   >
+    <span class="sr-only" role="status" aria-live="polite">
+      {{ copy.title }}。{{ copy.message }}
+    </span>
     <span class="failure-icon" aria-hidden="true">!</span>
     <div class="failure-copy">
       <p class="eyebrow">{{ copy.eyebrow }}</p>
