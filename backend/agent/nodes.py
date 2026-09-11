@@ -41,8 +41,22 @@ from backend.agent.memory import (
     search_documents_with_metadata,
 )
 from backend.agent.state import AgentState
-from backend.agent.tools import get_current_time, search_knowledge_base, search_web
+from backend.agent.tools import (
+    ToolResult,
+    get_current_time_result,
+    normalize_tool_result,
+    render_tool_output,
+    search_knowledge_base_result,
+    search_web_result,
+    tool_failure,
+)
 from backend.observability.metrics import record_call_stats
+from backend.observability.safe_errors import (
+    GENERATION_ERROR_CODE,
+    INTERNAL_ERROR_CODE,
+    RETRIEVAL_ERROR_CODE,
+    safe_diagnostic,
+)
 from backend.retrieval.engine import RetrievalFilter
 
 
@@ -510,11 +524,11 @@ async def retrieve(state: AgentState) -> dict[str, Any]:
             "latency_ms": retrieval.latency_ms,
             "applied_filter": retrieval.applied_filter,
         }
-    except Exception as exc:
+    except Exception:
         documents = []
         retrieval_metadata = {
             "strategy": settings.retrieval_strategy,
-            "runtime_error": f"{type(exc).__name__}: {exc}"[:300],
+            "runtime_error": RETRIEVAL_ERROR_CODE,
         }
         return {
             "retrieved_docs": documents,
@@ -669,7 +683,10 @@ async def fallback_answer(state: AgentState) -> dict[str, Any]:
     elif failure_stage == "tool":
         answer = "当前工具暂时不可用，无法可靠获取所需信息，请稍后重试。"
         fallback_reason = "tool_error"
-        failure_reason = state.get("failure_reason") or "工具调用失败。"
+        failure_reason = safe_diagnostic(
+            state.get("failure_reason") or "工具调用失败。",
+            fallback=INTERNAL_ERROR_CODE,
+        )
     elif state.get("is_relevant") is False or not state.get("retrieved_docs"):
         answer = (
             "这个问题不属于当前知识问答模式的企业知识范围。"
@@ -679,18 +696,20 @@ async def fallback_answer(state: AgentState) -> dict[str, Any]:
         )
         fallback_reason = "retrieval_exhausted"
         failure_stage = state.get("failure_stage") or "retrieval"
-        failure_reason = (
+        failure_reason = safe_diagnostic(
             state.get("failure_reason")
-            or "检索重试耗尽，仍未找到足够相关的企业知识证据。"
+            or "检索重试耗尽，仍未找到足够相关的企业知识证据。",
+            fallback=INTERNAL_ERROR_CODE,
         )
     elif state.get("hallucination_pass") is False:
         answer = "我没有在企业内部知识库中找到足够支持该回答的证据。请补充更具体的制度名称、流程名称或部门信息，我再继续检索。"
         fallback_reason = "hallucination_exhausted"
         failure_stage = state.get("failure_stage") or "hallucination"
-        failure_reason = (
+        failure_reason = safe_diagnostic(
             state.get("failure_reason")
             or state.get("hallucination_reason")
-            or "回答未通过证据一致性校验。"
+            or "回答未通过证据一致性校验。",
+            fallback=INTERNAL_ERROR_CODE,
         )
     else:
         answer = "当前无法生成经过验证的回答，请稍后重试。"
@@ -708,7 +727,7 @@ async def fallback_answer(state: AgentState) -> dict[str, Any]:
         "citations": [],
         "fallback_reason": fallback_reason,
         "failure_stage": failure_stage,
-        "failure_reason": str(failure_reason)[:500],
+        "failure_reason": failure_reason,
     }
 
 
@@ -760,22 +779,32 @@ async def commit_answer(state: AgentState) -> dict[str, Any]:
     return result
 
 
-def _choose_tool_output(
+def _choose_tool_result(
     query: str,
     mode: str = "knowledge",
     web_search: bool = False,
-) -> str:
-    """Pick the most suitable tool based on the query."""
+) -> ToolResult:
+    """Pick the most suitable tool and return its structured result."""
 
     lowered = query.lower()
     if any(
         keyword in lowered
         for keyword in ["时间", "几点", "日期", "today", "now", "current time"]
     ):
-        return get_current_time.invoke({})
+        return get_current_time_result()
     if mode == "general" and (web_search or _looks_like_web_query(query)):
-        return search_web.invoke({"query": query})
-    return search_knowledge_base.invoke({"query": query})
+        return search_web_result(query)
+    return search_knowledge_base_result(query)
+
+
+def _choose_tool_output(
+    query: str,
+    mode: str = "knowledge",
+    web_search: bool = False,
+) -> str:
+    """Keep the legacy string-only tool selection contract."""
+
+    return render_tool_output(_choose_tool_result(query, mode, web_search))
 
 
 async def tool_executor(state: AgentState) -> dict[str, Any]:
@@ -784,20 +813,23 @@ async def tool_executor(state: AgentState) -> dict[str, Any]:
     query = state.get("query") or latest_user_text(state.get("messages", []))
     call_started_at = time.perf_counter()
     try:
-        tool_output = await asyncio.to_thread(
-            _choose_tool_output,
+        tool_result = await asyncio.to_thread(
+            _choose_tool_result,
             query,
             state.get("mode", "knowledge"),
             bool(state.get("web_search")),
         )
-    except Exception as exc:
-        tool_output = f"工具调用失败：{exc}"
+    except Exception:
+        tool_result = tool_failure("tool_unavailable")
+    tool_result = normalize_tool_result(tool_result)
+    tool_output = render_tool_output(tool_result)
+    tool_failed = not bool(tool_result.get("ok"))
+    failure_reason = str(tool_result.get("error") or "工具调用失败。")[:500]
     return {
+        "tool_result": tool_result,
         "tool_output": tool_output,
-        "failure_stage": "tool" if tool_output.startswith("工具调用失败：") else None,
-        "failure_reason": (
-            tool_output[:500] if tool_output.startswith("工具调用失败：") else None
-        ),
+        "failure_stage": "tool" if tool_failed else None,
+        "failure_reason": failure_reason if tool_failed else None,
         "status_events": ["tool_executor"],
         **record_call_stats(state, tool_calls=1, started_at=call_started_at),
     }
@@ -861,8 +893,8 @@ async def generate(state: AgentState) -> dict[str, Any]:
         model = _build_model(temperature=0 if route == "rag" else 0.2)
         async for chunk in model.astream(prompt_messages):
             answer += _as_text(chunk)
-    except Exception as exc:
-        generation_error = f"{type(exc).__name__}: {exc}"[:500]
+    except Exception:
+        generation_error = GENERATION_ERROR_CODE
         answer = ""
 
     if route == "rag" and not generation_error:
@@ -905,7 +937,10 @@ async def check_hallucination(state: AgentState) -> dict[str, Any]:
             "status_events": ["check_hallucination:generation_error"],
         }
     if state.get("failure_stage") in {"tool", "runtime"}:
-        reason = str(state.get("failure_reason") or "工具或运行时调用失败。")[:500]
+        reason = safe_diagnostic(
+            state.get("failure_reason") or "工具或运行时调用失败。",
+            fallback=INTERNAL_ERROR_CODE,
+        )
         return {
             "hallucination_pass": False,
             "answer_disposition": "pending",

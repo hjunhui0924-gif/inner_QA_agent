@@ -45,7 +45,7 @@ class TraceTests(unittest.TestCase):
         )
 
         self.assertEqual(trace["failure_type"], "generation_error")
-        self.assertIn("PermissionDeniedError", trace["generation_error"])
+        self.assertEqual(trace["generation_error"], "generation_unavailable")
 
     def test_retrieval_fallback_reason_is_not_misclassified_as_citation(self) -> None:
         trace = build_trace(

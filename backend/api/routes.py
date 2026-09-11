@@ -40,6 +40,7 @@ from backend.agent.sessions import (
 from backend.config import settings
 from backend.observability.tracing import build_trace, record_trace
 from backend.observability.metrics import record_call_stats
+from backend.observability.safe_errors import RUNTIME_ERROR_CODE
 
 
 router = APIRouter()
@@ -219,13 +220,79 @@ def _answer_chunks(answer: str, chunk_size: int = 80) -> list[str]:
 async def _stream_graph(request: Request, payload: ChatRequest) -> AsyncIterator[str]:
     """Serialize one session while its graph run and history writes complete."""
 
-    thread_id = thread_id_for(payload.user_id, payload.session_id)
-    async with session_operation(thread_id):
-        async for event in _stream_graph_unlocked(request, payload):
+    try:
+        thread_id = thread_id_for(payload.user_id, payload.session_id)
+        async with session_operation(thread_id):
+            async for event in _stream_graph_unlocked(request, payload):
+                yield event
+    except HTTPException:
+        raise
+    except Exception:
+        async for event in _safe_runtime_failure_events(payload):
             yield event
 
 
+async def _safe_runtime_failure_events(
+    payload: ChatRequest,
+) -> AsyncIterator[str]:
+    """Emit a generic failure response without crossing exception details."""
+
+    trace_id = str(uuid.uuid4())
+    state: dict[str, object] = {
+        "answer": "",
+        "failure_stage": "runtime",
+        "failure_reason": RUNTIME_ERROR_CODE,
+        "generation_error": "",
+        "fallback_reason": "unknown",
+        "status_events": [f"error:{RUNTIME_ERROR_CODE}"],
+        "request_call_count": 0,
+        "model_call_count": 0,
+        "tool_call_count": 0,
+        "total_latency_ms": 0.0,
+        "trace_include_content": settings.trace_include_content,
+        "trace_retention_days": settings.trace_retention_days,
+    }
+    try:
+        trace = build_trace(trace_id=trace_id, query=payload.message, state=state)
+        trace["failure_type"] = "generation_error"
+        if settings.trace_enabled:
+            await asyncio.to_thread(
+                record_trace,
+                trace,
+                settings.trace_log_path,
+                max_bytes=settings.trace_max_bytes,
+                backup_count=settings.trace_backup_count,
+                retention_days=settings.trace_retention_days,
+            )
+    except Exception:
+        pass
+    yield _sse_event(
+        {
+            "type": "status",
+            "node": "error",
+            "content": "运行失败：服务暂时不可用，请稍后重试。",
+        }
+    )
+    yield _sse_event({"type": "done", "trace_id": trace_id})
+
+
 async def _stream_graph_unlocked(
+    request: Request,
+    payload: ChatRequest,
+) -> AsyncIterator[str]:
+    """Keep setup and replay failures inside the same safe stream boundary."""
+
+    try:
+        async for event in _stream_graph_unlocked_core(request, payload):
+            yield event
+    except HTTPException:
+        raise
+    except Exception:
+        async for event in _safe_runtime_failure_events(payload):
+            yield event
+
+
+async def _stream_graph_unlocked_core(
     request: Request,
     payload: ChatRequest,
 ) -> AsyncIterator[str]:
@@ -287,7 +354,7 @@ async def _stream_graph_unlocked(
             return
     graph = getattr(request.app.state, "graph", None)
     if graph is None:
-        raise HTTPException(status_code=503, detail="Graph is not initialized.")
+        raise RuntimeError("graph_unavailable")
     graph_input = create_turn_state(
         message=payload.message,
         user_id=payload.user_id,
@@ -456,17 +523,17 @@ async def _stream_graph_unlocked(
             int(final_state.get("model_call_count", 0))
             + int(final_state.get("tool_call_count", 0))
         )
-        final_trace = build_trace(
-            trace_id=trace_id,
-            query=payload.message,
-            state={
-                **final_state,
-                "trace_include_content": settings.trace_include_content,
-                "trace_retention_days": settings.trace_retention_days,
-            },
-        )
-        if settings.trace_enabled:
-            try:
+        try:
+            final_trace = build_trace(
+                trace_id=trace_id,
+                query=payload.message,
+                state={
+                    **final_state,
+                    "trace_include_content": settings.trace_include_content,
+                    "trace_retention_days": settings.trace_retention_days,
+                },
+            )
+            if settings.trace_enabled:
                 await asyncio.to_thread(
                     record_trace,
                     final_trace,
@@ -475,16 +542,21 @@ async def _stream_graph_unlocked(
                     backup_count=settings.trace_backup_count,
                     retention_days=settings.trace_retention_days,
                 )
-            except Exception:
-                pass
-    except Exception as exc:
+        except Exception:
+            # The authoritative result and done event have already been sent.
+            # Trace persistence must not append a second error stream.
+            pass
+    except Exception:
         error_state = {
             **final_state,
             "answer": "",
             "total_latency_ms": (time.perf_counter() - request_started_at) * 1000,
             "failure_stage": "runtime",
-            "failure_reason": str(exc)[:500],
-            "status_events": [*final_state.get("status_events", []), f"error:{exc}"],
+            "failure_reason": RUNTIME_ERROR_CODE,
+            "status_events": [
+                *final_state.get("status_events", []),
+                f"error:{RUNTIME_ERROR_CODE}",
+            ],
         }
         error_state["request_call_count"] = (
             int(error_state.get("model_call_count", 0))
@@ -510,7 +582,7 @@ async def _stream_graph_unlocked(
             {
                 "type": "status",
                 "node": "error",
-                "content": f"运行失败：{exc}",
+                "content": "运行失败：服务暂时不可用，请稍后重试。",
             }
         )
         yield _sse_event({"type": "done", "trace_id": trace_id})

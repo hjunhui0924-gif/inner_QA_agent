@@ -229,7 +229,7 @@ class RetrievalTests(unittest.TestCase):
         result = engine.retrieve("甲", top_k=1)
 
         self.assertFalse(result.rerank_used)
-        self.assertIn("TimeoutError", result.degraded_reason or "")
+        self.assertEqual(result.degraded_reason, "rerank_unavailable")
         self.assertEqual(
             result.documents[0].metadata["retrieval_stage"],
             "fusion_fallback",

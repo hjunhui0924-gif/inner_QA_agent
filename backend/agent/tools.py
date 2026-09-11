@@ -5,13 +5,195 @@ from __future__ import annotations
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import json
+import math
+from collections.abc import Mapping, Sequence
+from typing import TypedDict
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
 from langchain_core.tools import tool
 
 from backend.config import settings
-from backend.agent.memory import search_knowledge_base_text
+from backend.agent.memory import search_knowledge_base_data, search_knowledge_base_text
+
+
+class ToolResult(TypedDict):
+    """Serializable result shared by tool execution and graph state."""
+
+    ok: bool
+    text: str
+    sources: list[dict[str, object]]
+    error: str | None
+
+
+TOOL_ERROR_MESSAGES = {
+    "knowledge_base_unavailable": "知识库暂时不可用，请稍后重试。",
+    "web_search_unavailable": "联网搜索暂时不可用，请稍后重试。",
+    "time_unavailable": "时间服务暂时不可用，请稍后重试。",
+    "tool_unavailable": "工具暂时不可用，请稍后重试。",
+}
+
+MAX_TOOL_TEXT_CHARS = 12_000
+MAX_TOOL_SOURCES = 10
+MAX_SOURCE_FIELDS = 24
+MAX_SOURCE_FIELD_CHARS = 500
+MAX_SOURCE_SNIPPET_CHARS = 1_200
+
+
+def _bounded_text(value: object, *, limit: int = 12_000) -> str:
+    """Convert tool output to bounded plain text."""
+
+    return str(value or "").strip()[:limit]
+
+
+def _json_safe(
+    value: object,
+    *,
+    depth: int = 0,
+    seen: set[int] | None = None,
+) -> object:
+    """Keep source metadata finite, bounded, cycle-safe, and JSON serializable."""
+
+    if value is None or isinstance(value, (str, bool, int)):
+        return _bounded_text(value, limit=MAX_SOURCE_FIELD_CHARS) if isinstance(value, str) else value
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            raise ValueError("non-finite metadata")
+        return value
+    if depth >= 3:
+        return "[nested metadata omitted]"
+    active_ids = seen if seen is not None else set()
+    value_id = id(value)
+    if value_id in active_ids:
+        return "[cyclic metadata omitted]"
+    active_ids.add(value_id)
+    try:
+        if type(value) is dict:
+            normalized: dict[str, object] = {}
+            for index, (key, item) in enumerate(value.items()):
+                if index >= MAX_SOURCE_FIELDS:
+                    break
+                if not isinstance(key, str):
+                    raise ValueError("non-string metadata key")
+                key_name = key[:80]
+                normalized[key_name] = _json_safe(
+                    item,
+                    depth=depth + 1,
+                    seen=active_ids,
+                )
+            return normalized
+        if type(value) is list:
+            return [
+                _json_safe(item, depth=depth + 1, seen=active_ids)
+                for item in value[:MAX_SOURCE_FIELDS]
+            ]
+        raise ValueError("unsupported metadata value")
+    finally:
+        active_ids.remove(value_id)
+
+
+def tool_success(
+    text: object,
+    *,
+    sources: Sequence[Mapping[str, object]] | None = None,
+) -> ToolResult:
+    """Build a successful, serializable tool result."""
+
+    if not isinstance(text, str):
+        return tool_failure("tool_unavailable")
+    if sources is None:
+        sources = []
+    if not isinstance(sources, list):
+        return tool_failure("tool_unavailable")
+    normalized_sources: list[dict[str, object]] = []
+    try:
+        for source in sources:
+            if type(source) is not dict:
+                return tool_failure("tool_unavailable")
+            normalized: dict[str, object] = {}
+            for index, (key, value) in enumerate(source.items()):
+                if index >= MAX_SOURCE_FIELDS:
+                    break
+                if not isinstance(key, str):
+                    return tool_failure("tool_unavailable")
+                field_name = key[:80]
+                normalized[field_name] = _json_safe(value)
+                if isinstance(normalized[field_name], str):
+                    field_limit = (
+                        MAX_SOURCE_SNIPPET_CHARS
+                        if field_name.casefold() in {"snippet", "quote", "text"}
+                        else MAX_SOURCE_FIELD_CHARS
+                    )
+                    normalized[field_name] = normalized[field_name][:field_limit]
+            normalized_sources.append(normalized)
+            if len(normalized_sources) >= MAX_TOOL_SOURCES:
+                break
+    except (TypeError, ValueError, RecursionError):
+        return tool_failure("tool_unavailable")
+    return {
+        "ok": True,
+        "text": _bounded_text(text, limit=MAX_TOOL_TEXT_CHARS),
+        "sources": normalized_sources,
+        "error": None,
+    }
+
+
+def tool_failure(error: object, *, text: object = "") -> ToolResult:
+    """Build a failed result without persisting error-context text."""
+
+    code = error.strip() if isinstance(error, str) else ""
+    if code not in TOOL_ERROR_MESSAGES:
+        code = "tool_unavailable"
+    return {
+        "ok": False,
+        "text": "",
+        "sources": [],
+        "error": code,
+    }
+
+
+def render_tool_output(result: Mapping[str, object]) -> str:
+    """Render structured output for the legacy generation prompt field."""
+
+    normalized = normalize_tool_result(result)
+    if normalized["ok"]:
+        text = _bounded_text(normalized["text"], limit=MAX_TOOL_TEXT_CHARS)
+        return text or "工具未返回可用结果。"
+    error_code = normalized["error"] or "tool_unavailable"
+    message = TOOL_ERROR_MESSAGES.get(error_code, TOOL_ERROR_MESSAGES["tool_unavailable"])
+    return f"工具调用失败：{message}"
+
+
+def normalize_tool_result(value: object) -> ToolResult:
+    """Validate a tool boundary at runtime and fail closed on malformed values."""
+
+    try:
+        if not isinstance(value, Mapping):
+            return tool_failure("tool_unavailable")
+        required = {"ok", "text", "sources", "error"}
+        if not required.issubset(value):
+            return tool_failure("tool_unavailable")
+        ok = value.get("ok")
+        text = value.get("text")
+        sources = value.get("sources")
+        error = value.get("error")
+        if (
+            not isinstance(ok, bool)
+            or not isinstance(text, str)
+            or not isinstance(sources, list)
+            or any(type(source) is not dict for source in sources)
+        ):
+            return tool_failure("tool_unavailable")
+        if error is not None and not isinstance(error, str):
+            return tool_failure("tool_unavailable")
+        if ok:
+            if error is not None:
+                return tool_failure("tool_unavailable")
+            return tool_success(text, sources=sources)
+        error_code = error if error in TOOL_ERROR_MESSAGES else "tool_unavailable"
+        return tool_failure(error_code, text=text)
+    except Exception:
+        return tool_failure("tool_unavailable")
 
 
 @tool
@@ -23,6 +205,15 @@ def get_current_time() -> str:
     """
 
     return datetime.now(ZoneInfo("Asia/Shanghai")).strftime("%Y-%m-%d %H:%M:%S")
+
+
+def get_current_time_result() -> ToolResult:
+    """Return the current time using the structured tool contract."""
+
+    try:
+        return tool_success(get_current_time.invoke({}))
+    except Exception:
+        return tool_failure("time_unavailable")
 
 
 @tool
@@ -39,9 +230,23 @@ def search_knowledge_base(query: str) -> str:
     return search_knowledge_base_text(query, top_k=settings.retrieval_top_k)
 
 
-@tool
-def search_web(query: str) -> str:
-    """Search public web snippets for a general-mode question."""
+def search_knowledge_base_result(query: str) -> ToolResult:
+    """Return knowledge search text and source metadata in a structured envelope."""
+
+    try:
+        text, sources, error = search_knowledge_base_data(
+            query,
+            top_k=settings.retrieval_top_k,
+        )
+        if error:
+            return tool_failure(error, text=text)
+        return tool_success(text, sources=sources)
+    except Exception:
+        return tool_failure("knowledge_base_unavailable")
+
+
+def _search_web_payload(query: str) -> tuple[str, list[dict[str, object]]]:
+    """Fetch public snippets and retain the source fields when available."""
 
     request = Request(
         "https://api.duckduckgo.com/?q=" + quote(query) + "&format=json&no_html=1&skip_disambig=1",
@@ -50,9 +255,55 @@ def search_web(query: str) -> str:
     with urlopen(request, timeout=8) as response:  # noqa: S310 - fixed public endpoint
         payload = json.loads(response.read().decode("utf-8"))
     snippets: list[str] = []
-    if payload.get("AbstractText"):
-        snippets.append(str(payload["AbstractText"]))
+    sources: list[dict[str, object]] = []
+    abstract = _bounded_text(payload.get("AbstractText"))
+    if abstract:
+        snippets.append(abstract)
+        abstract_url = _bounded_text(payload.get("AbstractURL"))
+        if abstract_url:
+            sources.append(
+                {
+                    "title": _bounded_text(payload.get("Heading")) or "公开网页摘要",
+                    "url": abstract_url,
+                    "snippet": abstract,
+                }
+            )
     for item in payload.get("RelatedTopics", [])[:5]:
         if isinstance(item, dict) and item.get("Text"):
-            snippets.append(str(item["Text"]))
-    return "\n".join(snippets) or "公开网页没有返回可用摘要。"
+            snippet = _bounded_text(item["Text"])
+            snippets.append(snippet)
+            url = _bounded_text(item.get("FirstURL"))
+            if url:
+                sources.append(
+                    {
+                        "title": _bounded_text(item.get("Name")) or "相关网页摘要",
+                        "url": url,
+                        "snippet": snippet,
+                    }
+                )
+    return "\n".join(snippets) or "公开网页没有返回可用摘要。", sources
+
+
+@tool
+def search_web(query: str) -> str:
+    """Search public web snippets for a general-mode question."""
+
+    try:
+        return _search_web_payload(query)[0]
+    except Exception:
+        return TOOL_ERROR_MESSAGES["web_search_unavailable"]
+
+
+def search_web_result(query: str) -> ToolResult:
+    """Return public snippets and optional source metadata in a safe envelope."""
+
+    try:
+        text, sources = _search_web_payload(query)
+        verifiable_sources = [
+            source
+            for source in sources
+            if str(source.get("url", "")).strip()
+        ]
+        return tool_success(text, sources=verifiable_sources)
+    except Exception:
+        return tool_failure("web_search_unavailable")

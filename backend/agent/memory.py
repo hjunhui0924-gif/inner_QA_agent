@@ -997,29 +997,58 @@ def _build_retrieval_engine(vectorstore: VectorStoreLike) -> RetrievalEngine:
     )
 
 
-def search_knowledge_base_text(query: str, top_k: int = 4) -> str:
-    """Search the enterprise knowledge base and return a compact summary."""
+def search_knowledge_base_data(
+    query: str,
+    top_k: int = 4,
+) -> tuple[str, list[dict[str, object]], str | None]:
+    """Return a knowledge search summary, source metadata, and stable error code."""
 
     try:
         retriever = get_retriever()
     except RuntimeError:
-        return "知识库尚未初始化。"
+        return "知识库尚未初始化。", [], "knowledge_base_unavailable"
+    except Exception:
+        return "知识库暂时不可用。", [], "knowledge_base_unavailable"
 
     try:
         docs = retriever.retrieve(query, top_k=top_k).documents
-    except Exception as exc:
-        return f"知识库检索失败：{exc}"
+    except Exception:
+        return "知识库暂时不可用。", [], "knowledge_base_unavailable"
 
     if not docs:
-        return "未找到匹配的知识库内容。"
+        return "未找到匹配的知识库内容。", [], None
 
     lines: list[str] = []
+    sources: list[dict[str, object]] = []
     for idx, doc in enumerate(docs, start=1):
-        title = str(doc.metadata.get("title", "未命名条目"))
-        source = str(doc.metadata.get("source", "unknown"))
+        metadata = doc.metadata
+        title = str(metadata.get("title", "未命名条目")).strip()[:500] or "未命名条目"
+        source = str(metadata.get("source", "unknown")).strip()[:500] or "unknown"
         snippet = doc.page_content.replace("\n", " ").strip()
         lines.append(f"{idx}. {title} [{source}]：{snippet[:200]}")
-    return "\n".join(lines)
+        if len(sources) < 10:
+            sources.append(
+                {
+                    "source_id": str(
+                        metadata.get("source_id", metadata.get("document_id", ""))
+                    ).strip()[:500],
+                    "document_id": str(metadata.get("document_id", "")).strip()[:500],
+                    "chunk_id": str(metadata.get("chunk_id", "")).strip()[:500],
+                    "title": title,
+                    "source": source,
+                    "filename": str(metadata.get("original_filename", "")).strip()[:500],
+                    "page": metadata.get("page"),
+                    "section": str(metadata.get("section", "")).strip()[:500],
+                    "snippet": snippet[:200],
+                }
+            )
+    return "\n".join(lines), sources, None
+
+
+def search_knowledge_base_text(query: str, top_k: int = 4) -> str:
+    """Search the enterprise knowledge base and return its legacy text summary."""
+
+    return search_knowledge_base_data(query, top_k=top_k)[0]
 
 
 async def search_documents(query: str, top_k: int = 4) -> list[Document]:

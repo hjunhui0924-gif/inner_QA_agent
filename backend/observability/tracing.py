@@ -11,6 +11,16 @@ from typing import Any
 from filelock import FileLock
 from langchain_core.documents import Document
 
+from backend.observability.safe_errors import (
+    GENERATION_ERROR_CODE,
+    INTERNAL_ERROR_CODE,
+    safe_diagnostic,
+    safe_attempt_stage,
+    safe_failure_stage,
+    safe_fallback_reason,
+    safe_status_event,
+)
+
 
 def build_trace(
     *,
@@ -28,7 +38,7 @@ def build_trace(
         citations = []
     answer = str(state.get("answer", ""))
     include_content = bool(state.get("trace_include_content", False))
-    trace_metadata = state.get("retrieval_metadata", {})
+    trace_metadata = _safe_trace_value(state.get("retrieval_metadata", {}))
     if not isinstance(trace_metadata, dict):
         trace_metadata = {}
     retrieved_chunks: list[dict[str, Any]] = []
@@ -73,16 +83,25 @@ def build_trace(
         "route": str(state.get("route", "")),
         "query": query[:4000] if include_content else _redact_text(query),
         "answer": answer[:12000] if include_content else _redact_text(answer),
-        "generation_error": str(state.get("generation_error", ""))[:500],
-        "fallback_reason": str(state.get("fallback_reason", ""))[:80],
+        "generation_error": safe_diagnostic(
+            state.get("generation_error", ""),
+            fallback=GENERATION_ERROR_CODE,
+        ),
+        "fallback_reason": safe_fallback_reason(state.get("fallback_reason", "")),
         "failure_type": classify_runtime_failure(state),
-        "failure_stage": state.get("failure_stage"),
-        "failure_reason": str(state.get("failure_reason") or "")[:500],
+        "failure_stage": safe_failure_stage(state.get("failure_stage"), fallback=""),
+        "failure_reason": safe_diagnostic(
+            state.get("failure_reason") or "",
+            fallback=INTERNAL_ERROR_CODE,
+        ),
         "attempt_history": [
             {
-                "stage": str(item.get("stage", ""))[:40],
+                "stage": safe_attempt_stage(item.get("stage", "")),
                 "passed": bool(item.get("passed", False)),
-                "reason": str(item.get("reason", ""))[:500],
+                "reason": safe_diagnostic(
+                    item.get("reason", ""),
+                    fallback=INTERNAL_ERROR_CODE,
+                ),
                 "retry_count": int(item.get("retry_count", 0)),
             }
             for item in state.get("attempt_history", [])[-10:]
@@ -92,13 +111,59 @@ def build_trace(
         "model_call_count": int(state.get("model_call_count", 0)),
         "tool_call_count": int(state.get("tool_call_count", 0)),
         "total_latency_ms": float(state.get("total_latency_ms", 0.0)),
-        "status_events": [str(item)[:300] for item in state.get("status_events", [])][-50:],
+        "status_events": [safe_status_event(item) for item in state.get("status_events", [])][-50:],
         "retrieval": trace_metadata,
         "retrieved_chunks": retrieved_chunks,
         "citations": trace_citations,
         "content_recording": "enabled" if include_content else "metadata_only",
         "retention_days": int(state.get("trace_retention_days", 30)),
     }
+
+
+def _safe_trace_value(
+    value: object,
+    *,
+    depth: int = 0,
+    key: str = "",
+) -> object:
+    """Bound and sanitize optional metadata before it reaches a trace file."""
+
+    if value is None or isinstance(value, (str, bool, int, float)):
+        if isinstance(value, float) and (value != value or value in {float("inf"), float("-inf")}):
+            return None
+        if isinstance(value, str) and key in {
+            "error",
+            "degraded_reason",
+            "failure_reason",
+            "generation_error",
+            "reason",
+            "runtime_error",
+        }:
+            return safe_diagnostic(value, fallback=INTERNAL_ERROR_CODE)
+        return value[:1000] if isinstance(value, str) else value
+    if depth >= 3:
+        return "[metadata omitted]"
+    if isinstance(value, dict):
+        def safe_key(raw_key: object) -> str:
+            if isinstance(raw_key, (str, int, float, bool)):
+                return str(raw_key)[:80]
+            return "[metadata key omitted]"
+
+        return {
+            safe_key(key): _safe_trace_value(
+                item,
+                depth=depth + 1,
+                key=safe_key(key),
+            )
+            for index, (key, item) in enumerate(value.items())
+            if index < 32
+        }
+    if isinstance(value, (list, tuple, set, frozenset)):
+        return [
+            _safe_trace_value(item, depth=depth + 1, key=key)
+            for item in list(value)[:32]
+        ]
+    return safe_diagnostic(value, fallback=INTERNAL_ERROR_CODE)
 
 
 def _redact_text(value: str) -> str:

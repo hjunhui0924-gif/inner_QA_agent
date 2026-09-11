@@ -12,6 +12,7 @@ from typing import Any, Literal, Protocol
 
 from langchain_core.documents import Document
 
+from backend.observability.safe_errors import RERANK_ERROR_CODE
 from backend.retrieval.reranker import Reranker
 
 
@@ -337,12 +338,12 @@ class RetrievalEngine:
                 filtered_candidate_count=len(rerank_pool),
                 applied_filter=applied_filter,
             )
-        except Exception as exc:
+        except Exception:
             documents = [
                 _candidate_document(candidate, retrieval_stage="fusion_fallback")
                 for candidate in rerank_pool[:top_k]
             ]
-            reason = f"{type(exc).__name__}: {exc}"[:300]
+            reason = RERANK_ERROR_CODE
             return self._result(
                 documents,
                 selected,

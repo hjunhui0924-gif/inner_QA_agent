@@ -24,7 +24,7 @@ class GenerationFailureTests(unittest.IsolatedAsyncioTestCase):
             )
 
         self.assertNotIn(secret, result["candidate_answer"])
-        self.assertIn("RuntimeError", result["generation_error"])
+        self.assertEqual(result["generation_error"], "generation_unavailable")
         self.assertEqual(result["candidate_citations"], [])
         self.assertNotIn("answer", result)
         self.assertNotIn("messages", result)
