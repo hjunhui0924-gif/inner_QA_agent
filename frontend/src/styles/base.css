@@ -206,6 +206,144 @@ h3 {
   border-top: 1px solid var(--line);
 }
 
+.session-search {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  margin-top: 12px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: rgb(255 255 255 / 38%);
+}
+
+.session-search .el-icon {
+  color: var(--ink-faint);
+}
+
+.session-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 12px;
+}
+
+.session-search:focus-within {
+  border-color: var(--forest);
+  box-shadow: 0 0 0 3px rgb(36 92 71 / 12%);
+}
+
+.session-progress,
+.session-error {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 11px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  color: var(--ink-faint);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.session-error {
+  border-color: #cc8e89;
+  background: rgb(157 66 58 / 6%);
+  color: var(--danger);
+}
+
+.session-error button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 36px;
+  flex: 0 0 auto;
+  padding: 0 7px;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-size: 11px;
+}
+
+.session-error button:hover {
+  background: rgb(157 66 58 / 10%);
+}
+
+.session-search {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  margin-top: 12px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: rgb(255 255 255 / 38%);
+}
+
+.session-search .el-icon {
+  color: var(--ink-faint);
+}
+
+.session-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  font-size: 12px;
+}
+
+.session-search:focus-within {
+  border-color: var(--forest);
+  box-shadow: 0 0 0 3px rgb(36 92 71 / 12%);
+}
+
+.session-progress,
+.session-error {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 11px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  color: var(--ink-faint);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.session-error {
+  border-color: #cc8e89;
+  background: rgb(157 66 58 / 6%);
+  color: var(--danger);
+}
+
+.session-error button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 36px;
+  flex: 0 0 auto;
+  padding: 0 7px;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-size: 11px;
+}
+
+.session-error button:hover {
+  background: rgb(157 66 58 / 10%);
+}
+
 .session-list {
   display: grid;
   gap: 7px;
@@ -280,8 +418,12 @@ h3 {
   position: absolute;
   top: 50%;
   right: 8px;
-  min-height: 30px;
-  padding: 0 6px;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  place-items: center;
+  padding: 0;
   border: 0;
   background: transparent;
   color: var(--ink-faint);
@@ -300,9 +442,27 @@ h3 {
   color: var(--danger);
 }
 
+.session-title-status {
+  overflow: hidden;
+  color: var(--ink-faint);
+  font-size: 10px;
+  font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .session-title {
   font-size: 13px;
   font-weight: 600;
+}
+
+.session-title-status {
+  overflow: hidden;
+  color: var(--ink-faint);
+  font-size: 10px;
+  font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .session-meta,
@@ -1279,9 +1439,14 @@ h3 {
 }
 
 .drop-zone-content strong {
+  max-width: 100%;
+  padding: 0 36px;
   font-family: var(--font-display);
   font-size: 20px;
   font-weight: 500;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  text-align: center;
 }
 
 .drop-zone-content > span:last-child {
@@ -1536,6 +1701,13 @@ h3 {
   font-size: 10px;
 }
 
+.document-main p,
+.document-meta span,
+.document-main h3 {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .document-meta {
   display: grid;
   gap: 5px;
@@ -1663,6 +1835,7 @@ h3 {
   min-height: 0;
   padding: 26px;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .detail-title-block {

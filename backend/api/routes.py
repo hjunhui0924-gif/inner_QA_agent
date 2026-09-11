@@ -644,7 +644,10 @@ async def upload_knowledge_file(
     except json.JSONDecodeError as exc:
         raise HTTPException(status_code=400, detail="JSON 文件解析失败。") from exc
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"知识库入库失败：{exc}") from exc
+        raise HTTPException(
+            status_code=500,
+            detail="知识库入库失败，请稍后重试。",
+        ) from exc
 
     return {
         "message": (

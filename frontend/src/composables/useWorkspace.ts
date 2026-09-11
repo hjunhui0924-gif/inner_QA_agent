@@ -22,6 +22,7 @@ import type {
   KnowledgeUploadMetadata,
 } from '../types/api'
 import { readableKnowledgeUploadError } from '../utils/knowledge'
+import { nextSessionAfterDelete } from '../utils/sessions'
 import {
   createStreamState,
   reduceStreamEvent,
@@ -46,12 +47,16 @@ const activeCitations = ref<Citation[]>([])
 const backendOnline = ref(false)
 const initialized = ref(false)
 const loadingSessions = ref(false)
+const sessionsError = ref<string | null>(null)
 const loadingHistory = ref(false)
+const historyError = ref<string | null>(null)
+const historyErrorSessionId = ref<string | null>(null)
 const loadingKnowledge = ref(false)
 const sending = ref(false)
 const chatMode = ref<ChatMode>('knowledge')
 const webSearchEnabled = ref(false)
 const uploading = ref(false)
+const sessionTitlePending = ref(false)
 const toasts = ref<ToastMessage[]>([])
 let activeController: AbortController | null = null
 let historyRequestGeneration = 0
@@ -135,10 +140,12 @@ function syncAssistantMessage(
 
 async function loadSessions(): Promise<void> {
   loadingSessions.value = true
+  sessionsError.value = null
   try {
     sessions.value = await fetchSessions(userId)
   } catch (error) {
-    notify('error', '会话列表加载失败', readableError(error))
+    sessionsError.value = '会话列表暂时无法加载，请重试。'
+    notify('error', '会话列表加载失败', sessionsError.value)
   } finally {
     loadingSessions.value = false
   }
@@ -176,17 +183,27 @@ function newSession(): void {
   messages.value = []
   agentSteps.value = []
   activeCitations.value = []
+  sessionTitlePending.value = false
+  historyError.value = null
+  historyErrorSessionId.value = null
   chatMode.value = 'knowledge'
   webSearchEnabled.value = false
 }
 
-async function openSession(targetSessionId: string): Promise<void> {
-  if (sending.value || loadingHistory.value || targetSessionId === sessionId.value) return
+async function openSession(targetSessionId: string): Promise<boolean> {
+  if (sending.value || loadingHistory.value) return false
+  if (targetSessionId === sessionId.value) {
+    historyError.value = null
+    historyErrorSessionId.value = null
+    return true
+  }
   const requestGeneration = ++historyRequestGeneration
   loadingHistory.value = true
+  historyError.value = null
+  historyErrorSessionId.value = null
   try {
     const history = await fetchHistory(userId, targetSessionId)
-    if (requestGeneration !== historyRequestGeneration) return
+    if (requestGeneration !== historyRequestGeneration) return false
     sessionId.value = targetSessionId
     chatMode.value = readSessionModes()[targetSessionId] ?? 'knowledge'
     webSearchEnabled.value = false
@@ -206,21 +223,42 @@ async function openSession(targetSessionId: string): Promise<void> {
     activeCitations.value =
       [...messages.value].reverse().find((message) => message.citations?.length)?.citations ?? []
     agentSteps.value = []
+    return true
   } catch (error) {
-    if (requestGeneration !== historyRequestGeneration) return
-    notify('error', '会话加载失败', readableError(error))
+    if (requestGeneration !== historyRequestGeneration) return false
+    historyError.value = '会话内容暂时无法加载，请重试。'
+    historyErrorSessionId.value = targetSessionId
+    notify('error', '会话加载失败', historyError.value)
+    return false
   } finally {
     if (requestGeneration === historyRequestGeneration) loadingHistory.value = false
   }
 }
 
+async function retryOpenSession(): Promise<boolean> {
+  if (!historyErrorSessionId.value) return false
+  return openSession(historyErrorSessionId.value)
+}
+
 async function removeSession(targetSessionId: string): Promise<void> {
+  const sessionsBeforeDelete = [...sessions.value]
+  const wasActive = sessionId.value === targetSessionId
   historyRequestGeneration += 1
   loadingHistory.value = false
+  historyError.value = null
+  historyErrorSessionId.value = null
   try {
     await deleteSessionRequest(userId, targetSessionId)
     sessions.value = sessions.value.filter((item) => item.session_id !== targetSessionId)
-    if (sessionId.value === targetSessionId) newSession()
+    if (wasActive) {
+      const nextSessionId = nextSessionAfterDelete(sessionsBeforeDelete, targetSessionId)
+      if (nextSessionId) {
+        const opened = await openSession(nextSessionId)
+        if (!opened) newSession()
+      } else {
+        newSession()
+      }
+    }
     notify('success', '会话已删除', '聊天记录与 Agent 状态已同步清除。')
   } catch (error) {
     notify('error', '删除会话失败', readableError(error))
@@ -233,6 +271,7 @@ async function sendMessage(rawMessage: string): Promise<void> {
   if (!content || sending.value) return
 
   const turnId = generateUuid()
+  const isNewSession = !sessions.value.some((item) => item.session_id === sessionId.value)
   const userMessage: UiMessage = {
     id: `${turnId}:user`,
     role: 'user',
@@ -261,6 +300,7 @@ async function sendMessage(rawMessage: string): Promise<void> {
   agentSteps.value = []
   activeCitations.value = []
   sending.value = true
+  sessionTitlePending.value = isNewSession
   rememberSessionMode(sessionId.value, chatMode.value)
   activeController = new AbortController()
   let streamState = createStreamState()
@@ -317,6 +357,7 @@ async function sendMessage(rawMessage: string): Promise<void> {
   } finally {
     activeController = null
     sending.value = false
+    sessionTitlePending.value = false
   }
 }
 
@@ -375,18 +416,23 @@ export function useWorkspace() {
     activeSessionTitle,
     backendOnline,
     loadingSessions,
+    sessionsError,
     loadingHistory,
+    historyError,
+    historyErrorSessionId,
     loadingKnowledge,
     sending,
     chatMode,
     webSearchEnabled,
     uploading,
+    sessionTitlePending,
     toasts,
     initialize,
     loadSessions,
     loadKnowledge,
     newSession,
     openSession,
+    retryOpenSession,
     removeSession,
     sendMessage,
     cancelMessage,
