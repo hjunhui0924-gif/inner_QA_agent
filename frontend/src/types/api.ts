@@ -22,12 +22,31 @@ export interface SessionSummary {
 
 export type ChatMode = 'knowledge' | 'general'
 
+export type AnswerState =
+  | 'streaming'
+  | 'validating'
+  | 'complete'
+  | 'fallback'
+  | 'error'
+  | 'cancelled'
+
+export type AgentStepStatus =
+  | 'pending'
+  | 'running'
+  | 'complete'
+  | 'skipped'
+  | 'error'
+
 export interface ChatHistoryItem {
   role: 'user' | 'assistant'
   content: string
   citations?: Citation[]
   turn_id?: string | null
   message_id?: string | null
+  failure_type?: string | null
+  failure_stage?: string | null
+  failure_reason?: string | null
+  trace_id?: string | null
 }
 
 export interface KnowledgeRecord {
@@ -53,7 +72,12 @@ export interface HealthResponse {
 }
 
 export type StreamEvent =
-  | { type: 'status'; node: string; content: string }
+  | {
+      type: 'status'
+      node: string
+      content: string
+      node_status?: Exclude<AgentStepStatus, 'pending'>
+    }
   | { type: 'token'; content: string }
   | {
       type: 'result'
@@ -69,13 +93,20 @@ export type StreamEvent =
 
 export interface UiMessage extends ChatHistoryItem {
   id: string
-  state: 'complete' | 'streaming' | 'error'
-  failureType?: string
+  state: 'complete' | 'streaming' | 'error' | 'cancelled'
+  answerState?: AnswerState
+  failureType?: string | null
+  failureStage?: string | null
+  failureReason?: string | null
+  traceId?: string | null
 }
 
 export interface AgentStep {
   node: string
   content: string
+  status?: AgentStepStatus
+  startedAt?: number
+  endedAt?: number
 }
 
 export interface ToastMessage {

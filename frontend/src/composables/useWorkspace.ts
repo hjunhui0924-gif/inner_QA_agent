@@ -20,6 +20,11 @@ import type {
   UploadResponse,
   ChatMode,
 } from '../types/api'
+import {
+  createStreamState,
+  reduceStreamEvent,
+  type StreamUiState,
+} from '../utils/streamState'
 
 const userId = 'user_001'
 
@@ -97,6 +102,31 @@ function isAbortError(error: unknown): boolean {
   return error instanceof DOMException && error.name === 'AbortError'
 }
 
+function uiStateForAnswer(answerState: UiMessage['answerState']): UiMessage['state'] {
+  if (answerState === 'error') return 'error'
+  if (answerState === 'cancelled') return 'cancelled'
+  if (answerState === 'complete' || answerState === 'fallback') return 'complete'
+  return 'streaming'
+}
+
+function syncAssistantMessage(
+  assistant: UiMessage,
+  streamState: StreamUiState,
+): void {
+  assistant.answerState = streamState.answerState
+  assistant.state = uiStateForAnswer(streamState.answerState)
+  assistant.failureType = streamState.failureType
+  assistant.failureStage = streamState.failureStage
+  assistant.failureReason = streamState.failureReason
+  assistant.traceId = streamState.traceId
+
+  if (streamState.resultReceived) {
+    assistant.content = streamState.content
+    assistant.citations = streamState.citations
+    activeCitations.value = streamState.citations
+  }
+}
+
 async function loadSessions(): Promise<void> {
   loadingSessions.value = true
   try {
@@ -159,6 +189,13 @@ async function openSession(targetSessionId: string): Promise<void> {
       id: message.message_id || createId(message.role),
       citations: message.citations ?? [],
       state: 'complete',
+      answerState: message.failure_type && message.failure_type !== 'none'
+        ? 'fallback'
+        : 'complete',
+      failureType: message.failure_type ?? null,
+      failureStage: message.failure_stage ?? null,
+      failureReason: message.failure_reason ?? null,
+      traceId: message.trace_id ?? null,
     }))
     activeCitations.value =
       [...messages.value].reverse().find((message) => message.citations?.length)?.citations ?? []
@@ -185,23 +222,6 @@ async function removeSession(targetSessionId: string): Promise<void> {
   }
 }
 
-function applyStreamEvent(event: StreamEvent, assistant: UiMessage): void {
-  if (event.type === 'status') {
-    if (agentSteps.value.at(-1)?.node !== event.node) {
-      agentSteps.value.push({ node: event.node, content: event.content })
-    }
-    if (event.node === 'error') assistant.state = 'error'
-  } else if (event.type === 'token') {
-    assistant.content += event.content
-  } else if (event.type === 'result') {
-    assistant.content = event.content
-    assistant.citations = event.citations ?? []
-    assistant.failureType = event.failure_type
-    assistant.state = event.failure_type === 'none' ? 'complete' : 'error'
-    activeCitations.value = assistant.citations
-  }
-}
-
 async function sendMessage(rawMessage: string): Promise<void> {
   const content = rawMessage.trim()
   if (!content || sending.value) return
@@ -215,6 +235,7 @@ async function sendMessage(rawMessage: string): Promise<void> {
     message_id: `${turnId}:user`,
     citations: [],
     state: 'complete',
+    answerState: 'complete',
   }
   const assistant: UiMessage = {
     id: `${turnId}:assistant`,
@@ -224,6 +245,11 @@ async function sendMessage(rawMessage: string): Promise<void> {
     message_id: `${turnId}:assistant`,
     citations: [],
     state: 'streaming',
+    answerState: 'streaming',
+    failureType: null,
+    failureStage: null,
+    failureReason: null,
+    traceId: null,
   }
   messages.value.push(userMessage, assistant)
   agentSteps.value = []
@@ -231,6 +257,7 @@ async function sendMessage(rawMessage: string): Promise<void> {
   sending.value = true
   rememberSessionMode(sessionId.value, chatMode.value)
   activeController = new AbortController()
+  let streamState = createStreamState()
 
   try {
     await streamChat(
@@ -242,20 +269,42 @@ async function sendMessage(rawMessage: string): Promise<void> {
         web_search: webSearchEnabled.value,
         turn_id: turnId,
       },
-      (event) => applyStreamEvent(event, assistant),
+      (event: StreamEvent) => {
+        streamState = reduceStreamEvent(streamState, event)
+        syncAssistantMessage(assistant, streamState)
+        agentSteps.value = streamState.steps
+      },
       activeController.signal,
     )
-    if (!assistant.content.trim()) {
-      throw new Error('后端没有返回有效回答。')
+    if (!streamState.resultReceived) {
+      throw new Error('后端没有返回经过校验的最终结果。')
     }
     backendOnline.value = true
     await loadSessions()
   } catch (error) {
-    assistant.state = 'error'
-    if (!assistant.content) assistant.content = readableError(error)
-    if (isAbortError(error)) {
+    if (streamState.resultReceived) {
+      // The result event is authoritative. A disconnect after it must not
+      // turn a delivered answer back into an error or cancelled state.
+      syncAssistantMessage(assistant, streamState)
+      backendOnline.value = true
+    } else if (isAbortError(error)) {
+      assistant.content = ''
+      assistant.answerState = 'cancelled'
+      assistant.state = 'cancelled'
+      assistant.failureType = null
+      assistant.failureStage = null
+      assistant.failureReason = null
+      assistant.traceId = streamState.traceId
+      agentSteps.value = []
       notify('info', '已取消本次回答')
     } else {
+      assistant.content = ''
+      assistant.answerState = 'error'
+      assistant.state = 'error'
+      assistant.failureType = null
+      assistant.failureStage = null
+      assistant.failureReason = '本次请求未收到经过校验的最终回答。'
+      assistant.traceId = streamState.traceId
       backendOnline.value = false
       notify('error', '问答请求失败', readableError(error))
     }
@@ -267,6 +316,17 @@ async function sendMessage(rawMessage: string): Promise<void> {
 
 function cancelMessage(): void {
   activeController?.abort()
+}
+
+async function retryMessage(message: UiMessage): Promise<void> {
+  if (sending.value || message.role !== 'assistant') return
+  const messageIndex = messages.value.findIndex((item) => item.id === message.id)
+  const previousMessage = messageIndex > 0 ? messages.value[messageIndex - 1] : undefined
+  if (previousMessage?.role !== 'user' || !previousMessage.content.trim()) {
+    notify('warning', '无法重新发送', '没有找到本次回答对应的问题。')
+    return
+  }
+  await sendMessage(previousMessage.content)
 }
 
 function showCitations(citations: Citation[]): void {
@@ -323,6 +383,7 @@ export function useWorkspace() {
     removeSession,
     sendMessage,
     cancelMessage,
+    retryMessage,
     showCitations,
     uploadKnowledge,
     dismissToast,

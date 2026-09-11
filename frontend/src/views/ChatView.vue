@@ -20,9 +20,12 @@ const {
   chatMode,
   webSearchEnabled,
   cancelMessage,
+  retryMessage,
   showCitations,
 } = useWorkspace()
 const evidenceOpen = ref(false)
+const evidenceTrigger = ref<HTMLButtonElement | null>(null)
+const selectedCitationId = ref<string | null>(null)
 const draft = ref('')
 const composer = ref<HTMLTextAreaElement | null>(null)
 const conversation = ref<HTMLElement | null>(null)
@@ -60,9 +63,45 @@ async function submit() {
   await sendMessage(content)
 }
 
-function openCitations(citations: Citation[]) {
+function openCitations(citations: Citation[], citationId?: string) {
+  const normalizedCitationId = citationId?.trim().toUpperCase()
+  const targetCitation = citations.find(
+    (citation) => citation.citation_id.trim().toUpperCase() === normalizedCitationId,
+  )?.citation_id ?? citations[0]?.citation_id ?? null
   showCitations(citations)
+  selectedCitationId.value = targetCitation
   evidenceOpen.value = true
+}
+
+function closeEvidence() {
+  evidenceOpen.value = false
+  selectedCitationId.value = null
+  nextTick(() => evidenceTrigger.value?.focus())
+}
+
+function handleMessageContentClick(event: MouseEvent, citations: Citation[]) {
+  const contentElement = event.currentTarget as HTMLElement
+  const target = (event.target as HTMLElement).closest<HTMLButtonElement>(
+    '[data-citation-id]',
+  )
+  if (!target || !contentElement.contains(target)) return
+
+  const citationId = target.dataset.citationId
+  if (!citationId || !citations.some(
+    (citation) => citation.citation_id.trim().toUpperCase() === citationId.trim().toUpperCase(),
+  )) {
+    return
+  }
+  openCitations(citations, citationId)
+}
+
+function failureLabel(failureType: string | null | undefined): string {
+  const labels: Record<string, string> = {
+    retrieval_miss: '没有找到足够相关的知识',
+    citation_error: '回答引用校验未通过',
+    generation_error: '回答生成服务暂时不可用',
+  }
+  return labels[failureType || ''] || '回答受限，未提交未经校验的内容'
 }
 
 function selectMode(mode: 'knowledge' | 'general') {
@@ -79,13 +118,19 @@ function selectMode(mode: 'knowledge' | 'general') {
           <div class="brand-heading"><img src="/knowledge-assistant.png" alt="" /><p class="eyebrow">KNOWLEDGE ASSISTANT</p></div>
           <h1>{{ activeSessionTitle }}</h1>
         </div>
-        <button class="secondary-button" type="button" @click="evidenceOpen = !evidenceOpen">
+        <button
+          ref="evidenceTrigger"
+          class="secondary-button"
+          type="button"
+          aria-label="打开或隐藏引用证据"
+          @click="evidenceOpen ? closeEvidence() : openCitations(activeCitations)"
+        >
           {{ evidenceOpen ? '隐藏证据' : '查看证据' }}
           <span v-if="activeCitations.length"> · {{ activeCitations.length }}</span>
         </button>
       </header>
 
-      <div ref="conversation" class="conversation" aria-live="polite">
+      <div ref="conversation" class="conversation" aria-label="对话内容">
         <div v-if="loadingHistory" class="view-loading">正在加载会话记录…</div>
         <div v-else-if="messages.length === 0" class="chat-empty">
           <span class="chapter-mark">01 / ASK</span>
@@ -117,31 +162,52 @@ function selectMode(mode: 'knowledge' | 'general') {
           >
             <span class="message-label">{{ message.role === 'user' ? '你' : '知识助手' }}</span>
             <AgentProgress
-              v-if="message.role === 'assistant' && message.state === 'streaming'"
+              v-if="message.role === 'assistant' && (
+                message.answerState === 'streaming' || message.answerState === 'validating'
+              )"
               :steps="agentSteps"
               :active="sending"
             />
             <div
               v-if="message.content"
               class="message-content"
-              v-html="renderMarkdown(message.content)"
+              v-html="renderMarkdown(message.content, (message.citations ?? []).map((citation) => citation.citation_id))"
+              @click="handleMessageContentClick($event, message.citations ?? [])"
             />
-            <div v-else-if="message.state === 'streaming'" class="answer-placeholder">
-              正在等待经过校验的最终回答…
+            <div v-else-if="message.answerState === 'validating'" class="answer-placeholder">
+              正在校验回答依据…
+            </div>
+            <div v-else-if="message.answerState === 'streaming'" class="answer-placeholder">
+              正在整理经过校验的最终回答…
+            </div>
+            <div v-else-if="message.answerState === 'cancelled'" class="answer-placeholder">
+              本次回答已取消。
+            </div>
+            <div v-else-if="message.answerState === 'error'" class="answer-placeholder error-text">
+              本次回答未完成，未展示未经校验的内容。
             </div>
             <div v-if="message.citations?.length" class="citation-row">
               <button
                 v-for="citation in message.citations"
                 :key="citation.citation_id"
                 type="button"
-                @click="openCitations(message.citations ?? [])"
+                @click="openCitations(message.citations ?? [], citation.citation_id)"
               >
                 {{ citation.citation_id }} · {{ citation.title }}
               </button>
             </div>
-            <span v-if="message.failureType && message.failureType !== 'none'" class="failure-label">
-              {{ message.failureType }}
+            <span v-if="message.answerState === 'fallback'" class="failure-label">
+              {{ failureLabel(message.failureType) }}
             </span>
+            <button
+              v-if="message.answerState === 'error' || message.failureType === 'generation_error'"
+              class="retry-button"
+              type="button"
+              :disabled="sending"
+              @click="retryMessage(message)"
+            >
+              重新发送
+            </button>
           </article>
         </div>
       </div>
@@ -205,7 +271,8 @@ function selectMode(mode: 'knowledge' | 'general') {
     <EvidencePanel
       :open="evidenceOpen"
       :citations="activeCitations"
-      @close="evidenceOpen = false"
+      :selected-citation-id="selectedCitationId"
+      @close="closeEvidence"
     />
   </div>
 </template>

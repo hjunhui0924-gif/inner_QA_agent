@@ -558,6 +558,32 @@ h3 {
   font-size: 0.9em;
 }
 
+.inline-citation {
+  display: inline-flex;
+  align-items: center;
+  min-width: 28px;
+  min-height: 24px;
+  margin: 0 2px;
+  padding: 0 5px;
+  border: 1px solid var(--forest);
+  border-radius: 5px;
+  background: var(--forest-soft);
+  color: var(--forest-dark);
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.78em;
+  line-height: 1;
+  vertical-align: baseline;
+  cursor: pointer;
+  transition: background 160ms var(--ease-out), border-color 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+
+.inline-citation:hover,
+.inline-citation:focus-visible {
+  border-color: var(--forest-dark);
+  background: var(--forest);
+  color: white;
+}
+
 .answer-placeholder {
   color: var(--ink-faint);
   font-size: 13px;
@@ -594,6 +620,29 @@ h3 {
   color: var(--danger);
   font-family: "SFMono-Regular", Consolas, monospace;
   font-size: 10px;
+}
+
+.retry-button {
+  display: block;
+  min-height: 36px;
+  margin-top: 12px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  color: var(--forest);
+  font-size: 12px;
+  transition: border-color 160ms var(--ease-out), background 160ms var(--ease-out), color 160ms var(--ease-out);
+}
+
+.retry-button:hover:not(:disabled) {
+  border-color: var(--forest);
+  background: var(--forest-soft);
+  color: var(--forest-dark);
+}
+
+.error-text {
+  color: var(--danger);
 }
 
 .composer-wrap {
@@ -642,11 +691,64 @@ h3 {
 }
 
 .step-chip {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 7px;
+  min-width: 0;
   padding: 4px 7px;
   border: 1px solid var(--line);
   border-radius: 5px;
   color: var(--ink-soft);
   font-size: 10px;
+}
+
+.step-status-marker {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  margin-top: 4px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.step-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.step-copy strong {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.step-copy small {
+  color: var(--ink-faint);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.step-running {
+  border-color: var(--forest);
+  color: var(--forest-dark);
+}
+
+.step-running .step-status-marker {
+  background: var(--forest);
+  box-shadow: 0 0 0 3px var(--forest-soft);
+}
+
+.step-complete .step-status-marker {
+  background: var(--forest);
+}
+
+.step-error {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.step-error .step-status-marker {
+  background: var(--danger);
 }
 
 .composer label {
@@ -761,6 +863,14 @@ h3 {
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-control);
   background: rgb(255 255 255 / 52%);
+  scroll-margin: 20px;
+  transition: border-color 160ms var(--ease-out), background 160ms var(--ease-out), box-shadow 160ms var(--ease-out);
+}
+
+.evidence-card.selected {
+  border-color: var(--forest);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--forest-soft);
 }
 
 .evidence-card-heading {
@@ -799,6 +909,19 @@ h3 {
   font-family: "SFMono-Regular", Consolas, monospace;
   color: var(--ink-faint);
   font-size: 9px;
+}
+
+.evidence-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.copy-quote {
+  min-height: 28px;
+  padding: 0 6px;
+  font-size: 11px;
 }
 
 .evidence-note {
