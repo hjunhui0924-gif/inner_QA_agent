@@ -4,6 +4,7 @@ import { Connection, Collection, ArrowUp, Search } from '@element-plus/icons-vue
 
 import AgentProgress from '../components/AgentProgress.vue'
 import EvidencePanel from '../components/EvidencePanel.vue'
+import FailureNotice from '../components/FailureNotice.vue'
 import { useWorkspace } from '../composables/useWorkspace'
 import type { Citation } from '../types/api'
 import { renderMarkdown } from '../utils/markdown'
@@ -95,15 +96,6 @@ function handleMessageContentClick(event: MouseEvent, citations: Citation[]) {
   openCitations(citations, citationId)
 }
 
-function failureLabel(failureType: string | null | undefined): string {
-  const labels: Record<string, string> = {
-    retrieval_miss: '没有找到足够相关的知识',
-    citation_error: '回答引用校验未通过',
-    generation_error: '回答生成服务暂时不可用',
-  }
-  return labels[failureType || ''] || '回答受限，未提交未经校验的内容'
-}
-
 function selectMode(mode: 'knowledge' | 'general') {
   if (sending.value || modeLocked.value) return
   chatMode.value = mode
@@ -161,13 +153,6 @@ function selectMode(mode: 'knowledge' | 'general') {
             :class="[message.role, message.state]"
           >
             <span class="message-label">{{ message.role === 'user' ? '你' : '知识助手' }}</span>
-            <AgentProgress
-              v-if="message.role === 'assistant' && (
-                message.answerState === 'streaming' || message.answerState === 'validating'
-              )"
-              :steps="agentSteps"
-              :active="sending"
-            />
             <div
               v-if="message.content"
               class="message-content"
@@ -183,9 +168,6 @@ function selectMode(mode: 'knowledge' | 'general') {
             <div v-else-if="message.answerState === 'cancelled'" class="answer-placeholder">
               本次回答已取消。
             </div>
-            <div v-else-if="message.answerState === 'error'" class="answer-placeholder error-text">
-              本次回答未完成，未展示未经校验的内容。
-            </div>
             <div v-if="message.citations?.length" class="citation-row">
               <button
                 v-for="citation in message.citations"
@@ -196,18 +178,15 @@ function selectMode(mode: 'knowledge' | 'general') {
                 {{ citation.citation_id }} · {{ citation.title }}
               </button>
             </div>
-            <span v-if="message.answerState === 'fallback'" class="failure-label">
-              {{ failureLabel(message.failureType) }}
-            </span>
-            <button
-              v-if="message.answerState === 'error' || message.failureType === 'generation_error'"
-              class="retry-button"
-              type="button"
-              :disabled="sending"
-              @click="retryMessage(message)"
-            >
-              重新发送
-            </button>
+            <FailureNotice
+              v-if="message.answerState === 'fallback' || message.answerState === 'error'"
+              :answer-state="message.answerState"
+              :failure-type="message.failureType"
+              :failure-stage="message.failureStage"
+              :trace-id="message.traceId"
+              :retryable="message.answerState === 'error' || message.failureType === 'generation_error'"
+              @retry="retryMessage(message)"
+            />
           </article>
         </div>
       </div>

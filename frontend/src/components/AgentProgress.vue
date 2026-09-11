@@ -1,7 +1,11 @@
 <script setup lang="ts">
+import { computed, ref, useId } from 'vue'
 import type { AgentStep } from '../types/api'
 
-defineProps<{ steps: AgentStep[]; active: boolean }>()
+const props = defineProps<{ steps: AgentStep[]; active: boolean }>()
+
+const expanded = ref(false)
+const detailsId = `agent-step-list-${useId()}`
 
 const labels: Record<string, string> = {
   manage_conversation_context: '整理上下文',
@@ -56,6 +60,24 @@ function stepAriaLabel(step: AgentStep): string {
   const status = stepStatus(step)
   return `${stepLabel(step)}：${statusLabels[status] || '处理中'}`
 }
+
+const currentStep = computed(() => (
+  [...props.steps].reverse().find((step) => step.status === 'running')
+  || props.steps.at(-1)
+  || null
+))
+
+const currentStepStatus = computed(() => (
+  currentStep.value ? stepStatus(currentStep.value) : props.active ? 'running' : 'pending'
+))
+
+const currentStepLabel = computed(() => (
+  currentStep.value ? stepLabel(currentStep.value) : '准备处理请求'
+))
+
+function toggleExpanded(): void {
+  expanded.value = !expanded.value
+}
 </script>
 
 <template>
@@ -64,7 +86,34 @@ function stepAriaLabel(step: AgentStep): string {
       <span class="status-dot online" :class="{ pulse: active }" />
       <strong>{{ active ? 'Agent 正在处理' : 'Agent 路径' }}</strong>
     </div>
-    <div class="step-list" role="list" aria-label="Agent 处理步骤">
+    <div class="progress-current" role="status" aria-live="polite">
+      <span
+        class="step-status-marker"
+        :class="`step-marker-${currentStepStatus}`"
+        aria-hidden="true"
+      />
+      <span class="progress-current-copy">
+        <strong>{{ currentStepLabel }}</strong>
+        <small>{{ statusLabels[currentStepStatus] || '处理中' }}</small>
+      </span>
+    </div>
+    <button
+      v-if="steps.length"
+      class="progress-toggle"
+      type="button"
+      :aria-expanded="expanded"
+      :aria-controls="detailsId"
+      @click="toggleExpanded"
+    >
+      {{ expanded ? '收起处理过程' : '查看处理过程' }}
+    </button>
+    <div
+      v-if="expanded"
+      :id="detailsId"
+      class="step-list"
+      role="list"
+      aria-label="Agent 处理步骤"
+    >
       <div
         v-for="(step, index) in steps"
         :key="`${step.node}-${index}`"
@@ -77,6 +126,7 @@ function stepAriaLabel(step: AgentStep): string {
         <span class="step-copy">
           <strong>{{ stepLabel(step) }}</strong>
           <small>{{ stepDescription(step) }}</small>
+          <span class="step-status-label">{{ statusLabels[stepStatus(step)] || '处理中' }}</span>
         </span>
       </div>
     </div>

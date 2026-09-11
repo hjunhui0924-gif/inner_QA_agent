@@ -98,6 +98,10 @@ function readableError(error: unknown): string {
   return error instanceof Error ? error.message : '发生未知错误。'
 }
 
+function chatFailureDetail(): string {
+  return '请求未完成，候选内容已丢弃。请稍后重新发送。'
+}
+
 function isAbortError(error: unknown): boolean {
   return error instanceof DOMException && error.name === 'AbortError'
 }
@@ -306,7 +310,7 @@ async function sendMessage(rawMessage: string): Promise<void> {
       assistant.failureReason = '本次请求未收到经过校验的最终回答。'
       assistant.traceId = streamState.traceId
       backendOnline.value = false
-      notify('error', '问答请求失败', readableError(error))
+      notify('error', '问答请求失败', chatFailureDetail())
     }
   } finally {
     activeController = null

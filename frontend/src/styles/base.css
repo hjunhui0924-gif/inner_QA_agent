@@ -614,35 +614,129 @@ h3 {
   background: var(--forest-soft);
 }
 
-.failure-label {
-  display: inline-block;
-  margin-top: 12px;
-  color: var(--danger);
-  font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 10px;
+.failure-notice {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  background: var(--paper);
 }
 
-.retry-button {
-  display: block;
-  min-height: 36px;
+.failure-fallback {
+  border-color: #d9b06f;
+  background: var(--amber-soft);
+}
+
+.failure-error {
+  border-color: #cc8e89;
+  background: rgb(157 66 58 / 6%);
+}
+
+.failure-icon {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  color: var(--amber);
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.failure-error .failure-icon {
+  color: var(--danger);
+}
+
+.failure-copy {
+  min-width: 0;
+}
+
+.failure-copy h3 {
+  margin: 5px 0 7px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.failure-copy > p:not(.eyebrow) {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.failure-copy .failure-guidance {
+  margin-top: 3px;
+  color: var(--ink);
+}
+
+.failure-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
   margin-top: 12px;
+}
+
+.failure-retry,
+.technical-details summary,
+.progress-toggle {
+  min-height: 44px;
   padding: 0 12px;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-control);
   background: var(--surface);
   color: var(--forest);
   font-size: 12px;
+  cursor: pointer;
   transition: border-color 160ms var(--ease-out), background 160ms var(--ease-out), color 160ms var(--ease-out);
 }
 
-.retry-button:hover:not(:disabled) {
+.failure-retry:hover,
+.technical-details summary:hover,
+.progress-toggle:hover {
   border-color: var(--forest);
   background: var(--forest-soft);
   color: var(--forest-dark);
 }
 
-.error-text {
-  color: var(--danger);
+.technical-details {
+  margin-top: 8px;
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+
+.technical-details summary {
+  display: inline-flex;
+  align-items: center;
+  list-style: none;
+  font-size: 11px;
+}
+
+.technical-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.technical-details-content {
+  display: grid;
+  gap: 5px;
+  margin-top: 8px;
+  padding: 9px 10px;
+  border-left: 2px solid var(--line-strong);
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.technical-details-content code {
+  overflow-wrap: anywhere;
+  color: var(--ink-faint);
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 10px;
 }
 
 .composer-wrap {
@@ -668,10 +762,6 @@ h3 {
   background: rgb(244 241 234 / 92%);
 }
 
-.message .agent-progress {
-  margin: 0 0 14px;
-}
-
 .progress-heading {
   display: flex;
   align-items: center;
@@ -681,6 +771,72 @@ h3 {
 .progress-heading strong {
   font-size: 11px;
   letter-spacing: 0.04em;
+}
+
+.progress-current {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 9px;
+  padding: 8px 9px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+}
+
+.progress-current-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.progress-current-copy strong {
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progress-current-copy small {
+  color: var(--ink-faint);
+  font-size: 10px;
+}
+
+.step-marker-running {
+  background: var(--forest);
+  box-shadow: 0 0 0 3px var(--forest-soft);
+}
+
+.step-marker-complete {
+  background: var(--forest);
+}
+
+.step-marker-error {
+  width: 14px;
+  height: 14px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--danger);
+}
+
+.step-marker-error::before {
+  content: '×';
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 14px;
+  text-align: center;
+}
+
+.step-marker-pending {
+  border-color: var(--line-strong);
+}
+
+.progress-toggle {
+  width: 100%;
+  margin-top: 8px;
+  text-align: left;
 }
 
 .step-list {
@@ -728,6 +884,11 @@ h3 {
   line-height: 1.4;
 }
 
+.step-status-label {
+  color: var(--ink-faint);
+  font-size: 9px;
+}
+
 .step-running {
   border-color: var(--forest);
   color: var(--forest-dark);
@@ -748,7 +909,30 @@ h3 {
 }
 
 .step-error .step-status-marker {
-  background: var(--danger);
+  width: 14px;
+  height: 14px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--danger);
+}
+
+.step-error .step-status-marker::before {
+  content: '×';
+  display: block;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 14px;
+  text-align: center;
+}
+
+.step-skipped {
+  border-style: dashed;
+  color: var(--ink-faint);
+}
+
+.step-skipped .step-status-marker {
+  border-style: dashed;
 }
 
 .composer label {
