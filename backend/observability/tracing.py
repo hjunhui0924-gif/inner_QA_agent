@@ -111,6 +111,7 @@ def build_trace(
         "model_call_count": int(state.get("model_call_count", 0)),
         "tool_call_count": int(state.get("tool_call_count", 0)),
         "total_latency_ms": float(state.get("total_latency_ms", 0.0)),
+        "budget": _safe_trace_value(state.get("budget_snapshot")),
         "status_events": [safe_status_event(item) for item in state.get("status_events", [])][-50:],
         "retrieval": trace_metadata,
         "retrieved_chunks": retrieved_chunks,

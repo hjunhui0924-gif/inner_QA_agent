@@ -19,6 +19,7 @@ from langchain_core.messages import (
     SystemMessage,
 )
 from langchain_openai import ChatOpenAI
+from langgraph.runtime import Runtime
 
 from backend.config import settings
 from backend.agent.citations import (
@@ -51,6 +52,14 @@ from backend.agent.tools import (
     tool_failure,
 )
 from backend.observability.metrics import record_call_stats
+from backend.observability.budget import (
+    BUDGET_EXHAUSTED_CODE,
+    BudgetExceededError,
+    RequestBudget,
+    RunContext,
+    budget_deadline,
+    extract_usage,
+)
 from backend.observability.safe_errors import (
     GENERATION_ERROR_CODE,
     INTERNAL_ERROR_CODE,
@@ -64,7 +73,101 @@ class _RouteDecision(dict):
     """Tiny helper type for JSON parsing."""
 
 
-async def manage_conversation_context(state: AgentState) -> dict[str, Any]:
+def _budget_for(runtime: Runtime[RunContext] | None) -> RequestBudget | None:
+    """Return the request budget from runtime context, if this is a budgeted run."""
+
+    context = getattr(runtime, "context", None)
+    return context.budget if isinstance(context, RunContext) else None
+
+
+def _budget_fields(runtime: Runtime[RunContext] | None) -> dict[str, object]:
+    budget = _budget_for(runtime)
+    return {"budget_snapshot": budget.snapshot()} if budget is not None else {}
+
+
+def _reserve_model_call(
+    runtime: Runtime[RunContext] | None,
+    node: str,
+) -> bool:
+    budget = _budget_for(runtime)
+    if budget is None:
+        return False
+    budget.consume_model_call(node)
+    return True
+
+
+def _reserve_tool_call(
+    runtime: Runtime[RunContext] | None,
+    node: str,
+) -> bool:
+    budget = _budget_for(runtime)
+    if budget is None:
+        return False
+    budget.consume_tool_call(node)
+    return True
+
+
+def _finish_model_call(
+    runtime: Runtime[RunContext] | None,
+    response: object,
+) -> None:
+    budget = _budget_for(runtime)
+    if budget is None:
+        return
+    budget.record_response(response)
+    budget.ensure_available()
+
+
+def _finish_stream_call(
+    runtime: Runtime[RunContext] | None,
+    usage: tuple[int, int, float | None] | None,
+) -> None:
+    budget = _budget_for(runtime)
+    if budget is None:
+        return
+    if usage is not None:
+        budget.record_usage(
+            input_tokens=usage[0],
+            output_tokens=usage[1],
+            cost=usage[2],
+        )
+    budget.ensure_available()
+
+
+def _budget_failure(
+    runtime: Runtime[RunContext] | None,
+    *,
+    node: str,
+    state: AgentState,
+    model_call_reserved: bool = False,
+    tool_call_reserved: bool = False,
+    started_at: float | None = None,
+) -> dict[str, object]:
+    """Return a safe state update when a request budget blocks progress."""
+
+    result: dict[str, object] = {
+        "failure_stage": "runtime",
+        "failure_reason": BUDGET_EXHAUSTED_CODE,
+        "fallback_reason": "budget_exhausted",
+        "generation_error": BUDGET_EXHAUSTED_CODE,
+        "status_events": [f"{node}:budget_exhausted"],
+        **_budget_fields(runtime),
+    }
+    result.update(
+        record_call_stats(
+            state,
+            model_calls=1 if model_call_reserved else 0,
+            tool_calls=1 if tool_call_reserved else 0,
+            started_at=started_at,
+        )
+    )
+    return result
+
+
+async def manage_conversation_context(
+    state: AgentState,
+    runtime: Runtime[RunContext] | None = None,
+) -> dict[str, Any]:
     """Summarize old turns and remove them from persistent graph messages."""
 
     messages = list(state.get("messages", []))
@@ -78,7 +181,10 @@ async def manage_conversation_context(state: AgentState) -> dict[str, Any]:
         recent_turns=settings.conversation_recent_turns,
     )
     if plan is None:
-        return {"status_events": ["manage_conversation_context:unchanged"]}
+        return {
+            "status_events": ["manage_conversation_context:unchanged"],
+            **_budget_fields(runtime),
+        }
 
     old_conversation = render_messages(plan.messages_to_summarize)
     prompt = (
@@ -89,15 +195,29 @@ async def manage_conversation_context(state: AgentState) -> dict[str, Any]:
         f"待压缩旧对话：\n{old_conversation}\n"
     )
     call_started_at = time.perf_counter()
+    model_call_reserved = False
     try:
+        model_call_reserved = _reserve_model_call(runtime, "manage_conversation_context")
         model = _build_model(
             temperature=0,
             max_tokens=settings.conversation_summary_target_tokens,
         )
-        response = await model.ainvoke([SystemMessage(content=prompt)])
+        async with budget_deadline(_budget_for(runtime), "manage_conversation_context"):
+            response = await model.ainvoke([SystemMessage(content=prompt)])
+        _finish_model_call(runtime, response)
         summary = _as_text(response).strip()
         if not summary:
             raise ValueError("Conversation summarizer returned empty content.")
+    except BudgetExceededError:
+        return {
+            **_budget_failure(
+                runtime,
+                node="manage_conversation_context",
+                state=state,
+                model_call_reserved=model_call_reserved,
+                started_at=call_started_at,
+            ),
+        }
     except Exception:
         summary = merge_fallback_summary(
             existing_summary,
@@ -121,6 +241,7 @@ async def manage_conversation_context(state: AgentState) -> dict[str, Any]:
         "messages": removals,
         "status_events": ["manage_conversation_context:summarized"],
         **record_call_stats(state, model_calls=1, started_at=call_started_at),
+        **_budget_fields(runtime),
     }
 
 
@@ -145,6 +266,8 @@ def _build_model(
         "base_url": settings.dashscope_base_url,
         "temperature": temperature,
         "streaming": True,
+        "stream_usage": True,
+        "max_retries": 0,
         "extra_body": {"enable_thinking": settings.qwen_enable_thinking},
     }
     if max_tokens is not None:
@@ -440,7 +563,10 @@ def _retrieval_filter_from_state(state: AgentState) -> RetrievalFilter | None:
     )
 
 
-async def route_query(state: AgentState) -> dict[str, Any]:
+async def route_query(
+    state: AgentState,
+    runtime: Runtime[RunContext] | None = None,
+) -> dict[str, Any]:
     """Use the LLM to select the execution route."""
 
     query = state.get("query") or latest_user_text(state.get("messages", []))
@@ -479,15 +605,31 @@ async def route_query(state: AgentState) -> dict[str, Any]:
     elif mode == "knowledge" and route == "direct":
         route = "rag"
     call_started_at = time.perf_counter()
+    model_call_reserved = False
     try:
+        model_call_reserved = _reserve_model_call(runtime, "route_query")
         model = _build_model(temperature=0)
-        response = await model.ainvoke([SystemMessage(content=prompt)])
+        async with budget_deadline(_budget_for(runtime), "route_query"):
+            response = await model.ainvoke([SystemMessage(content=prompt)])
+        _finish_model_call(runtime, response)
         parsed = _extract_json_object(_as_text(response))
         candidate = str(parsed.get("route", "")).strip()
         if candidate in {"rag", "tool_call", "direct"} and mode == "general":
             route = "tool_call" if state.get("web_search") or candidate == "tool_call" or _looks_like_web_query(heuristic_input) else "direct"
         elif candidate in {"rag", "tool_call", "direct"} and mode == "knowledge":
             route = "tool_call" if candidate == "tool_call" else "rag"
+    except BudgetExceededError:
+        return {
+            "route": route,
+            "should_rewrite_query": should_rewrite_query,
+            "retrieval_filter": retrieval_filter,
+            **_budget_failure(
+                runtime,
+                node="route_query",
+                state=state,
+                model_call_reserved=model_call_reserved,
+            ),
+        }
     except Exception:
         pass
 
@@ -497,21 +639,36 @@ async def route_query(state: AgentState) -> dict[str, Any]:
         "retrieval_filter": retrieval_filter,
         "status_events": [f"route_query:{route}"],
         **record_call_stats(state, model_calls=1, started_at=call_started_at),
+        **_budget_fields(runtime),
     }
 
 
-async def retrieve(state: AgentState) -> dict[str, Any]:
+async def retrieve(
+    state: AgentState,
+    runtime: Runtime[RunContext] | None = None,
+) -> dict[str, Any]:
     """Fetch the most relevant documents from Chroma."""
 
     query = state.get("rewritten_query") or state.get("query") or latest_user_text(
         state.get("messages", [])
     )
     try:
-        retrieval = await search_documents_with_metadata(
-            query,
-            top_k=settings.retrieval_top_k,
-            filters=_retrieval_filter_from_state(state),
+        budget = _budget_for(runtime)
+        if budget is not None:
+            budget.ensure_available()
+    except BudgetExceededError:
+        return _budget_failure(
+            runtime,
+            node="retrieve",
+            state=state,
         )
+    try:
+        async with budget_deadline(_budget_for(runtime), "retrieve"):
+            retrieval = await search_documents_with_metadata(
+                query,
+                top_k=settings.retrieval_top_k,
+                filters=_retrieval_filter_from_state(state),
+            )
         documents = retrieval.documents
         retrieval_metadata = {
             "strategy": retrieval.strategy,
@@ -524,6 +681,15 @@ async def retrieve(state: AgentState) -> dict[str, Any]:
             "latency_ms": retrieval.latency_ms,
             "applied_filter": retrieval.applied_filter,
         }
+        budget = _budget_for(runtime)
+        if budget is not None:
+            budget.ensure_available()
+    except BudgetExceededError:
+        return _budget_failure(
+            runtime,
+            node="retrieve",
+            state=state,
+        )
     except Exception:
         documents = []
         retrieval_metadata = {
@@ -536,6 +702,7 @@ async def retrieve(state: AgentState) -> dict[str, Any]:
             "failure_stage": "retrieval",
             "failure_reason": "知识库检索调用失败。",
             "status_events": ["retrieve:error"],
+            **_budget_fields(runtime),
         }
     return {
         "retrieved_docs": documents,
@@ -543,10 +710,14 @@ async def retrieve(state: AgentState) -> dict[str, Any]:
         "failure_stage": None,
         "failure_reason": None,
         "status_events": ["retrieve"],
+        **_budget_fields(runtime),
     }
 
 
-async def grade_documents(state: AgentState) -> dict[str, Any]:
+async def grade_documents(
+    state: AgentState,
+    runtime: Runtime[RunContext] | None = None,
+) -> dict[str, Any]:
     """Judge whether the retrieved documents are relevant to the query."""
 
     query = state.get("rewritten_query") or state.get("query", "")
@@ -563,6 +734,7 @@ async def grade_documents(state: AgentState) -> dict[str, Any]:
             ),
             "failure_reason": previous_reason or "检索没有返回候选文档。",
             "status_events": ["grade_documents:no_docs"],
+            **_budget_fields(runtime),
         }
 
     prompt = (
@@ -574,13 +746,27 @@ async def grade_documents(state: AgentState) -> dict[str, Any]:
     score = keyword_overlap_score(query, [doc.page_content for doc in documents])
     is_relevant = score >= 0.08
     call_started_at = time.perf_counter()
+    model_call_reserved = False
     try:
+        model_call_reserved = _reserve_model_call(runtime, "grade_documents")
         model = _build_model(temperature=0)
-        response = await model.ainvoke([SystemMessage(content=prompt)])
+        async with budget_deadline(_budget_for(runtime), "grade_documents"):
+            response = await model.ainvoke([SystemMessage(content=prompt)])
+        _finish_model_call(runtime, response)
         parsed = _extract_json_object(_as_text(response))
         candidate = parsed.get("is_relevant")
         if isinstance(candidate, bool):
             is_relevant = candidate
+    except BudgetExceededError:
+        return {
+            "is_relevant": False,
+            **_budget_failure(
+                runtime,
+                node="grade_documents",
+                state=state,
+                model_call_reserved=model_call_reserved,
+            ),
+        }
     except Exception:
         pass
 
@@ -590,10 +776,14 @@ async def grade_documents(state: AgentState) -> dict[str, Any]:
         "failure_reason": None if is_relevant else "检索候选与当前问题不够相关。",
         "status_events": [f"grade_documents:{is_relevant}"],
         **record_call_stats(state, model_calls=1, started_at=call_started_at),
+        **_budget_fields(runtime),
     }
 
 
-async def rewrite_query(state: AgentState) -> dict[str, Any]:
+async def rewrite_query(
+    state: AgentState,
+    runtime: Runtime[RunContext] | None = None,
+) -> dict[str, Any]:
     """Use conversation context to produce a standalone retrieval query."""
 
     query = state.get("query", "")
@@ -633,9 +823,13 @@ async def rewrite_query(state: AgentState) -> dict[str, Any]:
         f"当前用户问题：{query}\n"
     )
     call_started_at = time.perf_counter()
+    model_call_reserved = False
     try:
+        model_call_reserved = _reserve_model_call(runtime, "rewrite_query")
         model = _build_model(temperature=0)
-        response = await model.ainvoke([SystemMessage(content=prompt)])
+        async with budget_deadline(_budget_for(runtime), "rewrite_query"):
+            response = await model.ainvoke([SystemMessage(content=prompt)])
+        _finish_model_call(runtime, response)
         parsed = _extract_json_object(_as_text(response))
         candidate = str(parsed.get("rewritten_query", "")).strip()
         if candidate:
@@ -650,6 +844,18 @@ async def rewrite_query(state: AgentState) -> dict[str, Any]:
                 rewritten_query = contextual_fallback
             else:
                 rewritten_query = candidate
+    except BudgetExceededError:
+        return {
+            "rewritten_query": rewritten_query,
+            "should_rewrite_query": False,
+            "retrieval_retry_count": retry_count,
+            **_budget_failure(
+                runtime,
+                node="rewrite_query",
+                state=state,
+                model_call_reserved=model_call_reserved,
+            ),
+        }
     except Exception:
         if _looks_like_contextual_follow_up(query) and contextual_source:
             rewritten_query = contextual_fallback
@@ -668,14 +874,25 @@ async def rewrite_query(state: AgentState) -> dict[str, Any]:
         "failure_reason": None,
         "status_events": [f"rewrite_query:{retry_count}"],
         **record_call_stats(state, model_calls=1, started_at=call_started_at),
+        **_budget_fields(runtime),
     }
 
 
-async def fallback_answer(state: AgentState) -> dict[str, Any]:
+async def fallback_answer(
+    state: AgentState,
+    runtime: Runtime[RunContext] | None = None,
+) -> dict[str, Any]:
     """Return a safe fallback answer when retrieval fails."""
 
     failure_stage = state.get("failure_stage")
-    if state.get("generation_error") or failure_stage == "generation":
+    if state.get("generation_error") == BUDGET_EXHAUSTED_CODE or (
+        state.get("failure_reason") == BUDGET_EXHAUSTED_CODE
+    ):
+        answer = "本次请求已达到资源限制，未提交未经验证的回答，请稍后重试。"
+        fallback_reason = "budget_exhausted"
+        failure_stage = "runtime"
+        failure_reason = BUDGET_EXHAUSTED_CODE
+    elif state.get("generation_error") or failure_stage == "generation":
         answer = "回答生成服务暂时不可用，当前无法可靠作答，请稍后重试。"
         fallback_reason = "generation_error"
         failure_stage = "generation"
@@ -728,10 +945,14 @@ async def fallback_answer(state: AgentState) -> dict[str, Any]:
         "fallback_reason": fallback_reason,
         "failure_stage": failure_stage,
         "failure_reason": failure_reason,
+        **_budget_fields(runtime),
     }
 
 
-async def commit_answer(state: AgentState) -> dict[str, Any]:
+async def commit_answer(
+    state: AgentState,
+    runtime: Runtime[RunContext] | None = None,
+) -> dict[str, Any]:
     """Persist the only answer that is allowed into conversation history."""
 
     disposition = state.get("answer_disposition", "pending")
@@ -742,7 +963,10 @@ async def commit_answer(state: AgentState) -> dict[str, Any]:
         or (disposition == "accepted" and str(state.get("generation_error", "")).strip())
         or (disposition == "accepted" and state.get("hallucination_pass") is not True)
     ):
-        return {"status_events": ["commit_answer:pending"]}
+        return {
+            "status_events": ["commit_answer:pending"],
+            **_budget_fields(runtime),
+        }
 
     turn_id = str(state.get("turn_id", "")).strip() or str(uuid.uuid4())
     citations = state.get("candidate_citations", []) if disposition == "accepted" else []
@@ -764,6 +988,7 @@ async def commit_answer(state: AgentState) -> dict[str, Any]:
         "generation_instruction": "",
         "attempt_history": list(state.get("attempt_history", []))[-10:],
         "status_events": ["commit_answer"],
+        **_budget_fields(runtime),
     }
     if disposition == "accepted":
         result.update(
@@ -807,18 +1032,38 @@ def _choose_tool_output(
     return render_tool_output(_choose_tool_result(query, mode, web_search))
 
 
-async def tool_executor(state: AgentState) -> dict[str, Any]:
+async def tool_executor(
+    state: AgentState,
+    runtime: Runtime[RunContext] | None = None,
+) -> dict[str, Any]:
     """Execute the selected tool and store the output."""
 
     query = state.get("query") or latest_user_text(state.get("messages", []))
     call_started_at = time.perf_counter()
+    tool_call_reserved = False
     try:
-        tool_result = await asyncio.to_thread(
-            _choose_tool_result,
-            query,
-            state.get("mode", "knowledge"),
-            bool(state.get("web_search")),
-        )
+        tool_call_reserved = _reserve_tool_call(runtime, "tool_executor")
+        async with budget_deadline(_budget_for(runtime), "tool_executor"):
+            tool_result = await asyncio.to_thread(
+                _choose_tool_result,
+                query,
+                state.get("mode", "knowledge"),
+                bool(state.get("web_search")),
+            )
+        budget = _budget_for(runtime)
+        if budget is not None:
+            budget.ensure_available()
+    except BudgetExceededError:
+        return {
+            **_budget_failure(
+                runtime,
+                node="tool_executor",
+                state=state,
+                tool_call_reserved=tool_call_reserved,
+            ),
+            "tool_result": None,
+            "tool_output": "",
+        }
     except Exception:
         tool_result = tool_failure("tool_unavailable")
     tool_result = normalize_tool_result(tool_result)
@@ -832,12 +1077,28 @@ async def tool_executor(state: AgentState) -> dict[str, Any]:
         "failure_reason": failure_reason if tool_failed else None,
         "status_events": ["tool_executor"],
         **record_call_stats(state, tool_calls=1, started_at=call_started_at),
+        **_budget_fields(runtime),
     }
 
 
-async def generate(state: AgentState) -> dict[str, Any]:
+async def generate(
+    state: AgentState,
+    runtime: Runtime[RunContext] | None = None,
+) -> dict[str, Any]:
     """Generate an answer candidate without mutating formal conversation history."""
 
+    budget = _budget_for(runtime)
+    if budget is not None and budget.exhausted_reason is not None:
+        return {
+            "candidate_answer": "",
+            "candidate_citations": [],
+            "answer_disposition": "pending",
+            **_budget_failure(
+                runtime,
+                node="generate",
+                state=state,
+            ),
+        }
     query = state.get("query") or latest_user_text(state.get("messages", []))
     docs = state.get("retrieved_docs", [])
     tool_output = state.get("tool_output", "")
@@ -889,10 +1150,30 @@ async def generate(state: AgentState) -> dict[str, Any]:
     answer = ""
     generation_error = ""
     call_started_at = time.perf_counter()
+    model_call_reserved = False
+    stream_usage: tuple[int, int, float | None] | None = None
     try:
+        model_call_reserved = _reserve_model_call(runtime, "generate")
         model = _build_model(temperature=0 if route == "rag" else 0.2)
-        async for chunk in model.astream(prompt_messages):
-            answer += _as_text(chunk)
+        async with budget_deadline(_budget_for(runtime), "generate"):
+            async for chunk in model.astream(prompt_messages):
+                answer += _as_text(chunk)
+                usage = extract_usage(chunk)
+                if usage[0] or usage[1] or usage[2] is not None:
+                    stream_usage = usage
+        _finish_stream_call(runtime, stream_usage)
+    except BudgetExceededError:
+        return {
+            "candidate_answer": "",
+            "candidate_citations": [],
+            "answer_disposition": "pending",
+            **_budget_failure(
+                runtime,
+                node="generate",
+                state=state,
+                model_call_reserved=model_call_reserved,
+            ),
+        }
     except Exception:
         generation_error = GENERATION_ERROR_CODE
         answer = ""
@@ -909,10 +1190,14 @@ async def generate(state: AgentState) -> dict[str, Any]:
         "generation_error": generation_error,
         "status_events": ["generate"],
         **record_call_stats(state, model_calls=1, started_at=call_started_at),
+        **_budget_fields(runtime),
     }
 
 
-async def check_hallucination(state: AgentState) -> dict[str, Any]:
+async def check_hallucination(
+    state: AgentState,
+    runtime: Runtime[RunContext] | None = None,
+) -> dict[str, Any]:
     """Validate that the answer is grounded in the retrieved evidence."""
 
     route = state.get("route", "direct")
@@ -935,6 +1220,7 @@ async def check_hallucination(state: AgentState) -> dict[str, Any]:
             "failure_reason": "回答生成模型调用失败。",
             "hallucination_reason": "回答生成模型调用失败。",
             "status_events": ["check_hallucination:generation_error"],
+            **_budget_fields(runtime),
         }
     if state.get("failure_stage") in {"tool", "runtime"}:
         reason = safe_diagnostic(
@@ -957,6 +1243,7 @@ async def check_hallucination(state: AgentState) -> dict[str, Any]:
             "hallucination_reason": reason,
             "generation_instruction": "外部调用失败，请不要基于错误文本生成答案。",
             "status_events": ["check_hallucination:external_error"],
+            **_budget_fields(runtime),
         }
     if route == "rag" and not docs:
         return {
@@ -978,6 +1265,7 @@ async def check_hallucination(state: AgentState) -> dict[str, Any]:
             "hallucination_reason": "没有可供回答的检索证据。",
             "generation_instruction": "没有可供回答的检索证据，请安全拒答。",
             "status_events": ["check_hallucination:no_docs"],
+            **_budget_fields(runtime),
         }
     if not answer.strip():
         return {
@@ -995,6 +1283,7 @@ async def check_hallucination(state: AgentState) -> dict[str, Any]:
             "failure_reason": "模型没有生成可提交的答案。",
             "hallucination_reason": "模型没有生成可提交的答案。",
             "status_events": ["check_hallucination:empty_answer"],
+            **_budget_fields(runtime),
         }
     if route in {"tool_call", "direct"}:
         return {
@@ -1011,6 +1300,7 @@ async def check_hallucination(state: AgentState) -> dict[str, Any]:
             "failure_stage": None,
             "failure_reason": None,
             "status_events": ["check_hallucination:skip"],
+            **_budget_fields(runtime),
         }
     resolved_citations = build_citations(docs, answer, query=state.get("query", ""))
     citation_evidence = [
@@ -1033,17 +1323,40 @@ async def check_hallucination(state: AgentState) -> dict[str, Any]:
     pass_check = False
     judge_reason = ""
     call_started_at = time.perf_counter()
+    model_call_reserved = False
     try:
+        model_call_reserved = _reserve_model_call(runtime, "check_hallucination")
         model = _build_model(
             temperature=0,
             model_name=settings.judge_model_name,
         )
-        response = await model.ainvoke([SystemMessage(content=prompt)])
+        async with budget_deadline(_budget_for(runtime), "check_hallucination"):
+            response = await model.ainvoke([SystemMessage(content=prompt)])
+        _finish_model_call(runtime, response)
         parsed = _extract_json_object(_as_text(response))
         candidate = parsed.get("hallucination_pass")
         if isinstance(candidate, bool):
             pass_check = candidate
         judge_reason = str(parsed.get("reason", "")).strip()
+    except BudgetExceededError:
+        return {
+            "hallucination_pass": False,
+            "answer_disposition": "pending",
+            "candidate_citations": [],
+            "attempt_history": _append_attempt(
+                state,
+                stage="runtime",
+                passed=False,
+                reason="请求预算已耗尽。",
+            ),
+            "hallucination_reason": BUDGET_EXHAUSTED_CODE,
+            **_budget_failure(
+                runtime,
+                node="check_hallucination",
+                state=state,
+                model_call_reserved=model_call_reserved,
+            ),
+        }
     except Exception:
         pass_check = False
         judge_reason = "证据一致性判断服务不可用，已安全拒绝未经验证的回答。"
@@ -1095,6 +1408,7 @@ async def check_hallucination(state: AgentState) -> dict[str, Any]:
         "generation_instruction": "" if pass_check else reason,
         "status_events": [f"check_hallucination:{pass_check}"],
         **record_call_stats(state, model_calls=1, started_at=call_started_at),
+        **_budget_fields(runtime),
     }
     if not pass_check:
         result["hallucination_retry_count"] = (

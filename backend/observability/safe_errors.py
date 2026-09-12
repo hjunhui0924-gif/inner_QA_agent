@@ -23,6 +23,7 @@ SAFE_ERROR_CODES = frozenset(
         "tool_unavailable",
         "generation_error",
         "reranker_not_configured",
+        "request_budget_exhausted",
     }
 )
 
@@ -33,6 +34,7 @@ SAFE_FALLBACK_REASONS = frozenset(
         "retrieval_exhausted",
         "hallucination_exhausted",
         "unknown",
+        "budget_exhausted",
     }
 )
 
@@ -126,7 +128,7 @@ def safe_status_event(value: object, *, fallback: str = "event_omitted") -> str:
         r"check_hallucination|fallback_answer|commit_answer|update_memory)"
         r"(?::(?:unchanged|summarized|error|true|false|no_docs|skip|"
         r"empty_answer|generation_error|external_error|pending|[0-9]+|"
-        r"rag|tool_call|direct))?",
+        r"budget_exhausted|rag|tool_call|direct))?",
         candidate,
         flags=re.IGNORECASE,
     ):

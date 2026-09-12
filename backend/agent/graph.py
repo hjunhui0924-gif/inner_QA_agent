@@ -25,6 +25,7 @@ from backend.agent.nodes import (
 )
 from backend.agent.state import AgentState
 from backend.agent.checkpoint import TransientStateFilteringAsyncSqliteSaver
+from backend.observability.budget import RunContext
 
 
 def build_graph(checkpointer: BaseCheckpointSaver | None):
@@ -38,7 +39,7 @@ def build_graph(checkpointer: BaseCheckpointSaver | None):
         # production lifespan, which creates the filtering saver explicitly.
         checkpointer = TransientStateFilteringAsyncSqliteSaver(checkpointer.conn)  # type: ignore[attr-defined]
 
-    builder = StateGraph(AgentState)
+    builder = StateGraph(AgentState, context_schema=RunContext)
     builder.add_node("manage_conversation_context", manage_conversation_context)
     builder.add_node("route_query", route_query)
     builder.add_node("retrieve", retrieve)

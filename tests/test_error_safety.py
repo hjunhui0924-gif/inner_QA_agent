@@ -79,7 +79,7 @@ class ErrorSafetyTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_stream_runtime_error_is_safe_for_sse(self) -> None:
         class FailingGraph:
-            async def astream_events(self, graph_input, *, config, version):
+            async def astream_events(self, graph_input, *, config, version, context=None):
                 raise RuntimeError("C:\\private\\checkpoint.db")
                 yield graph_input
 
@@ -161,7 +161,7 @@ class ErrorSafetyTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_trace_failure_after_delivery_does_not_append_duplicate_error_events(self) -> None:
         class OneAnswerGraph:
-            async def astream_events(self, graph_input, *, config, version):
+            async def astream_events(self, graph_input, *, config, version, context=None):
                 yield {
                     "event": "on_chain_end",
                     "name": "commit_answer",

@@ -39,6 +39,14 @@ class Settings(BaseSettings):
     backend_port: int = 8000
     max_retrieval_retries: int = 2
     max_hallucination_retries: int = 1
+    request_max_model_calls: int = 12
+    request_max_tool_calls: int = 2
+    request_max_total_seconds: float = 60.0
+    request_max_input_tokens: int = 0
+    request_max_output_tokens: int = 0
+    request_max_estimated_cost: float = 0.0
+    model_input_price_per_1k: float = 0.0
+    model_output_price_per_1k: float = 0.0
     conversation_token_budget: int = 12_000
     conversation_summary_trigger_tokens: int = 10_000
     conversation_summary_target_tokens: int = 1_500
@@ -130,6 +138,39 @@ class Settings(BaseSettings):
     def validate_positive_limits(cls, value: int | float) -> int | float:
         if value <= 0:
             raise ValueError("Configured size, count, timeout, and token limits must be positive.")
+        return value
+
+    @field_validator(
+        "request_max_model_calls",
+        "request_max_tool_calls",
+        "request_max_input_tokens",
+        "request_max_output_tokens",
+    )
+    @classmethod
+    def validate_request_call_limits(cls, value: int) -> int:
+        if value < 0:
+            raise ValueError("Request model/tool call limits must not be negative.")
+        return value
+
+    @field_validator("request_max_estimated_cost")
+    @classmethod
+    def validate_request_cost_limit(cls, value: float) -> float:
+        if value < 0:
+            raise ValueError("REQUEST_MAX_ESTIMATED_COST must not be negative.")
+        return value
+
+    @field_validator("request_max_total_seconds")
+    @classmethod
+    def validate_request_deadline(cls, value: float) -> float:
+        if value <= 0:
+            raise ValueError("REQUEST_MAX_TOTAL_SECONDS must be positive.")
+        return value
+
+    @field_validator("model_input_price_per_1k", "model_output_price_per_1k")
+    @classmethod
+    def validate_model_prices(cls, value: float) -> float:
+        if value < 0:
+            raise ValueError("Model prices must not be negative.")
         return value
 
     @model_validator(mode="after")

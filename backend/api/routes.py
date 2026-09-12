@@ -41,6 +41,12 @@ from backend.config import settings
 from backend.observability.tracing import build_trace, record_trace
 from backend.observability.metrics import record_call_stats
 from backend.observability.safe_errors import RUNTIME_ERROR_CODE
+from backend.observability.budget import (
+    BudgetExceededError,
+    RequestBudget,
+    RunContext,
+    budget_deadline,
+)
 
 
 router = APIRouter()
@@ -217,23 +223,41 @@ def _answer_chunks(answer: str, chunk_size: int = 80) -> list[str]:
     return [answer[index : index + chunk_size] for index in range(0, len(answer), chunk_size)]
 
 
+def _request_budget() -> RequestBudget:
+    """Create one mutable budget for one HTTP turn."""
+
+    return RequestBudget(
+        max_model_calls=settings.request_max_model_calls,
+        max_tool_calls=settings.request_max_tool_calls,
+        max_total_seconds=settings.request_max_total_seconds,
+        input_price_per_1k=settings.model_input_price_per_1k,
+        output_price_per_1k=settings.model_output_price_per_1k,
+        max_input_tokens=settings.request_max_input_tokens,
+        max_output_tokens=settings.request_max_output_tokens,
+        max_estimated_cost=settings.request_max_estimated_cost,
+    )
+
+
 async def _stream_graph(request: Request, payload: ChatRequest) -> AsyncIterator[str]:
     """Serialize one session while its graph run and history writes complete."""
 
+    budget = _request_budget()
     try:
         thread_id = thread_id_for(payload.user_id, payload.session_id)
         async with session_operation(thread_id):
-            async for event in _stream_graph_unlocked(request, payload):
+            async for event in _stream_graph_unlocked(request, payload, budget=budget):
                 yield event
     except HTTPException:
         raise
     except Exception:
-        async for event in _safe_runtime_failure_events(payload):
+        async for event in _safe_runtime_failure_events(payload, budget=budget):
             yield event
 
 
 async def _safe_runtime_failure_events(
     payload: ChatRequest,
+    *,
+    budget: RequestBudget | None = None,
 ) -> AsyncIterator[str]:
     """Emit a generic failure response without crossing exception details."""
 
@@ -251,6 +275,7 @@ async def _safe_runtime_failure_events(
         "total_latency_ms": 0.0,
         "trace_include_content": settings.trace_include_content,
         "trace_retention_days": settings.trace_retention_days,
+        "budget_snapshot": budget.snapshot() if budget is not None else None,
     }
     try:
         trace = build_trace(trace_id=trace_id, query=payload.message, state=state)
@@ -279,22 +304,34 @@ async def _safe_runtime_failure_events(
 async def _stream_graph_unlocked(
     request: Request,
     payload: ChatRequest,
+    *,
+    budget: RequestBudget | None = None,
 ) -> AsyncIterator[str]:
     """Keep setup and replay failures inside the same safe stream boundary."""
 
+    request_budget = budget or _request_budget()
     try:
-        async for event in _stream_graph_unlocked_core(request, payload):
+        async for event in _stream_graph_unlocked_core(
+            request,
+            payload,
+            budget=request_budget,
+        ):
             yield event
     except HTTPException:
         raise
     except Exception:
-        async for event in _safe_runtime_failure_events(payload):
+        async for event in _safe_runtime_failure_events(
+            payload,
+            budget=request_budget,
+        ):
             yield event
 
 
 async def _stream_graph_unlocked_core(
     request: Request,
     payload: ChatRequest,
+    *,
+    budget: RequestBudget,
 ) -> AsyncIterator[str]:
     """Run the graph and emit SSE events."""
 
@@ -369,12 +406,14 @@ async def _stream_graph_unlocked_core(
     final_state: dict[str, object] = dict(graph_input)
     observed_status_events: list[str] = []
     disconnected = False
+    run_context = RunContext(budget=budget)
 
     try:
         async for event in graph.astream_events(
             graph_input,
             config=config,
             version="v2",
+            context=run_context,
         ):
             if await request.is_disconnected():
                 disconnected = True
@@ -408,6 +447,7 @@ async def _stream_graph_unlocked_core(
         if disconnected:
             return
         final_state["status_events"] = observed_status_events
+        final_state["budget_snapshot"] = budget.snapshot()
         final_answer = str(final_state.get("answer", "")).strip()
         if not final_answer:
             raise RuntimeError("Graph completed without a committed answer.")
@@ -438,7 +478,10 @@ async def _stream_graph_unlocked_core(
         )
         if is_new_session and settings.dashscope_api_key:
             title_call_started_at = time.perf_counter()
+            title_call_reserved = False
             try:
+                budget.consume_model_call("session_title")
+                title_call_reserved = True
                 title_model = ChatOpenAI(
                     model=settings.model_name,
                     api_key=settings.dashscope_api_key,
@@ -446,25 +489,32 @@ async def _stream_graph_unlocked_core(
                     temperature=0,
                     max_tokens=24,
                     timeout=10,
+                    max_retries=0,
+                    stream_usage=True,
                     extra_body={"enable_thinking": False},
                 )
-                title_response = await title_model.ainvoke([
-                    SystemMessage(content=(
-                        "请把用户的提问概括成一个简短会话标题。只返回标题本身，中文，"
-                        "不超过12个字，不要标点，不要解释。\n用户提问：" + payload.message
-                    ))
-                ])
+                async with budget_deadline(budget, "session_title"):
+                    title_response = await title_model.ainvoke([
+                        SystemMessage(content=(
+                            "请把用户的提问概括成一个简短会话标题。只返回标题本身，中文，"
+                            "不超过12个字，不要标点，不要解释。\n用户提问：" + payload.message
+                        ))
+                    ])
+                budget.record_response(title_response)
                 generated_title = str(getattr(title_response, "content", "")).strip()[:24]
                 if generated_title:
                     await upsert_chat_session(payload.user_id, payload.session_id, generated_title)
+            except BudgetExceededError:
+                pass
             except Exception:
                 pass
             title_stats = record_call_stats(
                 final_state,
-                model_calls=1,
+                model_calls=1 if title_call_reserved else 0,
                 started_at=title_call_started_at,
             )
             final_state.update(title_stats)
+            final_state["budget_snapshot"] = budget.snapshot()
 
         await append_chat_message(
             user_id=payload.user_id,
@@ -512,6 +562,7 @@ async def _stream_graph_unlocked_core(
                 "failure_type": result_trace["failure_type"],
                 "failure_stage": result_trace.get("failure_stage"),
                 "failure_reason": result_trace.get("failure_reason"),
+                "budget_snapshot": budget.snapshot(),
             }
         )
         yield _sse_event({"type": "done", "trace_id": trace_id})
@@ -564,6 +615,7 @@ async def _stream_graph_unlocked_core(
         )
         error_state["trace_include_content"] = settings.trace_include_content
         error_state["trace_retention_days"] = settings.trace_retention_days
+        error_state["budget_snapshot"] = budget.snapshot()
         trace = build_trace(trace_id=trace_id, query=payload.message, state=error_state)
         trace["failure_type"] = "generation_error"
         if settings.trace_enabled:
@@ -603,11 +655,13 @@ async def chat_stream(request: Request, payload: ChatRequest) -> StreamingRespon
 async def chat_sessions(user_id: str) -> dict[str, object]:
     """List chat sessions for one user."""
 
+    budget = _request_budget()
     if user_id not in _TITLE_REFRESH_ATTEMPTED_USERS and settings.dashscope_api_key:
         _TITLE_REFRESH_ATTEMPTED_USERS.add(user_id)
         candidates = await list_session_title_candidates(user_id)
         async def refresh_title(candidate: dict[str, str]) -> None:
             try:
+                budget.consume_model_call("session_title_refresh")
                 title_model = ChatOpenAI(
                     model=settings.model_name,
                     api_key=settings.dashscope_api_key,
@@ -615,18 +669,19 @@ async def chat_sessions(user_id: str) -> dict[str, object]:
                     temperature=0,
                     max_tokens=24,
                     timeout=10,
+                    max_retries=0,
+                    stream_usage=True,
                     extra_body={"enable_thinking": False},
                 )
-                response = await asyncio.wait_for(
-                    title_model.ainvoke([
+                async with budget_deadline(budget, "session_title_refresh"):
+                    response = await title_model.ainvoke([
                         SystemMessage(content=(
                             "根据用户第一次提问生成一个能概括会话主题的一句话标题。"
                             "只返回标题，不超过12个汉字，不要引号、标点或解释。\n"
                             f"第一次提问：{candidate['first_question']}"
                         ))
-                    ]),
-                    timeout=12,
-                )
+                    ])
+                budget.record_response(response)
                 title = str(getattr(response, "content", "")).strip()
                 if title:
                     await update_chat_session_title(

@@ -105,6 +105,14 @@ RERANKER_API_STYLE=native
 TRACE_ENABLED=false
 TRACE_INCLUDE_CONTENT=false
 TRACE_RETENTION_DAYS=30
+REQUEST_MAX_MODEL_CALLS=12
+REQUEST_MAX_TOOL_CALLS=2
+REQUEST_MAX_TOTAL_SECONDS=60
+REQUEST_MAX_INPUT_TOKENS=0
+REQUEST_MAX_OUTPUT_TOKENS=0
+REQUEST_MAX_ESTIMATED_COST=0
+MODEL_INPUT_PRICE_PER_1K=0
+MODEL_OUTPUT_PRICE_PER_1K=0
 ```
 
 会话上下文使用保守的中英文混合 Token 估算。达到 10000 Token 时，系统使用
@@ -129,6 +137,12 @@ Checkpoint，因此复用原会话 ID 也不会恢复旧上下文。同一会话
 不会把内部路径、上游响应正文或异常堆栈送入生成提示、SSE 或 Trace；搜索没有可验证
 URL 时不会创建伪来源。联网搜索的摘要即使调用成功也不属于企业知识证据，不能替代
 RAG 引用或 grounding 校验。
+
+每次问答请求创建独立的 `RequestBudget`，默认最多 12 次模型调用、2 次工具调用和
+60 秒总耗时；输入/输出 Token 与估算费用上限默认为 0（关闭）。预算对象只存在本轮
+Runtime context，SSE `result` 和 Trace 仅保存可序列化的 `budget_snapshot`，不会写入
+checkpoint。达到调用、耗时、Token 或费用限制时，系统提交安全 fallback，不交付未校验
+的候选答案。
 
 回答生成默认使用 `qwen3.5-ocr`，并关闭思考模式，以提高抽取式回答和 JSON Judge 的指令稳定性。自动语义校验通过 `JUDGE_MODEL_NAME` 独立配置；当前同样设为 `qwen3.5-ocr`，后续可以切换成不同模型做交叉评判。评测执行和指标计算全自动运行；原有 34 题继续作为法规开发集，同时新增企业制度分层评测集。
 

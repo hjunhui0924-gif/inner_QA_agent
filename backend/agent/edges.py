@@ -9,6 +9,8 @@ from backend.agent.state import AgentState
 def route_after_grading(state: AgentState) -> str:
     """Choose the next step after document grading."""
 
+    if state.get("failure_stage") == "runtime":
+        return "fallback_answer"
     if state.get("is_relevant"):
         return "generate"
     if state.get("retrieval_retry_count", 0) >= settings.max_retrieval_retries:
@@ -33,6 +35,8 @@ def route_after_hallucination_check(state: AgentState) -> str:
 def route_after_routing(state: AgentState) -> str:
     """Route to the correct branch based on the query type."""
 
+    if state.get("failure_stage") == "runtime":
+        return "fallback_answer"
     if state.get("route") == "rag" and state.get("should_rewrite_query"):
         return "rewrite_query"
     return {

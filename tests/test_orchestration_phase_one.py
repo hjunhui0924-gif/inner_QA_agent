@@ -251,7 +251,7 @@ class ApiAuthoritativeOutputTests(unittest.IsolatedAsyncioTestCase):
         }
 
         class FakeGraph:
-            async def astream_events(self, graph_input, *, config, version):
+            async def astream_events(self, graph_input, *, config, version, context=None):
                 yield {
                     "event": "on_chain_start",
                     "name": "generate",
@@ -319,7 +319,7 @@ class ApiAuthoritativeOutputTests(unittest.IsolatedAsyncioTestCase):
             def __init__(self) -> None:
                 self.calls = 0
 
-            async def astream_events(self, graph_input, *, config, version):
+            async def astream_events(self, graph_input, *, config, version, context=None):
                 self.calls += 1
                 answer = f"答案{self.calls} [C1]"
                 final_state = {

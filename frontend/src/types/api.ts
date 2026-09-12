@@ -111,6 +111,7 @@ export type StreamEvent =
       failure_type: string
       failure_stage?: string | null
       failure_reason?: string | null
+      budget_snapshot?: Record<string, unknown> | null
   }
   | { type: 'done'; trace_id: string }
 
