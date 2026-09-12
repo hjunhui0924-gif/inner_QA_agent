@@ -15,6 +15,7 @@ from langchain_core.tools import tool
 
 from backend.config import settings
 from backend.agent.memory import search_knowledge_base_data, search_knowledge_base_text
+from backend.retrieval.engine import RetrievalFilter
 
 
 class ToolResult(TypedDict):
@@ -230,13 +231,18 @@ def search_knowledge_base(query: str) -> str:
     return search_knowledge_base_text(query, top_k=settings.retrieval_top_k)
 
 
-def search_knowledge_base_result(query: str) -> ToolResult:
+def search_knowledge_base_result(
+    query: str,
+    *,
+    filters: RetrievalFilter | None = None,
+) -> ToolResult:
     """Return knowledge search text and source metadata in a structured envelope."""
 
     try:
         text, sources, error = search_knowledge_base_data(
             query,
             top_k=settings.retrieval_top_k,
+            filters=filters,
         )
         if error:
             return tool_failure(error, text=text)

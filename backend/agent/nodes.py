@@ -21,6 +21,7 @@ from langchain_core.messages import (
 from langchain_openai import ChatOpenAI
 from langgraph.runtime import Runtime
 
+from backend.auth.access import KnowledgeAccessPolicy, ServerAccessContext
 from backend.config import settings
 from backend.agent.citations import (
     sanitize_answer_citations,
@@ -36,6 +37,7 @@ from backend.agent.conversation import (
     truncate_to_token_budget,
 )
 from backend.agent.memory import (
+    get_retriever,
     keyword_overlap_score,
     latest_user_text,
     search_documents,
@@ -538,10 +540,35 @@ def _explicit_version_filter(query: str) -> dict[str, object] | None:
     return None
 
 
-def _retrieval_filter_from_state(state: AgentState) -> RetrievalFilter | None:
+def _access_context_for(runtime: Runtime[RunContext] | None) -> ServerAccessContext | None:
+    context = getattr(runtime, "context", None)
+    access_context = getattr(context, "access_context", None)
+    return access_context if isinstance(access_context, ServerAccessContext) else None
+
+
+def _authorization_filter(
+    runtime: Runtime[RunContext] | None,
+) -> RetrievalFilter | None:
+    """Compile the server ACL before dense/BM25 fusion for this request."""
+
+    access_context = _access_context_for(runtime)
+    if access_context is None:
+        return None
+    try:
+        documents = get_retriever().documents
+    except Exception:
+        # An unavailable authorization index must not become an allow-all.
+        return RetrievalFilter(allowed_document_ids=frozenset())
+    return KnowledgeAccessPolicy().retrieval_filter(access_context, documents)
+
+
+def _retrieval_filter_from_state(
+    state: AgentState,
+    runtime: Runtime[RunContext] | None = None,
+) -> RetrievalFilter | None:
     raw = state.get("retrieval_filter")
     if not isinstance(raw, dict):
-        return None
+        return _authorization_filter(runtime)
 
     def values(name: str) -> frozenset[str] | None:
         value = raw.get(name)
@@ -550,7 +577,7 @@ def _retrieval_filter_from_state(state: AgentState) -> RetrievalFilter | None:
         clean = {str(item).strip() for item in value if str(item).strip()}
         return frozenset(clean) if clean else None
 
-    return RetrievalFilter(
+    state_filter = RetrievalFilter(
         source_ids=values("source_ids"),
         versions=values("versions"),
         departments=values("departments"),
@@ -560,6 +587,22 @@ def _retrieval_filter_from_state(state: AgentState) -> RetrievalFilter | None:
         prefer_current=raw.get("prefer_current")
         if isinstance(raw.get("prefer_current"), bool)
         else None,
+    )
+    authorization_filter = _authorization_filter(runtime)
+    if authorization_filter is None:
+        return state_filter
+    if state_filter is None:
+        return authorization_filter
+    return RetrievalFilter(
+        source_ids=state_filter.source_ids,
+        versions=state_filter.versions,
+        departments=state_filter.departments,
+        statuses=state_filter.statuses,
+        access_scopes=state_filter.access_scopes,
+        allowed_document_ids=authorization_filter.allowed_document_ids,
+        denied_document_ids=authorization_filter.denied_document_ids,
+        as_of=state_filter.as_of,
+        prefer_current=state_filter.prefer_current,
     )
 
 
@@ -667,7 +710,7 @@ async def retrieve(
             retrieval = await search_documents_with_metadata(
                 query,
                 top_k=settings.retrieval_top_k,
-                filters=_retrieval_filter_from_state(state),
+                filters=_retrieval_filter_from_state(state, runtime),
             )
         documents = retrieval.documents
         retrieval_metadata = {
@@ -1008,6 +1051,7 @@ def _choose_tool_result(
     query: str,
     mode: str = "knowledge",
     web_search: bool = False,
+    retrieval_filter: RetrievalFilter | None = None,
 ) -> ToolResult:
     """Pick the most suitable tool and return its structured result."""
 
@@ -1019,7 +1063,7 @@ def _choose_tool_result(
         return get_current_time_result()
     if mode == "general" and (web_search or _looks_like_web_query(query)):
         return search_web_result(query)
-    return search_knowledge_base_result(query)
+    return search_knowledge_base_result(query, filters=retrieval_filter)
 
 
 def _choose_tool_output(
@@ -1041,6 +1085,7 @@ async def tool_executor(
     query = state.get("query") or latest_user_text(state.get("messages", []))
     call_started_at = time.perf_counter()
     tool_call_reserved = False
+    retrieval_filter = _retrieval_filter_from_state(state, runtime)
     try:
         tool_call_reserved = _reserve_tool_call(runtime, "tool_executor")
         async with budget_deadline(_budget_for(runtime), "tool_executor"):
@@ -1049,6 +1094,7 @@ async def tool_executor(
                 query,
                 state.get("mode", "knowledge"),
                 bool(state.get("web_search")),
+                retrieval_filter,
             )
         budget = _budget_for(runtime)
         if budget is not None:

@@ -10,6 +10,7 @@ version, lifecycle status, effective dates, and two different fingerprints:
 from __future__ import annotations
 
 import hashlib
+import re
 from datetime import date
 from typing import Any
 
@@ -21,6 +22,33 @@ DEFAULT_EFFECTIVE_FROM = "1970-01-01"
 DEFAULT_VERSION = "v1"
 DEFAULT_OWNER = "未指定"
 DEFAULT_ACCESS_SCOPE = "internal"
+ACL_LIST_FIELDS = (
+    "required_scopes",
+    "allowed_roles",
+    "allowed_departments",
+    "denied_roles",
+    "denied_departments",
+    "denied_scopes",
+)
+
+
+def normalize_acl_values(value: Any) -> list[str] | Any:
+    """Normalize comma-separated ACL claims without accepting malformed types."""
+
+    if value is None or value == "":
+        return []
+    if isinstance(value, str):
+        return [
+            item.strip()
+            for item in re.split(
+                r"[,\s]+",
+                value.replace("，", ",").replace("\n", ","),
+            )
+            if item.strip()
+        ]
+    if isinstance(value, list) and all(isinstance(item, str) for item in value):
+        return [item.strip() for item in value if item.strip()]
+    return value
 
 
 def canonical_content(text: str) -> str:
@@ -112,6 +140,16 @@ def normalize_knowledge_record(
         str(record.get("access_scope", DEFAULT_ACCESS_SCOPE)).strip()
         or DEFAULT_ACCESS_SCOPE
     )
+    for field_name in ACL_LIST_FIELDS:
+        normalized[field_name] = normalize_acl_values(record.get(field_name))
+    public_internal = record.get("public_internal")
+    if public_internal is None:
+        public_internal = str(normalized["access_scope"]).strip().casefold() in {
+            "public-internal",
+            "public_internal",
+            "publicinternal",
+        }
+    normalized["public_internal"] = public_internal
     normalized["original_filename"] = str(
         record.get("original_filename", "")
     ).strip()
@@ -186,6 +224,16 @@ def validate_knowledge_record(
     actual_fingerprint = str(record.get("content_fingerprint", "")).strip()
     if actual_fingerprint and actual_fingerprint != expected_fingerprint:
         errors.append(f"{prefix}.content_fingerprint does not match content")
+    for field_name in ACL_LIST_FIELDS:
+        value = record.get(field_name, [])
+        if not isinstance(value, list) or any(
+            not isinstance(item, str) or not item.strip() or item.strip() == "*"
+            for item in value
+        ):
+            errors.append(f"{prefix}.{field_name} must be a list of explicit tokens")
+    public_internal = record.get("public_internal", False)
+    if not isinstance(public_internal, bool):
+        errors.append(f"{prefix}.public_internal must be boolean")
     return errors
 
 
@@ -228,6 +276,11 @@ def metadata_for_record(record: dict[str, Any]) -> dict[str, Any]:
         "access_scope": str(
             normalized.get("access_scope", DEFAULT_ACCESS_SCOPE)
         ).strip(),
+        **{
+            field_name: normalize_acl_values(normalized.get(field_name))
+            for field_name in ACL_LIST_FIELDS
+        },
+        "public_internal": normalized.get("public_internal", False),
         "document_family": str(normalized.get("document_family", "")).strip(),
         "original_filename": str(normalized.get("original_filename", "")).strip(),
         "content_fingerprint": str(

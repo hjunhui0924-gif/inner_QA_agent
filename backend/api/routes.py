@@ -10,8 +10,8 @@ from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import Literal
 
-from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
+from fastapi.responses import FileResponse, StreamingResponse
 from langchain_core.messages import SystemMessage
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field, field_validator
@@ -20,6 +20,7 @@ from backend.agent.memory import (
     add_knowledge_record,
     append_chat_message,
     extract_document_from_upload,
+    get_knowledge_record,
     list_knowledge_records,
     load_completed_turn,
     list_chat_sessions,
@@ -36,6 +37,14 @@ from backend.agent.sessions import (
     delete_session_completely,
     session_operation,
     thread_id_for,
+)
+from backend.auth.access import (
+    KnowledgeAccessPolicy,
+    ServerAccessContext,
+    development_access_context,
+    require_access_context,
+    require_knowledge_admin,
+    resolve_access_context,
 )
 from backend.config import settings
 from backend.observability.tracing import build_trace, record_trace
@@ -145,6 +154,13 @@ def _ingest_uploaded_file(
     effective_to: str,
     owner: str,
     access_scope: str,
+    required_scopes: str,
+    allowed_roles: str,
+    allowed_departments: str,
+    denied_roles: str,
+    denied_departments: str,
+    denied_scopes: str,
+    public_internal: bool | None,
 ) -> dict[str, object]:
     """Parse and persist an upload outside the event-loop thread."""
 
@@ -165,6 +181,13 @@ def _ingest_uploaded_file(
             effective_to=effective_to or None,
             owner=owner,
             access_scope=access_scope,
+            required_scopes=required_scopes,
+            allowed_roles=allowed_roles,
+            allowed_departments=allowed_departments,
+            denied_roles=denied_roles,
+            denied_departments=denied_departments,
+            denied_scopes=denied_scopes,
+            public_internal=public_internal,
         )
     except Exception:
         saved_path.unlink(missing_ok=True)
@@ -238,19 +261,112 @@ def _request_budget() -> RequestBudget:
     )
 
 
-async def _stream_graph(request: Request, payload: ChatRequest) -> AsyncIterator[str]:
+def _request_access_context(
+    request: Request,
+    access_context: ServerAccessContext | None = None,
+) -> ServerAccessContext:
+    """Resolve identity from the server seam, never from the request body."""
+
+    if isinstance(access_context, ServerAccessContext):
+        return access_context
+    request_state = getattr(request, "state", None)
+    stored = getattr(request_state, "access_context", None)
+    if isinstance(stored, ServerAccessContext):
+        return stored
+    return resolve_access_context(request)
+
+
+def _assert_user_path(
+    requested_user_id: str,
+    access_context: ServerAccessContext,
+) -> None:
+    if requested_user_id != access_context.user_id:
+        raise HTTPException(status_code=403, detail="Access denied.")
+
+
+def _is_real_http_request(request: object) -> bool:
+    """Keep direct Python helper calls backwards-compatible without weakening HTTP routes."""
+
+    return hasattr(request, "headers") and hasattr(request, "state")
+
+
+def _accessible_records(
+    access_context: ServerAccessContext,
+) -> list[dict[str, object]]:
+    policy = KnowledgeAccessPolicy()
+    return [
+        record
+        for record in list_knowledge_records()
+        if policy.can_access(access_context, record)
+    ]
+
+
+def _authorized_knowledge_record(
+    request: Request,
+    source_id: str,
+) -> tuple[ServerAccessContext, dict[str, object]]:
+    """Resolve a source and authorize it without revealing existence."""
+
+    access_context = _request_access_context(request)
+    record = get_knowledge_record(source_id)
+    if record is None or not KnowledgeAccessPolicy().can_access(access_context, record):
+        raise HTTPException(status_code=404, detail="Knowledge source not found.")
+    return access_context, record
+
+
+def _public_knowledge_record(
+    record: dict[str, object],
+    *,
+    include_content: bool,
+) -> dict[str, object]:
+    """Expose only bounded, authorized source fields."""
+
+    payload: dict[str, object] = {
+        "source_id": str(record.get("id", "")).strip(),
+        "title": str(record.get("title", "")).strip(),
+        "source": str(record.get("source", "")).strip(),
+        "source_type": str(record.get("source_type", "")).strip(),
+        "department": str(record.get("department", "")).strip(),
+        "version": str(record.get("version", "")).strip(),
+        "status": str(record.get("status", "")).strip(),
+        "effective_from": record.get("effective_from"),
+        "effective_to": record.get("effective_to"),
+        "owner": str(record.get("owner", "")).strip(),
+        "original_filename": str(record.get("original_filename", "")).strip(),
+        "content_checksum": str(record.get("content_checksum", "")).strip(),
+    }
+    if include_content:
+        payload["content"] = str(record.get("content", ""))
+    return payload
+
+
+async def _stream_graph(
+    request: Request,
+    payload: ChatRequest,
+    *,
+    access_context: ServerAccessContext | None = None,
+) -> AsyncIterator[str]:
     """Serialize one session while its graph run and history writes complete."""
 
+    resolved_access_context = _request_access_context(request, access_context)
+    effective_payload = payload.model_copy(
+        update={"user_id": resolved_access_context.user_id}
+    )
     budget = _request_budget()
     try:
-        thread_id = thread_id_for(payload.user_id, payload.session_id)
+        thread_id = thread_id_for(effective_payload.user_id, effective_payload.session_id)
         async with session_operation(thread_id):
-            async for event in _stream_graph_unlocked(request, payload, budget=budget):
+            async for event in _stream_graph_unlocked(
+                request,
+                effective_payload,
+                budget=budget,
+                access_context=resolved_access_context,
+            ):
                 yield event
     except HTTPException:
         raise
     except Exception:
-        async for event in _safe_runtime_failure_events(payload, budget=budget):
+        async for event in _safe_runtime_failure_events(effective_payload, budget=budget):
             yield event
 
 
@@ -306,6 +422,7 @@ async def _stream_graph_unlocked(
     payload: ChatRequest,
     *,
     budget: RequestBudget | None = None,
+    access_context: ServerAccessContext | None = None,
 ) -> AsyncIterator[str]:
     """Keep setup and replay failures inside the same safe stream boundary."""
 
@@ -315,6 +432,7 @@ async def _stream_graph_unlocked(
             request,
             payload,
             budget=request_budget,
+            access_context=access_context,
         ):
             yield event
     except HTTPException:
@@ -332,9 +450,13 @@ async def _stream_graph_unlocked_core(
     payload: ChatRequest,
     *,
     budget: RequestBudget,
+    access_context: ServerAccessContext | None = None,
 ) -> AsyncIterator[str]:
     """Run the graph and emit SSE events."""
 
+    resolved_access_context = _request_access_context(request, access_context)
+    if _is_real_http_request(request):
+        _assert_user_path(payload.user_id, resolved_access_context)
     thread_id = thread_id_for(payload.user_id, payload.session_id)
     trace_id = str(uuid.uuid4())
     request_started_at = time.perf_counter()
@@ -406,7 +528,10 @@ async def _stream_graph_unlocked_core(
     final_state: dict[str, object] = dict(graph_input)
     observed_status_events: list[str] = []
     disconnected = False
-    run_context = RunContext(budget=budget)
+    run_context = RunContext(
+        budget=budget,
+        access_context=resolved_access_context,
+    )
 
     try:
         async for event in graph.astream_events(
@@ -640,7 +765,7 @@ async def _stream_graph_unlocked_core(
         yield _sse_event({"type": "done", "trace_id": trace_id})
 
 
-@router.post("/chat/stream")
+@router.post("/chat/stream", dependencies=[Depends(require_access_context)])
 async def chat_stream(request: Request, payload: ChatRequest) -> StreamingResponse:
     """Stream a single chat turn as SSE."""
 
@@ -651,10 +776,13 @@ async def chat_stream(request: Request, payload: ChatRequest) -> StreamingRespon
     )
 
 
-@router.get("/chat/sessions/{user_id}")
-async def chat_sessions(user_id: str) -> dict[str, object]:
+@router.get("/chat/sessions/{user_id}", dependencies=[Depends(require_access_context)])
+async def chat_sessions(request: Request, user_id: str) -> dict[str, object]:
     """List chat sessions for one user."""
 
+    access_context = _request_access_context(request)
+    if _is_real_http_request(request):
+        _assert_user_path(user_id, access_context)
     budget = _request_budget()
     if user_id not in _TITLE_REFRESH_ATTEMPTED_USERS and settings.dashscope_api_key:
         _TITLE_REFRESH_ATTEMPTED_USERS.add(user_id)
@@ -693,14 +821,17 @@ async def chat_sessions(user_id: str) -> dict[str, object]:
     return {"items": await list_chat_sessions(user_id)}
 
 
-@router.get("/chat/history/{user_id}/{session_id}")
-async def chat_history(user_id: str, session_id: str) -> dict[str, object]:
+@router.get("/chat/history/{user_id}/{session_id}", dependencies=[Depends(require_access_context)])
+async def chat_history(request: Request, user_id: str, session_id: str) -> dict[str, object]:
     """Load message history for one session."""
 
+    access_context = _request_access_context(request)
+    if _is_real_http_request(request):
+        _assert_user_path(user_id, access_context)
     return {"items": await load_chat_messages(user_id, session_id)}
 
 
-@router.delete("/chat/session/{user_id}/{session_id}")
+@router.delete("/chat/session/{user_id}/{session_id}", dependencies=[Depends(require_access_context)])
 async def delete_session(
     request: Request,
     user_id: str,
@@ -711,6 +842,9 @@ async def delete_session(
     checkpointer = getattr(request.app.state, "checkpointer", None)
     if checkpointer is None:
         raise HTTPException(status_code=503, detail="Checkpointer is not initialized.")
+    access_context = _request_access_context(request)
+    if _is_real_http_request(request):
+        _assert_user_path(user_id, access_context)
     await delete_session_completely(
         user_id=user_id,
         session_id=session_id,
@@ -719,11 +853,44 @@ async def delete_session(
     return {"message": "会话已删除。"}
 
 
-@router.get("/knowledge/records")
-async def knowledge_records() -> dict[str, object]:
+@router.get("/knowledge/records", dependencies=[Depends(require_access_context)])
+async def knowledge_records(request: Request) -> dict[str, object]:
     """List indexed knowledge records."""
 
-    return {"items": list_knowledge_records()}
+    return {"items": _accessible_records(_request_access_context(request))}
+
+
+@router.get(
+    "/knowledge/records/{source_id}",
+    dependencies=[Depends(require_access_context)],
+)
+async def knowledge_record(request: Request, source_id: str) -> dict[str, object]:
+    """Return one source body only after server-side ACL evaluation."""
+
+    _, record = _authorized_knowledge_record(request, source_id)
+    return {"record": _public_knowledge_record(record, include_content=True)}
+
+
+@router.get(
+    "/knowledge/records/{source_id}/download",
+    dependencies=[Depends(require_access_context)],
+)
+async def download_knowledge_record(request: Request, source_id: str) -> FileResponse:
+    """Download an uploaded source only after the same ACL evaluation."""
+
+    _, record = _authorized_knowledge_record(request, source_id)
+    filename = Path(str(record.get("original_filename", "")).replace("\\", "/")).name
+    if not filename or filename in {".", ".."}:
+        raise HTTPException(status_code=404, detail="Knowledge source not found.")
+    upload_root = Path(settings.upload_dir).resolve()
+    target = (upload_root / filename).resolve()
+    try:
+        target.relative_to(upload_root)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail="Knowledge source not found.") from exc
+    if not target.is_file():
+        raise HTTPException(status_code=404, detail="Knowledge source not found.")
+    return FileResponse(path=target, filename=filename)
 
 
 @router.post("/knowledge/upload")
@@ -738,8 +905,36 @@ async def upload_knowledge_file(
     effective_to: str = Form(default=""),
     owner: str = Form(default="未指定"),
     access_scope: str = Form(default="internal"),
+    required_scopes: str = Form(default=""),
+    allowed_roles: str = Form(default=""),
+    allowed_departments: str = Form(default=""),
+    denied_roles: str = Form(default=""),
+    denied_departments: str = Form(default=""),
+    denied_scopes: str = Form(default=""),
+    public_internal: bool | None = Form(default=None),
+    access_context: ServerAccessContext | None = Depends(require_knowledge_admin),
 ) -> dict[str, object]:
     """Upload a file and write it into the knowledge base."""
+
+    direct_python_call = not isinstance(access_context, ServerAccessContext)
+    if direct_python_call:
+        # Direct Python callers in local tests do not execute FastAPI
+        # dependencies; real HTTP requests always receive the server context.
+        access_context = development_access_context()
+    policy = KnowledgeAccessPolicy()
+    acl_metadata = {
+        "access_scope": access_scope,
+        "required_scopes": required_scopes,
+        "allowed_roles": allowed_roles,
+        "allowed_departments": allowed_departments,
+        "denied_roles": denied_roles,
+        "denied_departments": denied_departments,
+        "denied_scopes": denied_scopes,
+        "public_internal": public_internal,
+        "department": department,
+    }
+    if not direct_python_call and not policy.can_upload(access_context, acl_metadata):
+        raise HTTPException(status_code=403, detail="Upload ACL is not permitted.")
 
     filename = file.filename or "untitled.txt"
     raw_bytes = await file.read(settings.max_upload_bytes + 1)
@@ -763,8 +958,15 @@ async def upload_knowledge_file(
             status,
             effective_from,
             effective_to,
-            owner,
+            access_context.user_id,
             access_scope,
+            required_scopes,
+            allowed_roles,
+            allowed_departments,
+            denied_roles,
+            denied_departments,
+            denied_scopes,
+            public_internal,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

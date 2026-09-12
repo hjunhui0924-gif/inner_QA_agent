@@ -47,6 +47,7 @@ from backend.knowledge.schema import (
     content_checksum,
     knowledge_record_id,
     metadata_for_record,
+    normalize_acl_values,
     normalize_knowledge_record,
     validate_knowledge_record,
 )
@@ -65,7 +66,13 @@ class VectorStoreLike(Protocol):
     ) -> Any:
         """Add documents to the index."""
 
-    def similarity_search(self, query: str, k: int = 4) -> list[Document]:
+    def similarity_search(
+        self,
+        query: str,
+        k: int = 4,
+        *,
+        filter: dict[str, Any] | None = None,
+    ) -> list[Document]:
         """Run a similarity search."""
 
     def get(self, **kwargs: Any) -> dict[str, Any]:
@@ -127,10 +134,18 @@ class _LocalVectorStore:
                 self._documents.append(document)
                 self._vectors.append(vector)
 
-    def similarity_search(self, query: str, k: int = 4) -> list[Document]:
+    def similarity_search(
+        self,
+        query: str,
+        k: int = 4,
+        *,
+        filter: dict[str, Any] | None = None,
+    ) -> list[Document]:
         query_vector = self._embeddings.embed_query(query)
         scored: list[tuple[float, Document]] = []
         for vector, document in zip(self._vectors, self._documents, strict=False):
+            if filter is not None and not _matches_vector_where(document.metadata, filter):
+                continue
             score = sum(a * b for a, b in zip(query_vector, vector, strict=False))
             scored.append((score, document))
         scored.sort(key=lambda item: item[0], reverse=True)
@@ -158,6 +173,34 @@ class _LocalVectorStore:
         self._ids = [item[0] for item in retained]
         self._documents = [item[1] for item in retained]
         self._vectors = [item[2] for item in retained]
+
+
+def _matches_vector_where(
+    metadata: dict[str, Any],
+    where: dict[str, Any],
+) -> bool:
+    """Evaluate the small Chroma predicate subset used by ACL filters."""
+
+    if "$and" in where:
+        clauses = where.get("$and")
+        return isinstance(clauses, list) and all(
+            isinstance(item, dict) and _matches_vector_where(metadata, item)
+            for item in clauses
+        )
+    for field, condition in where.items():
+        if not isinstance(condition, dict):
+            return False
+        value = str(metadata.get(field, ""))
+        for operator, expected in condition.items():
+            if not isinstance(expected, list):
+                return False
+            normalized = {str(item) for item in expected}
+            if operator == "$in" and value not in normalized:
+                return False
+            if operator == "$nin" and value in normalized:
+                return False
+
+    return True
 
 
 def ensure_data_directories() -> None:
@@ -1000,6 +1043,8 @@ def _build_retrieval_engine(vectorstore: VectorStoreLike) -> RetrievalEngine:
 def search_knowledge_base_data(
     query: str,
     top_k: int = 4,
+    *,
+    filters: RetrievalFilter | None = None,
 ) -> tuple[str, list[dict[str, object]], str | None]:
     """Return a knowledge search summary, source metadata, and stable error code."""
 
@@ -1011,7 +1056,10 @@ def search_knowledge_base_data(
         return "知识库暂时不可用。", [], "knowledge_base_unavailable"
 
     try:
-        docs = retriever.retrieve(query, top_k=top_k).documents
+        if filters is None:
+            docs = retriever.retrieve(query, top_k=top_k).documents
+        else:
+            docs = retriever.retrieve(query, top_k=top_k, filters=filters).documents
     except Exception:
         return "知识库暂时不可用。", [], "knowledge_base_unavailable"
 
@@ -1045,10 +1093,15 @@ def search_knowledge_base_data(
     return "\n".join(lines), sources, None
 
 
-def search_knowledge_base_text(query: str, top_k: int = 4) -> str:
+def search_knowledge_base_text(
+    query: str,
+    top_k: int = 4,
+    *,
+    filters: RetrievalFilter | None = None,
+) -> str:
     """Search the enterprise knowledge base and return its legacy text summary."""
 
-    return search_knowledge_base_data(query, top_k=top_k)[0]
+    return search_knowledge_base_data(query, top_k=top_k, filters=filters)[0]
 
 
 async def search_documents(query: str, top_k: int = 4) -> list[Document]:
@@ -1267,6 +1320,13 @@ def add_knowledge_record(
     owner: str = "未指定",
     access_scope: str = "internal",
     document_family: str | None = None,
+    required_scopes: str | list[str] | None = None,
+    allowed_roles: str | list[str] | None = None,
+    allowed_departments: str | list[str] | None = None,
+    denied_roles: str | list[str] | None = None,
+    denied_departments: str | list[str] | None = None,
+    denied_scopes: str | list[str] | None = None,
+    public_internal: bool | None = None,
 ) -> dict[str, Any]:
     """Serialize one knowledge write across JSON, vector, and lexical indexes."""
 
@@ -1291,6 +1351,13 @@ def add_knowledge_record(
             owner=owner,
             access_scope=access_scope,
             document_family=document_family,
+            required_scopes=required_scopes,
+            allowed_roles=allowed_roles,
+            allowed_departments=allowed_departments,
+            denied_roles=denied_roles,
+            denied_departments=denied_departments,
+            denied_scopes=denied_scopes,
+            public_internal=public_internal,
         )
 
 
@@ -1311,6 +1378,13 @@ def _add_knowledge_record_unlocked(
     owner: str = "未指定",
     access_scope: str = "internal",
     document_family: str | None = None,
+    required_scopes: str | list[str] | None = None,
+    allowed_roles: str | list[str] | None = None,
+    allowed_departments: str | list[str] | None = None,
+    denied_roles: str | list[str] | None = None,
+    denied_departments: str | list[str] | None = None,
+    denied_scopes: str | list[str] | None = None,
+    public_internal: bool | None = None,
 ) -> dict[str, Any]:
     """Append one record to the knowledge base and index it immediately."""
 
@@ -1379,6 +1453,18 @@ def _add_knowledge_record_unlocked(
         "effective_to": effective_to,
         "owner": owner,
         "access_scope": access_scope,
+        "required_scopes": normalize_acl_values(required_scopes),
+        "allowed_roles": normalize_acl_values(allowed_roles),
+        "allowed_departments": normalize_acl_values(allowed_departments),
+        "denied_roles": normalize_acl_values(denied_roles),
+        "denied_departments": normalize_acl_values(denied_departments),
+        "denied_scopes": normalize_acl_values(denied_scopes),
+        "public_internal": (
+            public_internal
+            if public_internal is not None
+            else str(access_scope).strip().casefold()
+            in {"public-internal", "public_internal", "publicinternal"}
+        ),
         "original_filename": original_filename,
         "content_fingerprint": candidate_fingerprint,
         "content_checksum": content_checksum(clean_content),
@@ -1480,7 +1566,7 @@ def _upgrade_duplicate_segments(
 def list_knowledge_records() -> list[dict[str, Any]]:
     """Return a compact list of knowledge records."""
 
-    records = _load_json_file(Path(settings.knowledge_base_path))
+    records = _load_knowledge_base_records()
     items: list[dict[str, Any]] = []
     for index, record in enumerate(records, start=1):
         content = str(record.get("content", "")).strip()
@@ -1497,6 +1583,14 @@ def list_knowledge_records() -> list[dict[str, Any]]:
                 "effective_from": record.get("effective_from"),
                 "effective_to": record.get("effective_to"),
                 "owner": str(record.get("owner", "未指定")).strip(),
+                "access_scope": str(record.get("access_scope", "")).strip(),
+                "required_scopes": record.get("required_scopes", []),
+                "allowed_roles": record.get("allowed_roles", []),
+                "allowed_departments": record.get("allowed_departments", []),
+                "denied_roles": record.get("denied_roles", []),
+                "denied_departments": record.get("denied_departments", []),
+                "denied_scopes": record.get("denied_scopes", []),
+                "public_internal": record.get("public_internal", False),
                 "original_filename": str(record.get("original_filename", "")).strip(),
                 "preview": content[:120],
                 "content_fingerprint": str(record.get("content_fingerprint", "")).strip(),
@@ -1504,3 +1598,15 @@ def list_knowledge_records() -> list[dict[str, Any]]:
             }
         )
     return items
+
+
+def get_knowledge_record(source_id: str) -> dict[str, Any] | None:
+    """Return one normalized knowledge record by stable source ID."""
+
+    requested = source_id.strip()
+    if not requested:
+        return None
+    for record in _load_knowledge_base_records():
+        if str(record.get("id", "")).strip() == requested:
+            return record
+    return None

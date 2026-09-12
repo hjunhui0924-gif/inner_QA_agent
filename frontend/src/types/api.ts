@@ -62,6 +62,13 @@ export interface KnowledgeRecord {
   effective_to?: string | null
   owner?: string
   access_scope?: string
+  required_scopes?: string[]
+  allowed_roles?: string[]
+  allowed_departments?: string[]
+  denied_roles?: string[]
+  denied_departments?: string[]
+  denied_scopes?: string[]
+  public_internal?: boolean
   original_filename?: string
   content?: string
   content_length?: number
@@ -81,6 +88,13 @@ export interface KnowledgeUploadMetadata {
   effective_to?: string
   owner?: string
   access_scope?: string
+  required_scopes?: string
+  allowed_roles?: string
+  allowed_departments?: string
+  denied_roles?: string
+  denied_departments?: string
+  denied_scopes?: string
+  public_internal?: boolean
 }
 
 export interface UploadResponse {

@@ -105,6 +105,13 @@ RERANKER_API_STYLE=native
 TRACE_ENABLED=false
 TRACE_INCLUDE_CONTENT=false
 TRACE_RETENTION_DAYS=30
+AUTH_MODE=development
+AUTH_DEV_USER_ID=user_001
+AUTH_DEV_ROLES=employee,knowledge_reader,knowledge_admin
+AUTH_DEV_DEPARTMENTS=
+AUTH_DEV_SCOPES=internal
+AUTH_DEV_INTERNAL_USER=true
+AUTH_PROXY_SECRET=
 REQUEST_MAX_MODEL_CALLS=12
 REQUEST_MAX_TOOL_CALLS=2
 REQUEST_MAX_TOTAL_SECONDS=60
@@ -143,6 +150,14 @@ RAG 引用或 grounding 校验。
 Runtime context，SSE `result` 和 Trace 仅保存可序列化的 `budget_snapshot`，不会写入
 checkpoint。达到调用、耗时、Token 或费用限制时，系统提交安全 fallback，不交付未校验
 的候选答案。
+
+服务端权限默认通过 `AUTH_MODE=development` 提供本地单用户身份，仅用于本地开发；
+多用户部署必须切换为 `AUTH_MODE=trusted_headers`，并只允许可信反向代理在校验
+`AUTH_PROXY_SECRET` 后注入用户、角色、部门、scope 和内部用户标记。请求体中的
+`user_id`、上传表单中的 `access_scope` 以及前端隐藏状态都不构成身份或授权依据。
+知识库 ACL 默认拒绝，显式 deny 优先，scope 使用 all-of，部门精确匹配；召回前会
+先按 ACL 过滤向量和词法候选，来源查看与下载、会话读写和知识库管理入口也会做服务端授权。
+未完成可信身份接入、历史文档 ACL 迁移和权限验收前，不宣称满足多用户企业生产安全要求。
 
 回答生成默认使用 `qwen3.5-ocr`，并关闭思考模式，以提高抽取式回答和 JSON Judge 的指令稳定性。自动语义校验通过 `JUDGE_MODEL_NAME` 独立配置；当前同样设为 `qwen3.5-ocr`，后续可以切换成不同模型做交叉评判。评测执行和指标计算全自动运行；原有 34 题继续作为法规开发集，同时新增企业制度分层评测集。
 

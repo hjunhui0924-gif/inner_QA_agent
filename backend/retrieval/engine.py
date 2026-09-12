@@ -20,7 +20,13 @@ RetrievalStrategy = Literal["dense", "lexical", "fusion", "rerank"]
 
 
 class DenseStore(Protocol):
-    def similarity_search(self, query: str, k: int = 4) -> list[Document]: ...
+    def similarity_search(
+        self,
+        query: str,
+        k: int = 4,
+        *,
+        filter: dict[str, Any] | None = None,
+    ) -> list[Document]: ...
 
 
 @dataclass(frozen=True)
@@ -58,6 +64,8 @@ class RetrievalFilter:
     departments: frozenset[str] | None = None
     statuses: frozenset[str] | None = None
     access_scopes: frozenset[str] | None = None
+    allowed_document_ids: frozenset[str] | None = None
+    denied_document_ids: frozenset[str] | None = None
     as_of: date | str | None = None
     prefer_current: bool | None = None
 
@@ -68,6 +76,8 @@ class RetrievalFilter:
             ("departments", self.departments),
             ("statuses", self.statuses),
             ("access_scopes", self.access_scopes),
+            ("allowed_document_ids", self.allowed_document_ids),
+            ("denied_document_ids", self.denied_document_ids),
         ):
             if values is not None and any(not str(value).strip() for value in values):
                 raise ValueError(f"Retrieval filter {name} must not contain empty values.")
@@ -92,11 +102,38 @@ class RetrievalFilter:
             "access_scopes": sorted(self.access_scopes)
             if self.access_scopes is not None
             else None,
+            "allowed_document_ids": sorted(self.allowed_document_ids)
+            if self.allowed_document_ids is not None
+            else None,
+            "denied_document_ids": sorted(self.denied_document_ids)
+            if self.denied_document_ids is not None
+            else None,
             "as_of": self.as_of.isoformat()
             if isinstance(self.as_of, date)
             else self.as_of,
             "prefer_current": self.prefer_current,
         }
+
+    def vectorstore_where(self) -> dict[str, Any] | None:
+        """Build a conservative Chroma-compatible metadata predicate."""
+
+        clauses: list[dict[str, Any]] = []
+
+        def add_in(field: str, values: frozenset[str] | None) -> None:
+            if values is not None:
+                clauses.append({field: {"$in": sorted(values)}})
+
+        add_in("document_id", self.allowed_document_ids)
+        add_in("source_id", self.source_ids)
+        add_in("version", self.versions)
+        add_in("department", self.departments)
+        add_in("status", self.statuses)
+        add_in("access_scope", self.access_scopes)
+        if self.denied_document_ids:
+            clauses.append({"document_id": {"$nin": sorted(self.denied_document_ids)}})
+        if not clauses:
+            return None
+        return clauses[0] if len(clauses) == 1 else {"$and": clauses}
 
 
 @dataclass(frozen=True)
@@ -192,14 +229,7 @@ class RetrievalEngine:
         dense: list[Document] = []
         lexical: list[Document] = []
         if selected in {"dense", "fusion", "rerank"}:
-            dense = self._dense_store.similarity_search(
-                query,
-                k=max(
-                    top_k,
-                    self._config.dense_candidate_k,
-                    len(self._documents) if filters is not None else 0,
-                ),
-            )
+            dense = self._dense_search(query, top_k=top_k, filters=filters)
             dense = self._filter_documents(dense, filters)
         if selected in {"lexical", "fusion", "rerank"}:
             lexical = self._lexical_search(
@@ -209,6 +239,7 @@ class RetrievalEngine:
                     self._config.lexical_candidate_k,
                     len(self._documents) if filters is not None else 0,
                 ),
+                filters=filters,
             )
             lexical = self._filter_documents(lexical, filters)
 
@@ -358,6 +389,32 @@ class RetrievalEngine:
                 applied_filter=applied_filter,
             )
 
+    def _dense_search(
+        self,
+        query: str,
+        *,
+        top_k: int,
+        filters: RetrievalFilter | None,
+    ) -> list[Document]:
+        """Push metadata constraints into stores that support native filters."""
+
+        if filters is not None and filters.allowed_document_ids == frozenset():
+            return []
+        candidate_k = max(top_k, self._config.dense_candidate_k)
+        vector_filter = filters.vectorstore_where() if filters is not None else None
+        try:
+            if vector_filter is None:
+                return self._dense_store.similarity_search(query, k=candidate_k)
+            return self._dense_store.similarity_search(
+                query,
+                k=candidate_k,
+                filter=vector_filter,
+            )
+        except TypeError:
+            # Older adapters cannot push a where clause; the post-recall
+            # filter still executes before fusion and reranking.
+            return self._dense_store.similarity_search(query, k=len(self._documents))
+
     def _fuse(
         self,
         dense: list[Document],
@@ -415,6 +472,12 @@ class RetrievalEngine:
             return documents
         return [document for document in documents if _matches_filter(document, filters)]
 
+    @property
+    def documents(self) -> list[Document]:
+        """Return a snapshot for request-scoped authorization decisions."""
+
+        return list(self._documents)
+
     def _rebuild_lexical_index(self) -> None:
         self._token_counts = [Counter(tokenize(doc.page_content)) for doc in self._documents]
         self._document_lengths = [sum(counts.values()) for counts in self._token_counts]
@@ -427,7 +490,13 @@ class RetrievalEngine:
         for counts in self._token_counts:
             self._document_frequency.update(counts.keys())
 
-    def _lexical_search(self, query: str, limit: int) -> list[Document]:
+    def _lexical_search(
+        self,
+        query: str,
+        limit: int,
+        *,
+        filters: RetrievalFilter | None = None,
+    ) -> list[Document]:
         query_tokens = set(tokenize(query))
         if not query_tokens or not self._documents:
             return []
@@ -442,6 +511,8 @@ class RetrievalEngine:
             self._document_lengths,
             strict=True,
         ):
+            if filters is not None and not _matches_filter(document, filters):
+                continue
             score = 0.0
             for token in query_tokens:
                 frequency = counts.get(token, 0)
@@ -514,6 +585,16 @@ def _query_prefers_current(query: str) -> bool:
 
 def _matches_filter(document: Document, filters: RetrievalFilter) -> bool:
     metadata = document.metadata
+    document_id = str(
+        metadata.get("document_id", metadata.get("source_id", ""))
+    ).strip()
+    if (
+        filters.allowed_document_ids is not None
+        and document_id not in filters.allowed_document_ids
+    ):
+        return False
+    if filters.denied_document_ids is not None and document_id in filters.denied_document_ids:
+        return False
     if filters.source_ids is not None and str(
         metadata.get("source_id", metadata.get("document_id", ""))
     ).strip() not in filters.source_ids:

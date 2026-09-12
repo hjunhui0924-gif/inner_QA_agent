@@ -311,6 +311,7 @@ class RunContext:
     """LangGraph runtime context; never placed in AgentState/checkpoints."""
 
     budget: RequestBudget
+    access_context: object | None = None
 
 
 @asynccontextmanager

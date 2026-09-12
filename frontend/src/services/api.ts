@@ -19,6 +19,13 @@ const KNOWLEDGE_UPLOAD_METADATA_FIELDS = [
   'effective_to',
   'owner',
   'access_scope',
+  'required_scopes',
+  'allowed_roles',
+  'allowed_departments',
+  'denied_roles',
+  'denied_departments',
+  'denied_scopes',
+  'public_internal',
 ] as const
 
 export class ApiError extends Error {
@@ -95,7 +102,8 @@ export function uploadKnowledge(
   body.append('source', source || 'internal_upload')
   KNOWLEDGE_UPLOAD_METADATA_FIELDS.forEach((key) => {
     const value = metadata[key]
-    if (value?.trim()) body.append(key, value.trim())
+    if (typeof value === 'boolean') body.append(key, String(value))
+    else if (value?.trim()) body.append(key, value.trim())
   })
   return requestJson<UploadResponse>('/knowledge/upload', { method: 'POST', body })
 }

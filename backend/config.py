@@ -37,6 +37,13 @@ class Settings(BaseSettings):
     trace_backup_count: int = 3
     backend_host: str = "0.0.0.0"
     backend_port: int = 8000
+    auth_mode: str = "development"
+    auth_dev_user_id: str = "user_001"
+    auth_dev_roles: str = "employee,knowledge_reader,knowledge_admin"
+    auth_dev_departments: str = ""
+    auth_dev_scopes: str = "internal"
+    auth_dev_internal_user: bool = True
+    auth_proxy_secret: str = ""
     max_retrieval_retries: int = 2
     max_hallucination_retries: int = 1
     request_max_model_calls: int = 12
@@ -100,6 +107,22 @@ class Settings(BaseSettings):
         normalized = value.strip()
         if not normalized:
             raise ValueError("MODEL_NAME and JUDGE_MODEL_NAME must not be empty.")
+        return normalized
+
+    @field_validator("auth_mode")
+    @classmethod
+    def validate_auth_mode(cls, value: str) -> str:
+        normalized = value.strip().lower()
+        if normalized not in {"development", "trusted_headers"}:
+            raise ValueError("AUTH_MODE must be development or trusted_headers.")
+        return normalized
+
+    @field_validator("auth_dev_user_id")
+    @classmethod
+    def validate_auth_dev_user_id(cls, value: str) -> str:
+        normalized = value.strip()
+        if not normalized or len(normalized) > 128:
+            raise ValueError("AUTH_DEV_USER_ID must be a non-empty identifier.")
         return normalized
 
     @field_validator("retrieval_strategy")
