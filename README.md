@@ -25,6 +25,8 @@
 Vue 前端的设计系统、目录和当前接入边界见 [frontend/README.md](frontend/README.md)。
 统一 RAG 评测目录、运行方式和门禁见
 [《统一 RAG 评测》](docs/unified_rag_evaluation.md)。
+GitHub 提交边界和本地运行文件清单见
+[《GitHub 提交边界》](docs/repository_submission_guide.md)。
 
 ## 技术栈
 
@@ -187,6 +189,11 @@ RRF 结果，不中断问答。Rerank 模型与端点均可配置，模型说明
 [阿里云文本排序官方文档](https://help.aliyun.com/zh/model-studio/text-rerank-api)为准。
 
 仓库中只保留 `.env.example`，不要提交真实 `.env`。
+
+本地构建产物、Python/pytest 缓存、前端依赖、运行时数据库、Chroma 索引、上传文件、
+Trace 和浏览器验收产物已经写入 `.gitignore`。知识库种子、评测题集、官方语料和当前
+已跟踪的评测报告属于项目可复现资料，默认继续保留；详细边界和移除已跟踪报告的注意事项
+见 [GitHub 提交边界](docs/repository_submission_guide.md)。
 
 ## 启动方式
 

@@ -6,6 +6,13 @@ __pycache__/
 *.so
 .pytest_cache/
 .mypy_cache/
+.ruff_cache/
+.hypothesis/
+.tox/
+.nox/
+.coverage
+coverage.xml
+htmlcov/
 
 # Virtual environments
 .venv/
@@ -16,8 +23,16 @@ env/
 .vscode/
 .idea/
 
+# Local-only design/reference files
+design-system/
+docs/frontend_optimization_implementation_plan.md
+
 # Environment files
 .env
+.env.local
+.env.*.local
+.env.development
+.env.production
 
 
 # Build artifacts
@@ -26,6 +41,12 @@ dist/
 node_modules/
 work/
 *.egg-info/
+*.tsbuildinfo
+.vite/
+.cache/
+playwright-report/
+test-results/
+blob-report/
 
 # Logs
 *.log
@@ -40,3 +61,14 @@ data/eval_indexes/
 data/uploads/
 data/traces/
 data/memory.db
+data/*.db-shm
+data/*.db-wal
+data/*.sqlite
+data/*.sqlite3
+
+# Local browser/test evidence and generated screenshots
+# Local dependency/tool caches
+frontend/node_modules/
+frontend/.pytest_cache/
+frontend/.vite/
+frontend/node_modules/.tmp/
