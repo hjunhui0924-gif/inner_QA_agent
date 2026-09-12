@@ -90,6 +90,16 @@ export async function fetchKnowledgeRecords(): Promise<KnowledgeRecord[]> {
   return Array.isArray(payload.items) ? payload.items : []
 }
 
+export async function downloadKnowledge(sourceId: string): Promise<Blob> {
+  const response = await fetch(
+    `${API_BASE}/knowledge/records/${encodeURIComponent(sourceId)}/download`,
+  )
+  if (!response.ok) {
+    throw new ApiError(await errorMessage(response), response.status)
+  }
+  return response.blob()
+}
+
 export function uploadKnowledge(
   file: File,
   title: string,

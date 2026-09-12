@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import unittest
+from io import BytesIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
-from fastapi import HTTPException
+from fastapi import HTTPException, UploadFile
 from langchain_core.documents import Document
 from starlette.requests import Request
 
@@ -27,6 +28,7 @@ from backend.api.routes import (
     _assert_user_path,
     download_knowledge_record,
     knowledge_record,
+    upload_knowledge_file,
 )
 from backend.retrieval.engine import RetrievalConfig, RetrievalEngine
 
@@ -251,6 +253,49 @@ class RetrievalAuthorizationTests(unittest.TestCase):
 
 
 class SourceAuthorizationTests(unittest.IsolatedAsyncioTestCase):
+    async def test_upload_endpoint_returns_success_for_server_admin(self) -> None:
+        upload = UploadFile(filename="travel-policy.md", file=BytesIO(b"policy"))
+        admin = ServerAccessContext(
+            user_id="alice",
+            roles=frozenset({"knowledge_admin"}),
+            departments=frozenset({"Finance"}),
+            scopes=frozenset({"internal"}),
+        )
+        ingested = {
+            "title": "Travel policy",
+            "content": "policy",
+            "source": "internal_upload",
+            "original_filename": "travel-policy.md",
+            "deduplicated": False,
+            "dedup_type": "none",
+        }
+        with patch(
+            "backend.api.routes.asyncio.to_thread",
+            new=AsyncMock(return_value=ingested),
+        ):
+            response = await upload_knowledge_file(
+                file=upload,
+                department="Finance",
+                access_context=admin,
+            )
+        self.assertEqual(response["record"]["title"], "Travel policy")
+        self.assertIn("成功入库", response["message"])
+
+    async def test_non_admin_upload_is_rejected_before_ingestion(self) -> None:
+        upload = UploadFile(filename="travel-policy.md", file=BytesIO(b"policy"))
+        with self.assertRaises(HTTPException) as raised:
+            await upload_knowledge_file(
+                file=upload,
+                department="Finance",
+                access_context=ServerAccessContext(
+                    user_id="alice",
+                    roles=frozenset({"employee"}),
+                    departments=frozenset({"Finance"}),
+                    scopes=frozenset({"internal"}),
+                ),
+            )
+        self.assertEqual(raised.exception.status_code, 403)
+
     async def test_source_view_returns_content_only_for_authorized_context(self) -> None:
         request = _request()
         record = {

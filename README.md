@@ -196,6 +196,25 @@ RRF 结果，不中断问答。Rerank 模型与端点均可配置，模型说明
 uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
+### MVP 浏览器验收
+
+浏览器验收脚本覆盖会话新建、模式切换、流式回答、引用证据、继续追问、会话删除、
+知识库上传、筛选、文档详情和来源下载。后端解析、持久化和权限仍由 Python 测试
+直接验证。浏览器测试使用本机 Chrome 或 Edge，并通过浏览器边界注入确定性 API 响应，
+不会消耗在线模型额度。
+
+```bash
+python -m pip install -r requirements-e2e.txt
+python tests/e2e_mvp_browser.py
+```
+
+运行前先启动前端：
+
+```bash
+cd frontend
+npm run dev -- --host 127.0.0.1
+```
+
 启动 Vue 前端：
 
 ```bash

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
+import { downloadKnowledge } from '../services/api'
 import type { KnowledgeRecord } from '../types/api'
 import { formatKnowledgeDateRange, knowledgeStatusLabel, knowledgeStatusTone } from '../utils/knowledge'
 import { registerOverlay } from '../utils/overlayStack'
@@ -13,6 +14,8 @@ const props = defineProps<{
 const emit = defineEmits<{ close: [] }>()
 const drawer = ref<HTMLElement | null>(null)
 const closeButton = ref<HTMLButtonElement | null>(null)
+const downloading = ref(false)
+const downloadError = ref('')
 let overlay: ReturnType<typeof registerOverlay> | null = null
 
 function closeOnEscape(event: KeyboardEvent): void {
@@ -47,6 +50,28 @@ function trapFocus(event: KeyboardEvent): void {
   } else if (!event.shiftKey && document.activeElement === last) {
     event.preventDefault()
     first.focus()
+  }
+}
+
+async function downloadRecord(): Promise<void> {
+  const sourceId = props.record?.source_id
+  if (!sourceId || downloading.value) return
+  downloading.value = true
+  downloadError.value = ''
+  try {
+    const blob = await downloadKnowledge(sourceId)
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = props.record?.original_filename || `${sourceId}.bin`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+  } catch {
+    downloadError.value = '来源下载失败，请稍后重试。'
+  } finally {
+    downloading.value = false
   }
 }
 
@@ -119,6 +144,18 @@ watch(
           <span v-if="record.source_id" class="detail-code">{{ record.source_id }}</span>
         </div>
 
+        <div class="detail-actions">
+          <button
+            class="secondary-button"
+            type="button"
+            :disabled="!record.source_id || downloading"
+            @click="downloadRecord"
+          >
+            {{ downloading ? '准备下载…' : '下载原文件' }}
+          </button>
+          <p v-if="downloadError" class="field-error" role="alert">{{ downloadError }}</p>
+        </div>
+
         <dl class="detail-fields">
           <div><dt>来源</dt><dd>{{ record.source || '未记录' }}</dd></div>
           <div><dt>来源类型</dt><dd>{{ record.source_type || '未记录' }}</dd></div>
@@ -151,7 +188,7 @@ watch(
         </section>
 
         <p class="detail-drawer-note">
-          当前版本仅提供文档元数据和内容预览；下载、删除及解析阶段进度需要后端接口支持。
+          下载操作会再次经过服务端来源权限校验。
         </p>
       </div>
     </aside>

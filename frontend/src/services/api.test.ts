@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { streamChat, uploadKnowledge } from './api'
+import { downloadKnowledge, streamChat, uploadKnowledge } from './api'
 import type { StreamEvent } from '../types/api'
 
 afterEach(() => {
@@ -116,5 +116,18 @@ describe('uploadKnowledge', () => {
     )
 
     expect(fetchMock).toHaveBeenCalledOnce()
+  })
+})
+
+describe('downloadKnowledge', () => {
+  it('downloads an authorized source as a blob', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
+      new Response('file body', { status: 200 }),
+    ))
+
+    const blob = await downloadKnowledge('finance policy')
+
+    expect(blob).toBeInstanceOf(Blob)
+    expect(fetch).toHaveBeenCalledWith('/api/knowledge/records/finance%20policy/download')
   })
 })

@@ -916,6 +916,33 @@ async def upload_knowledge_file(
 ) -> dict[str, object]:
     """Upload a file and write it into the knowledge base."""
 
+    def form_default(value: object, fallback: object) -> object:
+        """Normalize FastAPI Form defaults for direct Python integration calls."""
+
+        if isinstance(value, (str, bool)) or value is None:
+            return fallback if value is None else value
+        return getattr(value, "default", fallback)
+
+    title = str(form_default(title, ""))
+    source = str(form_default(source, "upload"))
+    department = str(form_default(department, "unknown"))
+    version = str(form_default(version, "v1"))
+    status = str(form_default(status, "active"))
+    effective_from = str(form_default(effective_from, "1970-01-01"))
+    effective_to = str(form_default(effective_to, ""))
+    owner = str(form_default(owner, "未指定"))
+    access_scope = str(form_default(access_scope, "internal"))
+    required_scopes = str(form_default(required_scopes, ""))
+    allowed_roles = str(form_default(allowed_roles, ""))
+    allowed_departments = str(form_default(allowed_departments, ""))
+    denied_roles = str(form_default(denied_roles, ""))
+    denied_departments = str(form_default(denied_departments, ""))
+    denied_scopes = str(form_default(denied_scopes, ""))
+    public_internal_value = form_default(public_internal, None)
+    public_internal = (
+        public_internal_value if isinstance(public_internal_value, bool) else None
+    )
+
     direct_python_call = not isinstance(access_context, ServerAccessContext)
     if direct_python_call:
         # Direct Python callers in local tests do not execute FastAPI

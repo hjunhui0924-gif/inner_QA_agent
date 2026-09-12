@@ -77,7 +77,7 @@ describe('DocumentDetailDrawer', () => {
     const buttonText = [...(host?.querySelectorAll('button') ?? [])]
       .map((button) => button.textContent || '')
       .join(' ')
-    expect(buttonText).not.toContain('下载')
+    expect(buttonText).toContain('下载原文件')
     expect(buttonText).not.toContain('删除文档')
   })
 
