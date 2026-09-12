@@ -38,6 +38,16 @@ afterEach(() => {
 })
 
 describe('FailureNotice', () => {
+  it.each([
+    ['search_no_results', '没有找到可用的网页来源'],
+    ['search_error', '联网搜索暂时不可用'],
+    ['search_answer_error', '联网回答校验未通过'],
+  ])('distinguishes %s from missing enterprise documents', (failureType, title) => {
+    mountNotice({ answerState: 'fallback', failureType, failureStage: 'tool', traceId: null, retryable: failureType !== 'search_no_results' })
+    expect(host?.textContent).toContain(title)
+    expect(host?.textContent).not.toContain('补充可引用的知识库资料')
+    expect(Boolean(host?.querySelector('.failure-retry'))).toBe(failureType !== 'search_no_results')
+  })
   it('explains citation failures without exposing internal reasons', () => {
     mountNotice({
       answerState: 'fallback',

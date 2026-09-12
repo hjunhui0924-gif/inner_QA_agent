@@ -3,15 +3,23 @@ import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import { downloadKnowledge } from '../services/api'
 import type { KnowledgeRecord } from '../types/api'
-import { formatKnowledgeDateRange, knowledgeStatusLabel, knowledgeStatusTone } from '../utils/knowledge'
+import {
+  departmentLabel,
+  sourceLabel,
+  formatKnowledgeDateRange,
+  knowledgeStatusLabel,
+  knowledgeStatusTone,
+} from '../utils/knowledge'
 import { registerOverlay } from '../utils/overlayStack'
 
 const props = defineProps<{
   open: boolean
   record: KnowledgeRecord | null
+  loading?: boolean
+  error?: string
 }>()
 
-const emit = defineEmits<{ close: [] }>()
+const emit = defineEmits<{ close: []; retry: [] }>()
 const drawer = ref<HTMLElement | null>(null)
 const closeButton = ref<HTMLButtonElement | null>(null)
 const downloading = ref(false)
@@ -114,7 +122,7 @@ watch(
     >
       <header class="detail-drawer-header">
         <div>
-          <p class="eyebrow">DOCUMENT RECORD</p>
+          <p class="eyebrow">了解这份资料</p>
           <h2 id="document-detail-title">文档详情</h2>
         </div>
         <button
@@ -157,22 +165,55 @@ watch(
         </div>
 
         <dl class="detail-fields">
-          <div><dt>来源</dt><dd>{{ record.source || '未记录' }}</dd></div>
-          <div><dt>来源类型</dt><dd>{{ record.source_type || '未记录' }}</dd></div>
-          <div><dt>部门</dt><dd>{{ record.department || '未指定' }}</dd></div>
-          <div><dt>版本</dt><dd>{{ record.version || '未记录' }}</dd></div>
-          <div><dt>负责人</dt><dd>{{ record.owner || '未指定' }}</dd></div>
-          <div><dt>访问范围</dt><dd>{{ record.access_scope || '未记录' }}</dd></div>
-          <div><dt>生效期间</dt><dd>{{ formatKnowledgeDateRange(record.effective_from, record.effective_to) }}</dd></div>
-          <div v-if="record.content_length !== undefined"><dt>内容字数</dt><dd>{{ Number(record.content_length).toLocaleString() }} 字</dd></div>
+          <div>
+            <dt>来源</dt>
+            <dd>{{ sourceLabel(record.source) }}</dd>
+          </div>
+          <div>
+            <dt>来源类型</dt>
+            <dd>{{ sourceLabel(record.source_type) }}</dd>
+          </div>
+          <div>
+            <dt>部门</dt>
+            <dd>{{ departmentLabel(record.department) }}</dd>
+          </div>
+          <div>
+            <dt>版本</dt>
+            <dd>{{ record.version || '未记录' }}</dd>
+          </div>
+          <div>
+            <dt>负责人</dt>
+            <dd>{{ record.owner || '未指定' }}</dd>
+          </div>
+          <div>
+            <dt>访问范围</dt>
+            <dd>
+              {{
+                record.access_scope === 'internal' ? '企业内部' : record.access_scope || '未记录'
+              }}
+            </dd>
+          </div>
+          <div>
+            <dt>生效期间</dt>
+            <dd>{{ formatKnowledgeDateRange(record.effective_from, record.effective_to) }}</dd>
+          </div>
+          <div v-if="record.content_length !== undefined">
+            <dt>内容字数</dt>
+            <dd>{{ Number(record.content_length).toLocaleString() }} 字</dd>
+          </div>
         </dl>
 
         <section class="detail-preview" aria-labelledby="preview-title">
           <div class="detail-section-heading">
             <h3 id="preview-title">内容预览</h3>
-            <span>接口返回摘要</span>
+            <span>原文内容</span>
           </div>
-          <p>{{ record.preview || record.content || '当前接口未返回内容预览。' }}</p>
+          <p v-if="loading" role="status">正在加载文档内容…</p>
+          <div v-else-if="error" role="alert">
+            <p class="field-error">{{ error }}</p>
+            <button class="secondary-button" type="button" @click="emit('retry')">重新加载</button>
+          </div>
+          <p v-else>{{ record.content || record.preview || '暂无预览，可下载原文件查看。' }}</p>
         </section>
 
         <section class="detail-integrity" aria-labelledby="integrity-title">
@@ -181,15 +222,21 @@ watch(
             <span>只读信息</span>
           </div>
           <dl>
-            <div v-if="record.content_checksum"><dt>Checksum</dt><dd>{{ record.content_checksum }}</dd></div>
-            <div v-if="record.content_fingerprint"><dt>Fingerprint</dt><dd>{{ record.content_fingerprint }}</dd></div>
-            <div v-if="!record.content_checksum && !record.content_fingerprint"><dd>当前接口未返回校验摘要。</dd></div>
+            <div v-if="record.content_checksum">
+              <dt>Checksum</dt>
+              <dd>{{ record.content_checksum }}</dd>
+            </div>
+            <div v-if="record.content_fingerprint">
+              <dt>Fingerprint</dt>
+              <dd>{{ record.content_fingerprint }}</dd>
+            </div>
+            <div v-if="!record.content_checksum && !record.content_fingerprint">
+              <dd>当前接口未返回校验摘要。</dd>
+            </div>
           </dl>
         </section>
 
-        <p class="detail-drawer-note">
-          下载操作会再次经过服务端来源权限校验。
-        </p>
+        <p class="detail-drawer-note">仅可下载你有权访问的资料。</p>
       </div>
     </aside>
   </div>

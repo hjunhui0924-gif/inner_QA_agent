@@ -61,19 +61,20 @@ function stepAriaLabel(step: AgentStep): string {
   return `${stepLabel(step)}：${statusLabels[status] || '处理中'}`
 }
 
-const currentStep = computed(() => (
-  [...props.steps].reverse().find((step) => step.status === 'running')
-  || props.steps.at(-1)
-  || null
-))
+const currentStep = computed(
+  () =>
+    [...props.steps].reverse().find((step) => step.status === 'running') ||
+    props.steps.at(-1) ||
+    null,
+)
 
-const currentStepStatus = computed(() => (
-  currentStep.value ? stepStatus(currentStep.value) : props.active ? 'running' : 'pending'
-))
+const currentStepStatus = computed(() =>
+  currentStep.value ? stepStatus(currentStep.value) : props.active ? 'running' : 'pending',
+)
 
-const currentStepLabel = computed(() => (
-  currentStep.value ? stepLabel(currentStep.value) : '准备处理请求'
-))
+const currentStepLabel = computed(() =>
+  currentStep.value ? stepLabel(currentStep.value) : '准备处理请求',
+)
 
 function toggleExpanded(): void {
   expanded.value = !expanded.value
@@ -95,32 +96,29 @@ watch(
 </script>
 
 <template>
-  <div v-if="active || steps.length" class="agent-progress">
-    <div class="progress-heading">
-      <span class="status-dot online" :class="{ pulse: active }" />
-      <strong>{{ active ? 'Agent 正在处理' : 'Agent 路径' }}</strong>
+  <div v-if="active || steps.length" class="agent-progress" :class="{ active }">
+    <div class="progress-summary">
+      <div class="progress-current" role="status" aria-live="polite">
+        <span
+          class="step-status-marker"
+          :class="`step-marker-${currentStepStatus}`"
+          aria-hidden="true"
+        />
+        <span class="progress-current-copy">
+          <strong>{{ active ? currentStepLabel : '本次处理已结束' }}</strong>
+        </span>
+      </div>
+      <button
+        v-if="steps.length"
+        class="progress-toggle"
+        type="button"
+        :aria-expanded="expanded"
+        :aria-controls="detailsId"
+        @click="toggleExpanded"
+      >
+        {{ expanded ? '收起处理过程' : '查看处理过程' }}
+      </button>
     </div>
-    <div class="progress-current" role="status" aria-live="polite">
-      <span
-        class="step-status-marker"
-        :class="`step-marker-${currentStepStatus}`"
-        aria-hidden="true"
-      />
-      <span class="progress-current-copy">
-        <strong>{{ currentStepLabel }}</strong>
-        <small>{{ statusLabels[currentStepStatus] || '处理中' }}</small>
-      </span>
-    </div>
-    <button
-      v-if="steps.length"
-      class="progress-toggle"
-      type="button"
-      :aria-expanded="expanded"
-      :aria-controls="detailsId"
-      @click="toggleExpanded"
-    >
-      {{ expanded ? '收起处理过程' : '查看处理过程' }}
-    </button>
     <div
       v-show="expanded"
       :id="detailsId"

@@ -188,6 +188,10 @@ def classify_runtime_failure(state: dict[str, Any]) -> str:
     if str(state.get("generation_error", "")).strip():
         return "generation_error"
     failure_stage = str(state.get("failure_stage", "")).strip()
+    if failure_stage == "tool":
+        search_failures = {"web_search_no_results": "search_no_results", "web_search_unavailable": "search_error", "web_answer_invalid": "search_answer_error"}
+        if state.get("failure_reason") in search_failures:
+            return search_failures[state["failure_reason"]]
     if failure_stage in {"retrieval", "relevance", "evidence"}:
         return "retrieval_miss"
     if failure_stage == "citation":
@@ -216,6 +220,7 @@ def _is_abstention(answer: str) -> bool:
         phrase in lowered
         for phrase in (
             "信息不足",
+            "检索到的知识未包含该问题的答案",
             "未找到",
             "没有足够",
             "无法回答",

@@ -15,11 +15,11 @@ from scripts import run_answer_benchmark
 
 
 class ModelConfigurationTests(unittest.TestCase):
-    def test_qwen37_flash_is_the_default_generation_and_judge_model(self) -> None:
+    def test_text_generation_model_is_the_default_generation_and_judge_model(self) -> None:
         configured = Settings(_env_file=None)
 
-        self.assertEqual(configured.model_name, "qwen3.5-ocr")
-        self.assertEqual(configured.judge_model_name, "qwen3.5-ocr")
+        self.assertEqual(configured.model_name, "qwen3.8-flash")
+        self.assertEqual(configured.judge_model_name, "qwen3.8-flash")
         self.assertEqual(configured.embedding_model, "qwen3.7-text-embedding")
         self.assertFalse(configured.qwen_enable_thinking)
 

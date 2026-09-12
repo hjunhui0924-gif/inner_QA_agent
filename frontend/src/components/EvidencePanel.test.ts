@@ -28,7 +28,7 @@ const citations: Citation[] = [
 let app: ReturnType<typeof createApp> | null = null
 let host: HTMLDivElement | null = null
 
-function mountPanel() {
+function mountPanel(records: Citation[] = citations) {
   const state = reactive({
     open: false,
     selectedCitationId: null as string | null,
@@ -42,7 +42,7 @@ function mountPanel() {
       return () => h(EvidencePanel, {
         open: state.open,
         modal: true,
-        citations,
+        citations: records,
         selectedCitationId: state.selectedCitationId,
         onClose: () => events.push('close'),
       })
@@ -64,6 +64,20 @@ afterEach(() => {
 })
 
 describe('EvidencePanel', () => {
+  it('shows a safe web source without presenting generated text as a quote', () => {
+    mountPanel([{ citation_id: 'C3', title: 'Python', url: 'https://www.python.org/', source: 'web', quote: '', verification_status: 'web_source' }])
+    const link = host?.querySelector<HTMLAnchorElement>('a')
+    expect(link?.href).toBe('https://www.python.org/')
+    expect(link?.rel).toBe('noopener noreferrer')
+    expect(host?.textContent).toContain('搜索服务提供的来源')
+    expect(host?.querySelector('blockquote')).toBeNull()
+    expect(host?.querySelector('.copy-quote')).toBeNull()
+  })
+
+  it.each(['javascript:alert(1)', 'data:text/html,unsafe', 'https://user:password@example.com/'])('does not render unsafe source %s', (url) => {
+    mountPanel([{ citation_id: 'C1', title: '不可信来源', url, quote: '' }])
+    expect(host?.querySelector('a')).toBeNull()
+  })
   it('focuses and highlights the citation selected from the answer', async () => {
     vi.useFakeTimers()
     Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {

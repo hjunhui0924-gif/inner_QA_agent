@@ -33,7 +33,19 @@ const failureCopies: Record<string, FailureCopy> = {
     eyebrow: 'EVIDENCE CHECK',
     title: '回答引用校验未通过',
     message: '系统没有提交未经验证的答案。',
-    guidance: '请调整问题，或补充可引用的知识库资料。',
+    guidance: '已找到相关资料，但暂未生成可验证的回答，可以重新尝试。',
+  },
+  search_no_results: {
+    eyebrow: 'WEB SEARCH', title: '没有找到可用的网页来源',
+    message: '本次搜索没有获得可用于回答的信息。', guidance: '请调整关键词，或补充具体名称和时间范围。',
+  },
+  search_error: {
+    eyebrow: 'WEB SEARCH', title: '联网搜索暂时不可用',
+    message: '当前无法获取网页来源。', guidance: '可以点击“重新发送”再次尝试。',
+  },
+  search_answer_error: {
+    eyebrow: 'WEB SEARCH', title: '联网回答校验未通过',
+    message: '已获得网页来源，但暂未生成引用完整的回答。', guidance: '可以点击“重新发送”再次尝试。',
   },
   generation_error: {
     eyebrow: 'SERVICE LIMIT',
@@ -67,7 +79,7 @@ const copy = computed<FailureCopy>(() => {
 
 const canRetry = computed(() => (
   props.retryable ?? (
-    props.answerState === 'error' || props.failureType === 'generation_error'
+    props.answerState === 'error' || ['generation_error', 'citation_error', 'search_error', 'search_answer_error'].includes(props.failureType || '')
   )
 ))
 

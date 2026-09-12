@@ -84,9 +84,12 @@ npm install
 
 ```env
 DASHSCOPE_API_KEY=你的DashScopeKey
-MODEL_NAME=qwen3.5-ocr
-JUDGE_MODEL_NAME=qwen3.5-ocr
+MODEL_NAME=qwen3.8-flash
+JUDGE_MODEL_NAME=qwen3.8-flash
 QWEN_ENABLE_THINKING=false
+WEB_SEARCH_MODEL=qwen3.8-flash
+WEB_SEARCH_ENDPOINT=https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation
+WEB_SEARCH_TIMEOUT_SECONDS=20
 CONVERSATION_TOKEN_BUDGET=12000
 CONVERSATION_SUMMARY_TRIGGER_TOKENS=10000
 CONVERSATION_SUMMARY_TARGET_TOKENS=1500
@@ -125,7 +128,7 @@ MODEL_OUTPUT_PRICE_PER_1K=0
 ```
 
 会话上下文使用保守的中英文混合 Token 估算。达到 10000 Token 时，系统使用
-`qwen3.5-ocr` 将较早对话压缩到约 1500 Token，保留最近 4 轮和当前问题；如果
+`MODEL_NAME` 配置的模型将较早对话压缩到约 1500 Token，保留最近 4 轮和当前问题；如果
 最近对话本身过长，会继续压缩更早轮次以满足 12000 Token 的会话预算。摘要模型
 不可用时会退化为确定性截断。现有路由器会利用摘要判断短追问是否仍需进入 RAG；
 检索失败后，`rewrite_query` 会结合摘要和最近对话补全追问中的指代，再重新检索。
@@ -137,15 +140,18 @@ Checkpoint，因此复用原会话 ID 也不会恢复旧上下文。同一会话
 每个新会话在第一次提问前选择一次模式，开始对话后模式锁定；如需切换，必须开启
 新对话。知识库模式只允许使用内部知识证据，无关问题会拒答并建议切换通用模式。
 通用模式可以直接回答开放问题；用户显式开启“联网搜索”或问题包含明显实时检索
-意图时，后端通过公共 DuckDuckGo Instant Answer 接口获取网页摘要。联网结果不属于
-企业内部证据，当前也不生成 RAG 式 `[C1]` 引用。首次提问完成后，系统使用模型生成
+意图时，后端调用 DashScope 原生联网搜索，直接复用带来源的回答，将来源编号统一为
+`[C1]` 等引用，并在证据面板提供网页链接。联网结果不属于企业内部证据，标记为
+“搜索服务提供的来源”，不展示未经抓取核验的原文摘录。首次提问完成后，系统使用模型生成
 简短会话标题；标题只依据第一问生成，后续消息不会覆盖。旧版直接使用问题文本作为
 标题的会话，会在首次读取会话列表时尝试批量回填模型摘要标题。
 
 工具执行结果同时保留结构化字段和现有字符串兼容字段。工具异常使用稳定错误码，
 不会把内部路径、上游响应正文或异常堆栈送入生成提示、SSE 或 Trace；搜索没有可验证
-URL 时不会创建伪来源。联网搜索的摘要即使调用成功也不属于企业知识证据，不能替代
-RAG 引用或 grounding 校验。
+URL 时不会创建伪来源。搜索无结果、服务异常、答案缺有效引用分别返回
+`web_search_no_results`、`web_search_unavailable`、`web_answer_invalid`，不交付无效候选。
+原生搜索使用现有 DashScope 凭证，超时由 `WEB_SEARCH_TIMEOUT_SECONDS` 控制；模型、工具
+调用及已知 Token 用量计入请求预算。网页引用只验证来源指针，不能替代全文事实校验。
 
 每次问答请求创建独立的 `RequestBudget`，默认最多 12 次模型调用、2 次工具调用和
 60 秒总耗时；输入/输出 Token 与估算费用上限默认为 0（关闭）。预算对象只存在本轮
@@ -161,7 +167,7 @@ checkpoint。达到调用、耗时、Token 或费用限制时，系统提交安�
 先按 ACL 过滤向量和词法候选，来源查看与下载、会话读写和知识库管理入口也会做服务端授权。
 未完成可信身份接入、历史文档 ACL 迁移和权限验收前，不宣称满足多用户企业生产安全要求。
 
-回答生成默认使用 `qwen3.5-ocr`，并关闭思考模式，以提高抽取式回答和 JSON Judge 的指令稳定性。自动语义校验通过 `JUDGE_MODEL_NAME` 独立配置；当前同样设为 `qwen3.5-ocr`，后续可以切换成不同模型做交叉评判。评测执行和指标计算全自动运行；原有 34 题继续作为法规开发集，同时新增企业制度分层评测集。
+回答生成默认使用 `qwen3.8-flash`，并关闭思考模式。自动语义校验通过 `JUDGE_MODEL_NAME` 独立配置；当前同样设为 `qwen3.8-flash`，后续可以切换成不同模型做交叉评判。本次选择依据是小样本模型比较和真实联调，不代表全面模型排名；详见 [回答与搜索优化说明](docs/answer_search_optimization.md)。评测执行和指标计算全自动运行；原有 34 题继续作为法规开发集，同时新增企业制度分层评测集。
 
 默认使用 DashScope `qwen3.7-text-embedding` 作为中文语义检索模型。Embedding
 提供方、模型、维度或索引版本发生变化时，系统会自动使用新的 Chroma
@@ -401,7 +407,7 @@ python scripts/run_unified_rag_benchmark.py --mode all --enable-judge
 
 统一报告写入 `data/eval_reports/unified_rag_benchmark.json`。`official_policy` 和 `enterprise_rag` 是阻断门禁，`dongshan_legacy` 只作非阻断兼容参考；`--offline` 或 `--limit` 的结果会标记为 `smoke_only`。
 
-答案层开发基准复用上面的 4 份权威法规和 34 个问题，其中 30 个可回答、4 个无答案。它运行 BM25 + 向量检索 + RRF + Rerank、一次 `qwen3.5-ocr` 生成和一次自动 Judge，用来快速迭代生成与引用协议；不经过路由、查询改写、生产幻觉重试和安全 fallback，不能替代完整 Agent 的端到端验收。
+答案层开发基准复用上面的 4 份权威法规和 34 个问题，其中 30 个可回答、4 个无答案。它运行 BM25 + 向量检索 + RRF + Rerank、一次按 `MODEL_NAME` 配置的生成和一次自动 Judge，用来快速迭代生成与引用协议；不经过路由、查询改写、生产幻觉重试和安全 fallback，不能替代完整 Agent 的端到端验收。
 
 - Gold Evidence Phrase 是否近逐字出现在回答中；
 - 数字与日期是否匹配；
@@ -416,7 +422,7 @@ python scripts/run_answer_benchmark.py --top-k 5
 
 完整运行会把报告写入 `data/eval_reports/official_policy_answer_benchmark.json`。这 34 题参与过提示词与规则迭代，属于开发集而非独立留出测试集。报告中的 Gold Phrase、数字、引用出处、引用完整性和抽取重合均为确定性代理指标，不应表述为人工验证的“回答准确率”或“忠实度”。只有 `verification_status=provenance_only` 的引用出处可以被确定性验证；语义支持需要独立 Judge/NLI 或人工标注集。
 
-当前使用 `qwen3.5-ocr` 生成与 Judge、`qwen3.7-text-embedding` 检索的完整自动评测结果：
+以下保留使用 `qwen3.5-ocr` 生成与 Judge、`qwen3.7-text-embedding` 检索的历史自动评测结果：
 
 | 指标 | 结果 | 样本数 |
 | --- | ---: | ---: |
@@ -430,6 +436,16 @@ python scripts/run_answer_benchmark.py --top-k 5
 | 引用完整性 | 98.33% | 30 个可回答样本 |
 
 确定性代理指标记录了 11 个 gold phrase mismatch、1 个 citation failure 和 1 个 refusal failure；其中部分核心答案仍被 Judge 判为正确。上述指标是自动开发评测结果，不是独立人工结论。
+
+2026-09-12 切换 `qwen3.8-flash` 后的独立运行完成全部 34 题：自动 Judge 四项通过
+33/34，数字匹配及引用出处均为 100%，引用完整性 98.33%，无答案拒答 4/4。
+仍有 11 个短语匹配失败和 1 个逐句引用失败，包含一处实际遗漏义务的回答。
+本次真实前后端联调另为 14/14 通过；完整证据、失败明细与同模型自评限制见
+[后端与前端真实接口验证](docs/backend_frontend_verification.md)。历史评测文件未被覆盖。
+
+2026-09-13 起，生成提示词改为先覆盖本题必要信息，再压缩重复表达；清单保留条件、期限、
+例外及逐项引用，不以固定句数裁剪答案。最新对照评测见
+[系统提示词：完整后再精简](docs/prompt_completeness_optimization.md)。
 
 仓库不提交凭证配额耗尽、样本数不足或中途失败的答案报告。模型调用失败记录为 `generation_error`；调用成功但保守代理没有匹配 Gold Phrase 时记录为 `gold_phrase_mismatch`，不会混为一类，也不会把安全拒答或回显的 Top-K 文档误算成正确答案。
 

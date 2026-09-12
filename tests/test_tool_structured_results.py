@@ -129,14 +129,14 @@ class StructuredToolResultTests(unittest.IsolatedAsyncioTestCase):
         with patch(
             "backend.agent.tools._search_web_payload",
             return_value=(
-                "网页摘要",
-                [{"title": "公开页面", "url": "https://example.com", "snippet": "网页摘要"}],
+                "网页摘要 [C1]。",
+                [{"index": 1, "title": "公开页面", "url": "https://example.com", "snippet": "网页摘要"}],
             ),
         ):
             result = search_web_result("企业知识助手")
 
         self.assertTrue(result["ok"])
-        self.assertEqual(result["text"], "网页摘要")
+        self.assertEqual(result["text"], "网页摘要 [C1]。")
         self.assertEqual(result["sources"][0]["url"], "https://example.com")
         json.dumps(result, ensure_ascii=False)
 
@@ -144,7 +144,7 @@ class StructuredToolResultTests(unittest.IsolatedAsyncioTestCase):
             "backend.agent.tools._search_web_payload",
             return_value=("旧版网页摘要", []),
         ):
-            self.assertEqual(search_web.invoke({"query": "企业知识助手"}), "旧版网页摘要")
+            self.assertIn("没有找到可用", search_web.invoke({"query": "企业知识助手"}))
 
     async def test_web_search_does_not_create_sources_without_verifiable_urls(self) -> None:
         with patch(
@@ -153,7 +153,8 @@ class StructuredToolResultTests(unittest.IsolatedAsyncioTestCase):
         ):
             result = search_web_result("无链接")
 
-        self.assertTrue(result["ok"])
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["error"], "web_answer_invalid")
         self.assertEqual(result["sources"], [])
 
     async def test_empty_web_search_is_explicit_and_does_not_fake_sources(self) -> None:
@@ -163,8 +164,9 @@ class StructuredToolResultTests(unittest.IsolatedAsyncioTestCase):
         ):
             result = search_web_result("没有结果的问题")
 
-        self.assertTrue(result["ok"])
-        self.assertEqual(result["text"], "公开网页没有返回可用摘要。")
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["error"], "web_search_no_results")
+        self.assertEqual(result["text"], "")
         self.assertEqual(result["sources"], [])
 
     async def test_web_search_exception_becomes_failed_structured_result(self) -> None:

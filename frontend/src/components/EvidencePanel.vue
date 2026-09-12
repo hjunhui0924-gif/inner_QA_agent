@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref, useId, watch } from 'vue'
 import type { Citation } from '../types/api'
+import { copyText } from '../utils/clipboard'
 import { registerOverlay } from '../utils/overlayStack'
 
 const props = defineProps<{
@@ -16,13 +17,30 @@ const evidenceList = ref<HTMLElement | null>(null)
 const evidenceClose = ref<HTMLButtonElement | null>(null)
 const copyFeedback = ref<Record<string, 'copied' | 'failed'>>({})
 const titleId = `evidence-title-${useId()}`
+const verificationLabels: Record<string, string> = {
+  provenance_only: '已核对引用出处',
+  grounded: '已校验答案依据',
+  verified: '已校验引用',
+  web_source: '搜索服务提供的来源',
+}
+function sourceUrl(value?: string): string | undefined {
+  if (!value || /\s/.test(value)) return undefined
+  try {
+    const url = new URL(value)
+    return ['https:', 'http:'].includes(url.protocol) && !url.username && !url.password ? url.href : undefined
+  } catch {
+    return undefined
+  }
+}
 let overlay: ReturnType<typeof registerOverlay> | null = null
 
 function citationElement(citationId: string | null | undefined): HTMLElement | null {
   if (!citationId || !evidenceList.value) return null
-  return Array.from(
-    evidenceList.value.querySelectorAll<HTMLElement>('[data-citation-id]'),
-  ).find((element) => element.dataset.citationId === citationId) ?? null
+  return (
+    Array.from(evidenceList.value.querySelectorAll<HTMLElement>('[data-citation-id]')).find(
+      (element) => element.dataset.citationId === citationId,
+    ) ?? null
+  )
 }
 
 async function focusSelectedCitation(): Promise<void> {
@@ -109,20 +127,7 @@ watch(
 async function copyQuote(citation: Citation, event: Event): Promise<void> {
   void event
   try {
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(citation.quote)
-    } else {
-      const textarea = document.createElement('textarea')
-      textarea.value = citation.quote
-      textarea.setAttribute('readonly', '')
-      textarea.style.position = 'fixed'
-      textarea.style.opacity = '0'
-      document.body.appendChild(textarea)
-      textarea.select()
-      const copied = document.execCommand('copy')
-      textarea.remove()
-      if (!copied) throw new Error('copy failed')
-    }
+    await copyText(citation.quote)
     copyFeedback.value = { ...copyFeedback.value, [citation.citation_id]: 'copied' }
     window.setTimeout(() => {
       const next = { ...copyFeedback.value }
@@ -155,7 +160,7 @@ async function copyQuote(citation: Citation, event: Event): Promise<void> {
   >
     <div class="evidence-header">
       <div>
-        <p class="eyebrow">VERIFIABLE ANSWERS</p>
+        <p class="eyebrow">回到知识的出处</p>
         <h2 :id="titleId">引用证据</h2>
       </div>
       <button
@@ -171,8 +176,8 @@ async function copyQuote(citation: Citation, event: Event): Promise<void> {
 
     <div v-if="citations.length === 0" class="evidence-empty">
       <span class="evidence-number">C1</span>
-      <h3>回答后查看原文</h3>
-      <p>引用文件、页码、章节与逐字原文将在这里展开，帮助你核对回答依据。</p>
+      <h3>回答后查看来源</h3>
+      <p>在这里查看文档原文、所在位置或网页来源，核对回答依据。</p>
     </div>
 
     <div v-else ref="evidenceList" class="evidence-list">
@@ -191,28 +196,29 @@ async function copyQuote(citation: Citation, event: Event): Promise<void> {
             <p>
               <span v-if="citation.page">第 {{ citation.page }} 页</span>
               <span v-if="citation.section">{{ citation.section }}</span>
-              <span v-if="citation.source">{{ citation.source }}</span>
               <span v-if="citation.filename">{{ citation.filename }}</span>
-              <span v-if="citation.chunk_id">{{ citation.chunk_id }}</span>
             </p>
           </div>
         </div>
-        <blockquote>{{ citation.quote }}</blockquote>
+        <blockquote v-if="citation.quote">{{ citation.quote }}</blockquote>
+        <a v-if="sourceUrl(citation.url)" :href="sourceUrl(citation.url)" target="_blank" rel="noopener noreferrer" class="text-button">打开网页来源</a>
         <div class="evidence-card-footer">
-          <span class="verification-label">{{ citation.verification_status || 'provenance_only' }}</span>
-          <button class="text-button copy-quote" type="button" @click="copyQuote(citation, $event)">
-            {{ copyFeedback[citation.citation_id] === 'copied'
-              ? '已复制'
-              : copyFeedback[citation.citation_id] === 'failed'
-                ? '复制失败'
-                : '复制原文' }}
+          <span class="verification-label">{{
+            verificationLabels[citation.verification_status || ''] || '请核对引用原文'
+          }}</span>
+          <button v-if="citation.quote" class="text-button copy-quote" type="button" @click="copyQuote(citation, $event)">
+            {{
+              copyFeedback[citation.citation_id] === 'copied'
+                ? '已复制'
+                : copyFeedback[citation.citation_id] === 'failed'
+                  ? '复制失败'
+                  : '复制原文'
+            }}
           </button>
         </div>
       </article>
     </div>
 
-    <div class="evidence-note">
-      出处用于定位原文；回答是否受证据支持，由后端校验流程独立判断。
-    </div>
+    <div class="evidence-note">引用帮助你查阅来源。来源可追溯不代表已核实回答中的所有结论。</div>
   </aside>
 </template>

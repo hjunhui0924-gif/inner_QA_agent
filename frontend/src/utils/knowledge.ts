@@ -29,7 +29,9 @@ const statusLabels: Record<string, string> = {
 }
 
 export function normalizeKnowledgeValue(value: unknown): string {
-  return String(value ?? '').trim().toLocaleLowerCase()
+  return String(value ?? '')
+    .trim()
+    .toLocaleLowerCase()
 }
 
 export function knowledgeStatusLabel(status: string | null | undefined): string {
@@ -49,11 +51,9 @@ export function uniqueKnowledgeValues(
   records: KnowledgeRecord[],
   field: 'department' | 'status' | 'version',
 ): string[] {
-  return [...new Set(
-    records
-      .map((record) => String(record[field] ?? '').trim())
-      .filter(Boolean),
-  )].sort((first, second) => first.localeCompare(second, 'zh-CN'))
+  return [
+    ...new Set(records.map((record) => String(record[field] ?? '').trim()).filter(Boolean)),
+  ].sort((first, second) => first.localeCompare(second, 'zh-CN'))
 }
 
 export function filterKnowledgeRecords(
@@ -77,13 +77,15 @@ export function filterKnowledgeRecords(
       record.status,
       record.owner,
       record.preview,
-    ].map(normalizeKnowledgeValue).join(' ')
+    ]
+      .map(normalizeKnowledgeValue)
+      .join(' ')
 
     return (
-      (!query || searchable.includes(query))
-      && (!department || normalizeKnowledgeValue(record.department) === department)
-      && (!status || normalizeKnowledgeValue(record.status) === status)
-      && (!version || normalizeKnowledgeValue(record.version) === version)
+      (!query || searchable.includes(query)) &&
+      (!department || normalizeKnowledgeValue(record.department) === department) &&
+      (!status || normalizeKnowledgeValue(record.status) === status) &&
+      (!version || normalizeKnowledgeValue(record.version) === version)
     )
   })
 }
@@ -133,4 +135,29 @@ export function formatKnowledgeDateRange(
   if (from) return `${from} 起`
   if (to) return `截至 ${to}`
   return '未记录'
+}
+const departmentNames: Record<string, string> = {
+  HR: '人力资源',
+  Finance: '财务',
+  IT: '信息技术',
+  Legal: '法务',
+  Procurement: '采购',
+  Administration: '行政',
+  unknown: '未指定',
+}
+const sourceNames: Record<string, string> = {
+  internal_upload: '手动上传',
+  upload: '手动上传',
+  synthetic_seed: '示例资料',
+  policy: '制度文件',
+  process: '流程规范',
+  internal: '内部资料',
+}
+
+export function departmentLabel(value?: string): string {
+  return departmentNames[value || 'unknown'] || value || '未指定'
+}
+
+export function sourceLabel(value?: string): string {
+  return sourceNames[value || ''] || value || '来源未记录'
 }

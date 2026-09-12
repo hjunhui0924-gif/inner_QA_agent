@@ -118,6 +118,15 @@ def install_api_fixtures(page: Page) -> None:
                 body="# 新差旅政策\n差旅申请需要直属主管审批。",
             )
             return
+        if method == "GET" and path.startswith("/knowledge/records/"):
+            source_id = path.rsplit("/", 1)[-1]
+            record = next((item for item in records() if item.get("source_id") == source_id), None)
+            route.fulfill(
+                status=200 if record else 404,
+                content_type="application/json",
+                body=json.dumps({"record": {**record, "content": record.get("preview", "文档正文")}} if record else {"detail": "not found"}, ensure_ascii=False),
+            )
+            return
         if method == "POST" and path == "/chat/stream":
             payload = request.post_data_json or {}
             if isinstance(payload, dict) and payload.get("session_id"):
@@ -145,7 +154,7 @@ def install_api_fixtures(page: Page) -> None:
                                     "source": "synthetic_seed",
                                     "filename": "finance-v2.md",
                                     "chunk_id": "finance-v2:0",
-                                    "quote": "单笔超过5000元还需财务负责人复核。",
+                                    "quote": "差旅报销需要直属主管审批。单笔超过5000元还需财务负责人复核。",
                                     "verification_status": "grounded",
                                 }
                             ],
@@ -214,11 +223,11 @@ def run_mvp_browser_checks(playwright: Playwright) -> None:
         page.goto(f"{BASE_URL}/chat", wait_until="domcontentloaded")
         expect(page.get_by_text("知识服务在线")).to_be_visible()
 
-        page.get_by_role("tab", name="通用模式").click()
+        page.get_by_role("button", name="通用模式", exact=True).click()
         expect(page.get_by_role("button", name="联网搜索")).to_be_visible()
         page.get_by_role("button", name="联网搜索").click()
         expect(page.get_by_role("button", name="联网搜索")).to_have_class("search-toggle active")
-        page.get_by_role("tab", name="知识库").click()
+        page.get_by_role("button", name="知识库", exact=True).click()
 
         question = page.get_by_label("向企业知识库提问")
         question.fill("差旅报销需要谁审批？")
@@ -240,10 +249,11 @@ def run_mvp_browser_checks(playwright: Playwright) -> None:
         page.get_by_role("button", name="删除会话：费用报销制度").click()
         expect(page.get_by_role("dialog", name="彻底删除这个会话？")).to_be_visible()
         page.get_by_role("button", name="确认删除").click()
-        expect(page.get_by_text("让制度回答，有据可查。", exact=True)).to_be_visible()
+        expect(page.get_by_text("工作中的问题，在这里找到答案。", exact=True)).to_be_visible()
 
         page.get_by_role("link", name="知识库").click()
         expect(page.get_by_role("heading", name="知识库", exact=True)).to_be_visible()
+        page.get_by_role("button", name="添加文档", exact=True).click()
         file_input = page.locator("#knowledge-file")
         file_input.set_input_files(
             {
@@ -255,6 +265,7 @@ def run_mvp_browser_checks(playwright: Playwright) -> None:
         expect(page.get_by_role("button", name="上传文档")).to_be_enabled()
         page.get_by_role("button", name="上传文档").click()
         expect(page.get_by_role("heading", name="文件已完成入库", exact=True)).to_be_visible()
+        page.get_by_role("button", name="关闭添加文档").click()
         expect(page.get_by_text("新差旅政策", exact=True)).to_be_visible()
 
         page.get_by_label("搜索文档").fill("新差旅政策")

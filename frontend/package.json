@@ -11,6 +11,7 @@
     "typecheck": "vue-tsc -b --pretty false"
   },
   "dependencies": {
+    "@element-plus/icons-vue": "^2.3.2",
     "dompurify": "^3.2.0",
     "element-plus": "^2.9.11",
     "marked": "^16.0.0",

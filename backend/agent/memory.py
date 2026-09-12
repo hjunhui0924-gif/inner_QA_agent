@@ -878,7 +878,9 @@ def _chunk_documents_from_record(
         ).strip() or stable_document_id
         base_metadata["source_id"] = base_metadata["document_id"]
     base_metadata = {
-        key: value for key, value in base_metadata.items() if value is not None
+        # Chroma rejects empty arrays; absent ACL lists have the same meaning.
+        # Keep non-empty allow/deny lists intact for downstream access checks.
+        key: value for key, value in base_metadata.items() if value is not None and value != []
     }
     for index, (chunk, location) in enumerate(chunk_units):
         documents.append(

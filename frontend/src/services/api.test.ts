@@ -1,10 +1,18 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { downloadKnowledge, streamChat, uploadKnowledge } from './api'
+import { downloadKnowledge, fetchKnowledgeRecord, streamChat, uploadKnowledge } from './api'
 import type { StreamEvent } from '../types/api'
 
 afterEach(() => {
   vi.unstubAllGlobals()
+})
+
+it('unwraps the authorized document detail response and encodes source IDs', async () => {
+  const record = { source_id: 'policy/1', content: '文档正文' }
+  const fetchMock = vi.fn(async () => new Response(JSON.stringify({ record }), { status: 200 }))
+  vi.stubGlobal('fetch', fetchMock)
+  await expect(fetchKnowledgeRecord('policy/1')).resolves.toEqual(record)
+  expect(fetchMock).toHaveBeenCalledWith('/api/knowledge/records/policy%2F1', undefined)
 })
 
 describe('streamChat', () => {

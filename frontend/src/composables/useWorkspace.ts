@@ -389,6 +389,12 @@ async function retryMessage(message: UiMessage): Promise<void> {
     notify('warning', '无法重新发送', '没有找到本次回答对应的问题。')
     return
   }
+  // Persisted search failures identify a web request even after the session's
+  // search toggle (or its locally remembered mode) has been reset.
+  if (['search_error', 'search_answer_error', 'search_no_results'].includes(message.failureType || '')) {
+    chatMode.value = 'general'
+    webSearchEnabled.value = true
+  }
   await sendMessage(previousMessage.content)
 }
 

@@ -1,4 +1,4 @@
-import { createApp, defineComponent, h, nextTick, reactive } from 'vue'
+import { createApp, defineComponent, h, nextTick } from 'vue'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import KnowledgeView from './KnowledgeView.vue'
@@ -10,6 +10,7 @@ const serviceMocks = vi.hoisted(() => ({
   fetchHealth: vi.fn(),
   fetchHistory: vi.fn(),
   fetchKnowledgeRecords: vi.fn(),
+  fetchKnowledgeRecord: vi.fn(),
   fetchSessions: vi.fn(),
   streamChat: vi.fn(),
   uploadKnowledge: vi.fn(),
@@ -61,11 +62,14 @@ function mountView() {
     },
   })
   app = createApp(Root)
-  app.component('el-icon', defineComponent({
-    setup(_, { slots }) {
-      return () => h('span', slots.default?.())
-    },
-  }))
+  app.component(
+    'el-icon',
+    defineComponent({
+      setup(_, { slots }) {
+        return () => h('span', slots.default?.())
+      },
+    }),
+  )
   app.mount(host)
   return workspace
 }
@@ -79,11 +83,48 @@ afterEach(() => {
   workspace.uploading.value = false
   serviceMocks.uploadKnowledge.mockReset()
   serviceMocks.fetchKnowledgeRecords.mockReset()
+  serviceMocks.fetchKnowledgeRecord.mockReset()
   app = null
   host = null
 })
 
 describe('KnowledgeView', () => {
+  it('loads preview content from the detail endpoint when list records omit content', async () => {
+    const workspace = mountView()
+    workspace.knowledgeRecords.value = [{ source_id: 'finance-v2', title: '费用报销制度', source: 'policy' }]
+    serviceMocks.fetchKnowledgeRecord.mockResolvedValue({
+      source_id: 'finance-v2', title: '费用报销制度', content: '超过5000元需财务负责人复核。',
+    })
+    await nextTick()
+    host?.querySelector<HTMLButtonElement>('.document-details-button')?.click()
+    await vi.waitFor(() => expect(host?.querySelector('.detail-preview')?.textContent).toContain('超过5000元需财务负责人复核。'))
+    expect(serviceMocks.fetchKnowledgeRecord).toHaveBeenCalledWith('finance-v2')
+  })
+
+  it('retries a failed detail request and ignores a closed drawer response', async () => {
+    mountView()
+    serviceMocks.fetchKnowledgeRecord.mockRejectedValueOnce(new Error('offline'))
+    await nextTick()
+    host?.querySelector<HTMLButtonElement>('.document-details-button')?.click()
+    await vi.waitFor(() => expect(host?.querySelector('.detail-preview [role="alert"]')).not.toBeNull())
+    let resolveDetail!: (record: KnowledgeRecord) => void
+    serviceMocks.fetchKnowledgeRecord.mockImplementationOnce(() => new Promise<KnowledgeRecord>((resolve) => {
+      resolveDetail = resolve
+    }))
+    host?.querySelector<HTMLButtonElement>('.detail-preview button')?.click()
+    await nextTick()
+    expect(host?.querySelector('.detail-preview [role="status"]')?.textContent).toContain('正在加载')
+    host?.querySelector<HTMLButtonElement>('.detail-drawer-header button')?.click()
+    resolveDetail({ source_id: 'finance-v2', title: '费用报销制度', source: 'policy', content: '已关闭请求的内容' })
+    await nextTick()
+    await nextTick()
+    expect(host?.querySelector('.document-detail-drawer.open')).toBeNull()
+    expect(host?.textContent).not.toContain('已关闭请求的内容')
+    serviceMocks.fetchKnowledgeRecord.mockResolvedValueOnce({ source_id: 'finance-v2', content: '重试后的文档正文' })
+    host?.querySelector<HTMLButtonElement>('.document-details-button')?.click()
+    await vi.waitFor(() => expect(host?.querySelector('.detail-preview')?.textContent).toContain('重试后的文档正文'))
+  })
+
   it('filters the document list and opens a read-only detail drawer', async () => {
     mountView()
     await nextTick()
@@ -112,7 +153,11 @@ describe('KnowledgeView', () => {
   it('rejects an unsupported file before making an upload request', async () => {
     mountView()
     await nextTick()
-    const fileInput = host?.querySelector<HTMLInputElement>('input[type="file"]')
+    host?.querySelector<HTMLButtonElement>('.open-upload')?.click()
+    await nextTick()
+    const drawer = document.querySelector<HTMLElement>('.workspace-drawer')
+    expect(drawer).not.toBeNull()
+    const fileInput = drawer?.querySelector<HTMLInputElement>('input[type="file"]')
     if (!fileInput) throw new Error('file input not found')
     Object.defineProperty(fileInput, 'files', {
       configurable: true,
@@ -121,8 +166,8 @@ describe('KnowledgeView', () => {
     fileInput.dispatchEvent(new Event('change', { bubbles: true }))
     await nextTick()
 
-    expect(host?.querySelector('.field-error')?.textContent).toContain('不支持')
-    expect(host?.querySelector<HTMLButtonElement>('.upload-button')?.disabled).toBe(true)
+    expect(drawer?.querySelector('.field-error')?.textContent).toContain('不支持')
+    expect(drawer?.querySelector<HTMLButtonElement>('.upload-button')?.disabled).toBe(true)
   })
 
   it('shows the backend upload result and clears the selected file after success', async () => {
@@ -140,7 +185,11 @@ describe('KnowledgeView', () => {
     const workspace = mountView()
     await nextTick()
 
-    const fileInput = host?.querySelector<HTMLInputElement>('input[type="file"]')
+    host?.querySelector<HTMLButtonElement>('.open-upload')?.click()
+    await nextTick()
+    const drawer = document.querySelector<HTMLElement>('.workspace-drawer')
+    expect(drawer).not.toBeNull()
+    const fileInput = drawer?.querySelector<HTMLInputElement>('input[type="file"]')
     if (!fileInput) throw new Error('file input not found')
     Object.defineProperty(fileInput, 'files', {
       configurable: true,
@@ -148,11 +197,11 @@ describe('KnowledgeView', () => {
     })
     fileInput.dispatchEvent(new Event('change', { bubbles: true }))
     await nextTick()
-    host?.querySelector<HTMLButtonElement>('.upload-button')?.click()
-    await vi.waitFor(() => expect(host?.textContent).toContain('文件已完成入库'))
+    drawer?.querySelector<HTMLButtonElement>('.upload-button')?.click()
+    await vi.waitFor(() => expect(drawer?.textContent).toContain('文件已完成入库'))
 
     expect(serviceMocks.uploadKnowledge).toHaveBeenCalledOnce()
-    expect(host?.textContent).toContain('文件已完成入库')
-    expect(host?.querySelector('.drop-zone strong')?.textContent).toContain('选择或拖入企业文档')
+    expect(drawer?.textContent).toContain('文件已完成入库')
+    expect(drawer?.querySelector('.drop-zone strong')?.textContent).toContain('选择或拖入企业文档')
   })
 })

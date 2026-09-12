@@ -174,14 +174,11 @@ watch(
   },
 )
 
-watch(
-  pendingDelete,
-  (session) => {
-    deleteOverlay?.setOpen(Boolean(session))
-    emit('modal-change', Boolean(session))
-    if (session) void nextTick(() => deleteCancelButton.value?.focus())
-  },
-)
+watch(pendingDelete, (session) => {
+  deleteOverlay?.setOpen(Boolean(session))
+  emit('modal-change', Boolean(session))
+  if (session) void nextTick(() => deleteCancelButton.value?.focus())
+})
 
 onMounted(() => {
   updateMobileViewport()
@@ -207,23 +204,33 @@ onBeforeUnmount(() => {
     class="app-sidebar"
     :class="{ open }"
     aria-label="主导航"
-    :aria-hidden="mobileViewport && !open || pendingDelete || blocked ? 'true' : undefined"
-    :inert="mobileViewport && !open || pendingDelete || blocked ? true : undefined"
+    :aria-hidden="(mobileViewport && !open) || pendingDelete || blocked ? 'true' : undefined"
+    :inert="(mobileViewport && !open) || pendingDelete || blocked ? true : undefined"
   >
     <header class="wordmark">
       <div class="brand-new-chat">
         <img src="/knowledge-assistant.png" alt="" width="27" height="27" class="brand-icon" />
-        <span>内部知识助手</span>
+        <div><span>内部知识助手</span><small>团队知识工作台</small></div>
       </div>
     </header>
 
-    <button ref="startChatButton" class="start-chat-button" type="button" :disabled="sending" @click="startSession">
+    <button
+      ref="startChatButton"
+      class="start-chat-button"
+      type="button"
+      :disabled="sending"
+      @click="startSession"
+    >
       <el-icon aria-hidden="true"><Plus /></el-icon><span>开启新对话</span>
     </button>
 
     <nav class="primary-nav" aria-label="工作区">
-      <RouterLink to="/chat"><el-icon aria-hidden="true"><ChatDotRound /></el-icon><span>对话</span></RouterLink>
-      <RouterLink to="/knowledge"><el-icon aria-hidden="true"><Document /></el-icon><span>知识库</span></RouterLink>
+      <RouterLink to="/chat"
+        ><el-icon aria-hidden="true"><ChatDotRound /></el-icon><span>对话</span></RouterLink
+      >
+      <RouterLink to="/knowledge"
+        ><el-icon aria-hidden="true"><Document /></el-icon><span>知识库</span></RouterLink
+      >
     </nav>
 
     <section class="session-section" aria-labelledby="session-heading">
@@ -258,15 +265,18 @@ onBeforeUnmount(() => {
           <el-icon aria-hidden="true"><Refresh /></el-icon> 重试加载
         </button>
       </div>
-      <div v-else-if="sessionTitlePending" class="session-progress" role="status" aria-live="polite">
+      <div
+        v-else-if="sessionTitlePending"
+        class="session-progress"
+        role="status"
+        aria-live="polite"
+      >
         正在生成当前会话标题…
       </div>
       <div v-else-if="sessions.length === 0" class="session-empty">
         暂无历史会话，从一次提问开始。
       </div>
-      <div v-else-if="filteredSessions.length === 0" class="session-empty">
-        没有匹配的会话。
-      </div>
+      <div v-else-if="filteredSessions.length === 0" class="session-empty">没有匹配的会话。</div>
       <div v-else class="session-list">
         <div
           v-for="session in filteredSessions"
@@ -282,7 +292,10 @@ onBeforeUnmount(() => {
             @click="selectSession(session.session_id)"
           >
             <span class="session-title">{{ session.title || '新会话' }}</span>
-            <span v-if="sessionTitlePending && session.session_id === sessionId" class="session-title-status">
+            <span
+              v-if="sessionTitlePending && session.session_id === sessionId"
+              class="session-title-status"
+            >
               正在生成标题…
             </span>
           </button>
@@ -303,20 +316,36 @@ onBeforeUnmount(() => {
       <span class="status-dot" :class="{ online: backendOnline }" aria-hidden="true" />
       <div>
         <strong>{{ backendOnline ? '知识服务在线' : '知识服务离线' }}</strong>
-        <span>{{ backendOnline ? 'FastAPI 已连接' : '请检查后端服务' }}</span>
+        <span>{{ backendOnline ? '随时查找工作中的答案' : '请检查网络或联系管理员' }}</span>
       </div>
     </footer>
   </aside>
 
   <div v-if="pendingDelete" class="modal-scrim" role="presentation" @click.self="closeDeleteDialog">
-    <section ref="deleteDialog" class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-title" aria-describedby="delete-description" tabindex="-1">
-      <p class="eyebrow">DELETE SESSION</p>
+    <section
+      ref="deleteDialog"
+      class="confirm-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="delete-title"
+      aria-describedby="delete-description"
+      tabindex="-1"
+    >
+      <p class="eyebrow">会话管理</p>
       <h2 id="delete-title">彻底删除这个会话？</h2>
       <p>
-        <span id="delete-description">“{{ pendingDelete.title || '新会话' }}”的聊天记录、摘要和 Agent 状态都会被删除，且无法恢复。</span>
+        <span id="delete-description"
+          >“{{ pendingDelete.title || '新会话' }}”的聊天记录和上下文都会被删除，且无法恢复。</span
+        >
       </p>
       <div class="dialog-actions">
-        <button ref="deleteCancelButton" class="secondary-button" type="button" :disabled="deleting" @click="closeDeleteDialog">
+        <button
+          ref="deleteCancelButton"
+          class="secondary-button"
+          type="button"
+          :disabled="deleting"
+          @click="closeDeleteDialog"
+        >
           取消
         </button>
         <button class="danger-button" type="button" :disabled="deleting" @click="confirmDelete">

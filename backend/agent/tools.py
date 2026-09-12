@@ -8,8 +8,6 @@ import json
 import math
 from collections.abc import Mapping, Sequence
 from typing import TypedDict
-from urllib.parse import quote
-from urllib.request import Request, urlopen
 
 from langchain_core.tools import tool
 
@@ -30,6 +28,8 @@ class ToolResult(TypedDict):
 TOOL_ERROR_MESSAGES = {
     "knowledge_base_unavailable": "知识库暂时不可用，请稍后重试。",
     "web_search_unavailable": "联网搜索暂时不可用，请稍后重试。",
+    "web_search_no_results": "没有找到可用的网页来源，请调整关键词后重试。",
+    "web_answer_invalid": "已获得网页来源，但回答未通过引用校验，请重试。",
     "time_unavailable": "时间服务暂时不可用，请稍后重试。",
     "tool_unavailable": "工具暂时不可用，请稍后重试。",
 }
@@ -252,64 +252,31 @@ def search_knowledge_base_result(
 
 
 def _search_web_payload(query: str) -> tuple[str, list[dict[str, object]]]:
-    """Fetch public snippets and retain the source fields when available."""
-
-    request = Request(
-        "https://api.duckduckgo.com/?q=" + quote(query) + "&format=json&no_html=1&skip_disambig=1",
-        headers={"User-Agent": "EnterpriseKnowledgeAssistant/1.0"},
-    )
-    with urlopen(request, timeout=8) as response:  # noqa: S310 - fixed public endpoint
-        payload = json.loads(response.read().decode("utf-8"))
-    snippets: list[str] = []
-    sources: list[dict[str, object]] = []
-    abstract = _bounded_text(payload.get("AbstractText"))
-    if abstract:
-        snippets.append(abstract)
-        abstract_url = _bounded_text(payload.get("AbstractURL"))
-        if abstract_url:
-            sources.append(
-                {
-                    "title": _bounded_text(payload.get("Heading")) or "公开网页摘要",
-                    "url": abstract_url,
-                    "snippet": abstract,
-                }
-            )
-    for item in payload.get("RelatedTopics", [])[:5]:
-        if isinstance(item, dict) and item.get("Text"):
-            snippet = _bounded_text(item["Text"])
-            snippets.append(snippet)
-            url = _bounded_text(item.get("FirstURL"))
-            if url:
-                sources.append(
-                    {
-                        "title": _bounded_text(item.get("Name")) or "相关网页摘要",
-                        "url": url,
-                        "snippet": snippet,
-                    }
-                )
-    return "\n".join(snippets) or "公开网页没有返回可用摘要。", sources
+    """Fetch a native grounded answer with its provider source indices."""
+    from backend.agent.web_search import WebSearchError, search_sync
+    result = search_sync(query)
+    if not result["ok"]:
+        raise WebSearchError(result["error"])
+    return result["text"], result["sources"]
 
 
 @tool
 def search_web(query: str) -> str:
-    """Search public web snippets for a general-mode question."""
-
-    try:
-        return _search_web_payload(query)[0]
-    except Exception:
-        return TOOL_ERROR_MESSAGES["web_search_unavailable"]
+    """Search the web and return a source-backed answer for a general question."""
+    return render_tool_output(search_web_result(query))
 
 
 def search_web_result(query: str) -> ToolResult:
-    """Return public snippets and optional source metadata in a safe envelope."""
-
+    """Synchronous entry; the graph uses native async search for cancellation."""
+    from backend.agent.web_search import WebSearchError, web_citations
     try:
         text, sources = _search_web_payload(query)
-        verifiable_sources = [
-            source
-            for source in sources
-            if str(source.get("url", "")).strip()
-        ]
-        return tool_success(text, sources=verifiable_sources)
+        if not sources:
+            return tool_failure("web_search_no_results")
+        if not web_citations(text, sources):
+            return tool_failure("web_answer_invalid")
+        return tool_success(text, sources=sources)
+    except WebSearchError as error:
+        return tool_failure(error.code)
     except Exception:
         return tool_failure("web_search_unavailable")

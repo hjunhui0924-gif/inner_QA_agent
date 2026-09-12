@@ -100,6 +100,13 @@ export async function downloadKnowledge(sourceId: string): Promise<Blob> {
   return response.blob()
 }
 
+export async function fetchKnowledgeRecord(sourceId: string): Promise<KnowledgeRecord> {
+  const payload = await requestJson<{ record: KnowledgeRecord }>(
+    `/knowledge/records/${encodeURIComponent(sourceId)}`,
+  )
+  return payload.record
+}
+
 export function uploadKnowledge(
   file: File,
   title: string,

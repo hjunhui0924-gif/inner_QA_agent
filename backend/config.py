@@ -22,8 +22,11 @@ class Settings(BaseSettings):
 
     dashscope_api_key: str = Field(default="", validation_alias="DASHSCOPE_API_KEY")
     dashscope_base_url: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
-    model_name: str = "qwen3.5-ocr"
-    judge_model_name: str = "qwen3.5-ocr"
+    model_name: str = "qwen3.8-flash"
+    judge_model_name: str = "qwen3.8-flash"
+    web_search_model: str = "qwen3.8-flash"
+    web_search_endpoint: str = "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation"
+    web_search_timeout_seconds: float = Field(default=20.0, gt=0, allow_inf_nan=False)
     qwen_enable_thinking: bool = False
     chroma_persist_dir: str = str(BASE_DIR / "data" / "chroma_db")
     sqlite_db_path: str = str(BASE_DIR / "data" / "memory.db")
@@ -101,7 +104,7 @@ class Settings(BaseSettings):
             raise ValueError("EMBEDDING_PROVIDER must be dashscope or hashing.")
         return normalized
 
-    @field_validator("model_name", "judge_model_name")
+    @field_validator("model_name", "judge_model_name", "web_search_model")
     @classmethod
     def validate_model_name(cls, value: str) -> str:
         normalized = value.strip()

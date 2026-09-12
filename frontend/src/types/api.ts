@@ -4,6 +4,7 @@ export interface Citation {
   document_id?: string
   title: string
   source?: string
+  url?: string
   filename?: string
   page?: number | null
   section?: string

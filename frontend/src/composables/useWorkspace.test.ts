@@ -47,6 +47,35 @@ afterEach(() => {
 })
 
 describe('useWorkspace answer delivery', () => {
+  it.each(['search_error', 'search_answer_error'])(
+    'retries a reopened %s turn with web search enabled',
+    async (failureType) => {
+      const workspace = useWorkspace()
+      serviceMocks.fetchHistory.mockResolvedValue([
+        { role: 'user', content: 'Python 是什么？', message_id: 'search-user' },
+        {
+          role: 'assistant', content: '联网搜索暂时不可用。', message_id: 'search-assistant',
+          failure_type: failureType, failure_stage: 'tool',
+        },
+      ])
+      serviceMocks.streamChat.mockImplementationOnce(async (_payload, onEvent) => {
+        onEvent(resultEvent('重试后的搜索答案'))
+      })
+
+      await workspace.openSession(`failed-${failureType}`)
+      expect(workspace.webSearchEnabled.value).toBe(false)
+      await workspace.retryMessage(workspace.messages.value[1]!)
+
+      expect(serviceMocks.streamChat).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Python 是什么？', mode: 'general', web_search: true }),
+        expect.any(Function),
+        expect.any(AbortSignal),
+      )
+      expect(workspace.webSearchEnabled.value).toBe(true)
+      expect(workspace.chatMode.value).toBe('general')
+    },
+  )
+
   it('does not expose provisional tokens before committing a fallback result', async () => {
     serviceMocks.streamChat.mockImplementationOnce(async (_payload, onEvent) => {
       onEvent({ type: 'status', node: 'generate', content: '正在生成回答' })

@@ -19,6 +19,8 @@ SAFE_ERROR_CODES = frozenset(
         INTERNAL_ERROR_CODE,
         "knowledge_base_unavailable",
         "web_search_unavailable",
+        "web_search_no_results",
+        "web_answer_invalid",
         "time_unavailable",
         "tool_unavailable",
         "generation_error",

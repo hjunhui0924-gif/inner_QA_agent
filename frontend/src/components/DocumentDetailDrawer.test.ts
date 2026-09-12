@@ -61,7 +61,10 @@ describe('DocumentDetailDrawer', () => {
 
     expect(host?.textContent).toContain('费用报销制度')
     expect(host?.textContent).toContain('已生效')
-    expect(host?.textContent).toContain('Finance')
+    const departmentField = [...(host?.querySelectorAll('.detail-fields > div') ?? [])].find(
+      (field) => field.querySelector('dt')?.textContent === '部门',
+    )
+    expect(departmentField?.querySelector('dd')?.textContent).toBe('财务')
     expect(host?.textContent).toContain('1,234 字')
     expect(host?.querySelector('.document-detail-drawer.open')).not.toBeNull()
     expect(document.activeElement).toBe(host?.querySelector('.detail-drawer-header button'))

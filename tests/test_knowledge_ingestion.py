@@ -19,6 +19,37 @@ from backend.retrieval.engine import RetrievalConfig, RetrievalEngine
 
 
 class KnowledgeIngestionTests(unittest.TestCase):
+    def test_upload_round_trips_acl_metadata_through_real_chroma(self) -> None:
+        if memory.Chroma is None:
+            self.skipTest("Chroma is not installed")
+        import chromadb
+        from uuid import uuid4
+
+        store = memory.Chroma(
+            client=chromadb.EphemeralClient(),
+            collection_name=f"ingestion-{uuid4().hex}",
+            embedding_function=HashingEmbeddings(64),
+        )
+        try:
+            with (
+                TemporaryDirectory() as directory,
+                patch.object(memory.settings, "knowledge_base_path", str(Path(directory) / "knowledge.json")),
+                patch.object(memory.settings, "reranker_enabled", False),
+            ):
+                memory.set_vectorstore(store)
+                memory.set_retriever(memory._build_retrieval_engine(store))
+                memory.add_knowledge_record(
+                    "差旅制度", "超过5000元需财务负责人复核。", "test", "policy.md",
+                    department="Finance", allowed_roles=["employee"], denied_roles=["guest"],
+                )
+                documents = store.similarity_search("差旅", k=1)
+                self.assertEqual(len(documents), 1)
+                self.assertEqual(documents[0].metadata["allowed_roles"], ["employee"])
+                self.assertEqual(documents[0].metadata["denied_roles"], ["guest"])
+                self.assertFalse(documents[0].metadata.get("required_scopes"))
+        finally:
+            store.delete_collection()
+
     def test_segment_metadata_survives_chunking(self) -> None:
         documents = memory._chunk_documents_from_record(
             "Policy",
