@@ -30,12 +30,17 @@ class StructuredDataTests(unittest.TestCase):
         )
 
         self.assertEqual(validate_knowledge_records(records), [])
-        self.assertGreaterEqual(len(records), 20)
+        self.assertEqual(len(records), 50)
         self.assertEqual(
             {str(record["department"]) for record in records},
-            {"HR", "Finance", "Procurement", "IT", "Legal", "Administration"},
+            {
+                "HR", "Finance", "Procurement", "IT", "Legal", "Administration",
+                "Compliance", "Sales",
+            },
         )
         self.assertTrue(all(record["source_type"] == "synthetic_seed" for record in records[:-1]))
+        self.assertTrue(all(record.get("reference_type") for record in records))
+        self.assertTrue(all("_qas" not in record for record in records))
 
     def test_structured_eval_corpus_has_three_splits_and_required_coverage(self) -> None:
         raw = json.loads(
@@ -45,10 +50,10 @@ class StructuredDataTests(unittest.TestCase):
         )
         cases = parse_eval_cases(raw, require_structured=True)
 
-        self.assertGreaterEqual(len(cases), 150)
+        self.assertEqual(len(cases), 414)
         self.assertEqual(validate_dataset_shape(cases, minimum_cases=150), [])
         self.assertEqual({case.split for case in cases}, {"development", "regression", "held_out"})
-        self.assertEqual(sum(not case.answerable for case in cases), 60)
+        self.assertEqual(sum(not case.answerable for case in cases), 85)
 
 
 class RetrievalFilterTests(unittest.TestCase):

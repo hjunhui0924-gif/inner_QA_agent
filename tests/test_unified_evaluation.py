@@ -61,7 +61,7 @@ class UnifiedEvaluationTests(unittest.TestCase):
     def test_canonical_ids_are_unique_and_preserve_source_ids(self) -> None:
         suite = load_unified_suite()
 
-        self.assertEqual(len({case.id for case in suite.cases}), 306)
+        self.assertEqual(len({case.id for case in suite.cases}), 456)
         self.assertTrue(all(":" in case.id for case in suite.cases))
         self.assertTrue(all(case.source_case_id for case in suite.cases))
 

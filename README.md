@@ -369,10 +369,12 @@ python -m unittest tests.test_live_contracts -v
 
 ## 企业知识库离线评测与回归门禁
 
-企业语料位于 `data/knowledge_base.json`，当前包含 25 份文档，覆盖 HR、Finance、
-Procurement、IT、Legal、Administration 六个主题，并保留一份完整的东山精密法律意见书。
-结构化题集位于 `data/evals/enterprise_rag_eval.json`，当前 264 题，包含 204 道可回答题、
-60 道不可回答题，分为 `development`、`regression`、`held_out` 三个 split。
+企业语料位于 `data/knowledge_base.json`，当前包含 50 份文档，覆盖 HR、Finance、
+Procurement、IT、Legal、Administration、Compliance、Sales 八个主题，并保留一份完整的东山精密法律意见书。
+其中 49 条是合成测试制度，1 条是用户上传样例；公开参考整理的新增制度均标记了参考来源，
+不代表真实企业内部政策。结构化题集位于 `data/evals/enterprise_rag_eval.json`，当前 414 题，
+包含 329 道可回答题、85 道不可回答题，分为 `development`、`regression`、`held_out` 三个 split。
+扩充记录、来源和题目生成方式见 [企业知识库扩充记录](docs/knowledge_base_expansion.md)。
 
 离线 benchmark 不需要 Chroma、DashScope 或大模型调用，使用 hashing embedding 与确定性
 token-overlap reranker，报告会记录语料 checksum、代码 commit、参数、按 split/domain/category/tag
@@ -392,7 +394,7 @@ python scripts/run_enterprise_rag_benchmark.py --split held_out --top-k 5
 
 ## RAG 回答、引用与失败评估
 
-项目现在提供一个统一评测入口，目录中共管理 306 道题：34 道法规安全题、264 道企业制度题和 8 道东山法律意见书兼容题。三套语料保持独立检索引擎，报告同时输出分集指标和独立门禁；旧的单集脚本继续保留用于兼容和对比。
+项目现在提供一个统一评测入口，目录中共管理 456 道题：34 道法规安全题、414 道企业制度题和 8 道东山法律意见书兼容题。三套语料保持独立检索引擎，报告同时输出分集指标和独立门禁；旧的单集脚本继续保留用于兼容和对比。
 
 ```bash
 # 默认运行三套语料的在线检索评测
@@ -405,7 +407,7 @@ python scripts/run_unified_rag_benchmark.py --offline --mode retrieval
 python scripts/run_unified_rag_benchmark.py --mode all --enable-judge
 ```
 
-统一报告写入 `data/eval_reports/unified_rag_benchmark.json`。`official_policy` 和 `enterprise_rag` 是阻断门禁，`dongshan_legacy` 只作非阻断兼容参考；`--offline` 或 `--limit` 的结果会标记为 `smoke_only`。
+统一报告写入 `data/eval_reports/unified_rag_benchmark.json`。`official_policy` 和 `enterprise_rag` 是阻断门禁，`dongshan_legacy` 只作非阻断兼容参考；`--offline` 或 `--limit` 的结果会标记为 `smoke_only`。题集扩充后该仓库文件仍是 306 题的旧在线基线；当前企业 414 题的最新离线门禁见 `data/eval_reports/enterprise_rag_benchmark.json`，重新运行完整在线统一评测后再更新统一报告。
 
 答案层开发基准复用上面的 4 份权威法规和 34 个问题，其中 30 个可回答、4 个无答案。它运行 BM25 + 向量检索 + RRF + Rerank、一次按 `MODEL_NAME` 配置的生成和一次自动 Judge，用来快速迭代生成与引用协议；不经过路由、查询改写、生产幻觉重试和安全 fallback，不能替代完整 Agent 的端到端验收。
 

@@ -1,18 +1,20 @@
 # 统一 RAG 评测
 
-项目使用一个评测目录管理三套来源数据，共 306 道题：
+项目使用一个评测目录管理三套来源数据，共 456 道题：
+
+题集和企业语料已更新到 456 题；仓库中的 `data/eval_reports/unified_rag_benchmark.json` 是扩充前的在线基线报告，仍记录 306 题。本轮已更新企业离线门禁报告，但没有用未完成的在线长跑或离线 smoke 覆盖该在线基线。完成新的在线评测后再替换该报告。
 
 | 数据集 | 题数 | 语料 | 角色 | 门禁 |
 | --- | ---: | --- | --- | --- |
 | `official_policy` | 34 | `official_policy_corpus` | 高风险法规安全集 | 阻断 |
-| `enterprise_rag` | 264 | `enterprise_knowledge_base` | 主回归集 | 阻断 |
+| `enterprise_rag` | 414 | `enterprise_knowledge_base` | 主回归集 | 阻断 |
 | `dongshan_legacy` | 8 | `enterprise_knowledge_base` 的旧单文档子集 | 兼容性参考 | 不阻断 |
 
 三套数据被统一成相同的评测字段，并通过 `dataset_id` 和 `corpus_id` 保留来源信息。运行时仍为每套数据构建独立检索引擎，不把法规、企业制度和旧单文档混进同一个检索池。
 
 ## 运行命令
 
-默认执行 306 道题的在线检索评测，使用当前配置的 `qwen3.7-text-embedding` 和 `gte-rerank-v2`：
+默认执行 456 道题的在线检索评测，使用当前配置的 `qwen3.7-text-embedding` 和 `gte-rerank-v2`：
 
 ```powershell
 python scripts/run_unified_rag_benchmark.py --mode retrieval --top-k 4
@@ -42,7 +44,7 @@ python scripts/run_unified_rag_benchmark.py --mode all --enable-judge
 data/eval_reports/unified_rag_benchmark.json
 ```
 
-报告同时提供两种总体视图：`case_weighted` 按题目数量加权，适合观察整体样本表现；`dataset_macro_average` 对法规、企业和旧文档三个数据集等权，适合避免 264 道企业题掩盖 34 道法规题或 8 道兼容题的局部问题。总体视图不替代每个数据集自己的门禁。
+报告同时提供两种总体视图：`case_weighted` 按题目数量加权，适合观察整体样本表现；`dataset_macro_average` 对法规、企业和旧文档三个数据集等权，适合避免 414 道企业题掩盖 34 道法规题或 8 道兼容题的局部问题。总体视图不替代每个数据集自己的门禁。
 
 ## 指标解释
 
