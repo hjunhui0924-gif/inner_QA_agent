@@ -54,7 +54,7 @@ python scripts/run_enterprise_rag_benchmark.py --top-k 5
 
 扩充脚本是幂等的，会按稳定 ID更新新增内容并重算 checksum，不会重复追加文档或问题。离线评测使用确定性 hashing embedding 和 token-overlap reranker；它衡量检索覆盖，不等同于真实模型回答质量。正式模型问答仍需单独运行在线评测，并保留独立留出集。
 
-本轮扩充后的离线回归结果：50 条文档、414 道题，回归门禁通过；全量 Source Hit@5 为 94.74%，Evidence Recall@5 为 94.74%，无答案证据代理准确率为 100%，检索失败数为 2。完整报告写入被忽略的 `work/knowledge-expansion-enterprise-benchmark.json`，不会覆盖仓库已有评测报告。
+本轮扩充后的离线回归结果：50 条文档、414 道题，回归门禁通过。门禁使用 regression split：Source Hit@5 为 94.74%，Evidence Recall@5 为 94.74%，无答案证据代理准确率为 100%，检索失败数为 2。分层结果见 `data/eval_reports/enterprise_rag_benchmark.json`；完整报告也曾写入被忽略的 `work/knowledge-expansion-enterprise-benchmark.json`。
 
 `data/eval_reports/enterprise_rag_benchmark.json` 已更新为本轮 50 条文档、414 道题的离线确定性报告。统一 456 题在线报告需要重新付费调用向量和重排服务；本轮长时间尝试未完成，因此保留仓库原有的在线报告，不把离线 smoke 结果伪装成在线质量结论。要刷新统一在线报告，执行 `python scripts/run_unified_rag_benchmark.py --mode retrieval`，完成后应检查 `offline=false`、`case_count=456` 和各数据集门禁。
 
