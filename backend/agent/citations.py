@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Sequence
+from datetime import date
 from typing import Any, TypedDict
 
 from langchain_core.documents import Document
@@ -238,9 +239,62 @@ def _remove_normative_fillers(text: str) -> str:
 def _claim_numbers_are_supported(claim: str, quote: str) -> bool:
     """Do not accept a citation when an explicit claim number is absent."""
 
-    claim_numbers = set(re.findall(r"\d+(?:\.\d+)?", claim))
-    quote_numbers = set(re.findall(r"\d+(?:\.\d+)?", quote))
-    return claim_numbers <= quote_numbers
+    claim_numbers = _numeric_facts(claim)
+    quote_numbers = _numeric_facts(quote, evidence=True)
+    return (
+        claim_numbers is not None
+        and quote_numbers is not None
+        and claim_numbers <= quote_numbers
+    )
+
+
+_DATE_PATTERN = re.compile(
+    r"(?<![A-Za-z0-9_])(?:(\d{4})-(\d{1,2})-(\d{1,2})|"
+    r"(\d{4})年(?:(\d{1,2})月(?:(\d{1,2})日)?)?)(?![A-Za-z0-9_])"
+)
+
+
+def _numeric_facts(text: str, *, evidence: bool = False) -> set[str] | None:
+    """Compare complete calendar dates, never a bag of year/month/day digits.
+
+    Source quotes stay verbatim. Only the comparison representation normalizes
+    ISO and Chinese dates; unrelated amounts and version numbers stay exact.
+    """
+    dates: set[str] = set()
+
+    def replace(match: re.Match[str]) -> str:
+        prefix = text[:match.start()]
+        if re.search(
+            r"(?:\bversion(?:\s+number)?(?:\s+is)?|\bver\.?|版本(?:号)?(?:为|是)?)"
+            r"\s*[:：=]?\s*[*`\"'（(]*$",
+            prefix,
+            flags=re.I,
+        ):
+            # A version may look like an ISO date but remains an identifier.
+            return match.group(0)
+        parts = [int(value) for value in match.groups() if value is not None]
+        try:
+            parsed = date(*(parts + [1] * (3 - len(parts))))
+        except ValueError:
+            if evidence:
+                # An invalid source date proves no date, but need not invalidate
+                # unrelated supported facts in the same quote.
+                return " "
+            raise
+        canonical = parsed.isoformat()
+        precision = [4, 7, 10][len(parts) - 1]
+        dates.add("date:" + canonical[:precision])
+        if evidence:
+            dates.add("date:" + canonical[:4])
+            if len(parts) >= 2:
+                dates.add("date:" + canonical[:7])
+        return " "
+
+    try:
+        remainder = _DATE_PATTERN.sub(replace, text)
+    except ValueError:
+        return None
+    return dates | set(re.findall(r"\d+(?:\.\d+)?", remainder))
 
 
 def sanitize_answer_citations(

@@ -10,7 +10,77 @@ from backend.agent.citations import (
     sanitize_answer_citations,
     build_citations,
     format_documents_for_prompt,
+    validate_citation_claim_alignment,
 )
+
+
+class EffectiveDateCitationTests(unittest.TestCase):
+    def test_date_can_support_lower_precision_without_supporting_amounts(self) -> None:
+        doc = Document(page_content="制度于2026年1月1日生效。")
+        for claim, expected in [
+            ("制度于2026年生效", True),
+            ("制度于2026年1月生效", True),
+            ("制度于2026年2月生效", False),
+            ("制度费用为2026元", False),
+        ]:
+            answer = claim + " [C1]。"
+            with self.subTest(claim=claim):
+                self.assertEqual(validate_citation_claim_alignment(
+                    answer, build_citations([doc], answer)
+                )[0], expected)
+
+    def test_date_shaped_version_is_not_normalized(self) -> None:
+        for prefix in ["Release version v", "Release version ", "Release version: ", "版本号为"]:
+            doc = Document(page_content=f"{prefix}2026-01-01 is active.")
+            answer = f"{prefix}2026-1-1 is active [C1]."
+            with self.subTest(prefix=prefix):
+                self.assertFalse(validate_citation_claim_alignment(answer, build_citations([doc], answer))[0])
+
+    def test_invalid_source_date_does_not_poison_unrelated_claim(self) -> None:
+        doc = Document(page_content="Submit expense invoices (example invalid date 2026-02-30).")
+        answer = "Submit expense invoices [C1]."
+        self.assertTrue(validate_citation_claim_alignment(answer, build_citations([doc], answer))[0])
+
+    def test_equivalent_date_formats_preserve_verbatim_source(self) -> None:
+        for source_date, answer_date in [
+            ("2026-01-01", "2026年1月1日"),
+            ("2026年1月1日", "2026-01-01"),
+            ("2024-02-29", "2024年2月29日"),
+        ]:
+            with self.subTest(source_date=source_date):
+                document = Document(
+                    page_content=f"## 差旅报销 v2（{source_date} 生效）\n差旅报销需提交发票。",
+                    metadata={"version": "v2"},
+                )
+                answer = f"该差旅报销制度版本（v2）于{answer_date}生效 [C1]。"
+                citations = build_citations([document], answer, query="这个版本何时生效？")
+                self.assertTrue(validate_citation_claim_alignment(answer, citations)[0])
+                self.assertIn(source_date, citations[0]["quote"])
+
+    def test_wrong_dates_cannot_borrow_digits_from_other_dates_or_amounts(self) -> None:
+        for quote, claim in [
+            ("差旅报销于2026-01-02生效。", "差旅报销于2026-02-01生效"),
+            ("差旅报销于2026-01-02生效，2027-02-01废止。", "差旅报销于2026-02-01生效"),
+            ("差旅报销于2026-01-01生效，2天内提交。", "差旅报销于2026年1月2日生效"),
+            ("差旅报销于2026-01-01生效。", "差旅报销于2027年1月1日生效"),
+            ("差旅报销2026年发布，1月讨论，1日提交。", "差旅报销于2026年1月1日生效"),
+        ]:
+            with self.subTest(claim=claim, quote=quote):
+                answer = claim + " [C1]。"
+                citations = build_citations([Document(page_content=quote)], answer)
+                self.assertFalse(validate_citation_claim_alignment(answer, citations)[0])
+
+    def test_date_equivalence_does_not_relax_other_numbers(self) -> None:
+        document = Document(page_content="差旅报销v2于2026-01-01生效，限额5000元。")
+        for claim in [
+            "差旅报销v3于2026年1月1日生效",
+            "差旅报销v2于2026年1月1日生效，限额6000元",
+            "差旅报销v2于2026年2月30日生效",
+        ]:
+            answer = claim + " [C1]。"
+            self.assertFalse(validate_citation_claim_alignment(
+                answer, build_citations([document], answer)
+            )[0])
 
 
 class CitationTests(unittest.TestCase):

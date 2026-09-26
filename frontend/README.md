@@ -130,3 +130,5 @@ python tests/e2e_workspace_design.py
 新增确定性验收 `python tests/e2e_product_experience.py`；本机性能脚本 `python tests/benchmark_browser_experience.py` 要求开发服务 5173 和生产 preview 4173 同时运行。真实 HTTP 基准使用 `python scripts/benchmark_chat_latency.py --help`，必须显式 `--live` 并指向隔离后端。
 
 本轮验收结果、截图、性能样本与限制见 [实施报告](../docs/product_experience_implementation_report.md)。上方 2026-09-12 数字为历史记录，不能当作本轮证据。
+
+补充验收：`python tests/e2e_experience_edge_cases.py` 覆盖真正 200% 标签页缩放、触控模拟、嵌套来源抽屉及权限/断流/取消边界；需要支持扩展的 Playwright Chromium，可通过 `CHROMIUM_EXECUTABLE` 指定其路径。模拟触控不等于真实设备验收。
