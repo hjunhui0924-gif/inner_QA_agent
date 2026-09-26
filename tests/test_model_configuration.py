@@ -30,11 +30,28 @@ class ModelConfigurationTests(unittest.TestCase):
         self.assertFalse(configured.qwen_enable_thinking)
 
     def test_model_builder_accepts_an_explicit_judge_model(self) -> None:
-        with patch("backend.agent.nodes.settings.dashscope_api_key", "test-key"):
+        with patch("backend.agent.nodes.settings", Settings(_env_file=None, DASHSCOPE_API_KEY="test-key")):
             model = _build_model(temperature=0, model_name="judge-model")
 
         self.assertEqual(model.model_name, "judge-model")
         self.assertEqual(model.extra_body, {"enable_thinking": False})
+
+    def test_deepseek_builder_uses_its_own_credentials_and_protocol(self):
+        configured = Settings(_env_file=None, model_provider="deepseek",
+                              DEEPSEEK_API_KEY="deepseek-test", model_name="deepseek-flash")
+        with patch("backend.agent.nodes.settings", configured):
+            model = _build_model(max_tokens=24)
+        self.assertEqual(model.openai_api_key.get_secret_value(), "deepseek-test")
+        self.assertEqual(model.openai_api_base, "https://api.deepseek.com")
+        self.assertEqual(model.extra_body, {"thinking": {"type": "disabled"}})
+        self.assertEqual(model.max_tokens, 24)
+        self.assertEqual(configured.text_extra_body(title=True), model.extra_body)
+
+    def test_deepseek_missing_key_does_not_fall_back_to_dashscope_key(self):
+        configured = Settings(_env_file=None, model_provider="deepseek", DEEPSEEK_API_KEY="", DASHSCOPE_API_KEY="test")
+        with patch("backend.agent.nodes.settings", configured):
+            with self.assertRaisesRegex(RuntimeError, "DEEPSEEK_API_KEY"):
+                _build_model()
 
     def test_answer_benchmark_uses_the_shared_model_settings(self) -> None:
         self.assertIs(run_answer_benchmark.settings, configured_settings)

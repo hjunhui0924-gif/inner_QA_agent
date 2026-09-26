@@ -1,5 +1,19 @@
 # 引用校验与在线 Judge 分工调整
 
+## 2026-09-27 DeepSeek 恢复验证
+
+本地 `.env` 已切换 `MODEL_PROVIDER=deepseek`，生成、Judge、后台标题使用 `deepseek-v4-pro`，官方地址为 `https://api.deepseek.com`，关闭 thinking。修正了原本拼错的 DeepSeek 地址；密钥未写入代码或报告。`deepseek-flash` 的可用性预检重复返回含异常标记的 JSON 字段，因此未采用。成功调用不代表免费额度，本次没有查询 DeepSeek 账户余额。
+
+旧版节点 `6e4f00a` 和新模式使用同一 DeepSeek 模型完成 17 个固定人工标注候选 × 3 轮对比，每版 51 次。旧版误拒 3 次（翻译）、误放行 3 次（遗漏例外）；新模式误拒和误放行均为 0。所有裁决通过格式校验。证据：`work/citation-gate-deepseek-pro/results.json`、`status.json`。这只是合成开发集的验收，不能推导真实业务准确率或独立质量保证。
+
+本地已启用 `CITATION_VALIDATION_MODE=judge`：代码负责结构/出处，Judge 负责语义。保留 `legacy` 回滚选项和仓库默认值，避免把仅在 DeepSeek 验证的结论直接用于其他供应商。
+
+两次隔离的真实浏览器联调分别覆盖 legacy 和 judge，均为 12/14 通过。问答、追问、引用、标题、拒答、通用回答、上传/向量入库/下载、会话持久化及删除正常；2 项失败都是阿里原生联网搜索不可用，界面正确显示 search_error，没有伪造网页来源。第二次证据：`work/backend-verification/live-20260927-014011/report.json`。测试独立使用 SQLite、Chroma 和上传目录；测试服务已停止。
+
+Embedding、reranker、原生联网搜索继续使用各自的 DashScope 配置，文本模型切换不会更改索引或冒充联网能力。最终执行 `python -m pytest tests -q`：234 passed、2 skipped；`git diff --check` 通过。新增测试覆盖供应商独立密钥、请求参数、缺失 DeepSeek 密钥不串用阿里密钥、仅 DeepSeek 凭据时后台标题入队与生成。独立静态审阅未发现待修复问题。
+
+## 此前实施记录（以下额度阻塞状态已由上节更新）
+
 日期：2026-09-27。基线：6e4f00a。状态：代码与离线回归已完成，真实质量对照因模型额度阻塞，尚未默认启用。
 
 ## 决策

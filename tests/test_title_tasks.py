@@ -58,6 +58,25 @@ class TitleTasksTests(unittest.IsolatedAsyncioTestCase):
             await asyncio.gather(*list(self.manager.running))
             await asyncio.sleep(0)
 
+    async def test_deepseek_only_configuration_enqueues_and_builds_title(self):
+        from backend.config import Settings
+        configured = Settings(_env_file=None, model_provider="deepseek",
+                              DEEPSEEK_API_KEY="test-deepseek", DASHSCOPE_API_KEY="",
+                              model_name="deepseek-v4-pro")
+        await self.job()
+        request = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(title_tasks=self.manager)))
+        with patch("backend.api.routes.settings", configured), patch(
+            "backend.agent.title_tasks.settings", configured
+        ), patch("backend.agent.title_tasks.ChatOpenAI", return_value=SimpleNamespace(
+            ainvoke=AsyncMock(return_value=SimpleNamespace(content="摘要"))
+        )) as builder:
+            await chat_sessions(request, "u")
+            await self.drain()
+        self.assertEqual(builder.call_args.kwargs["api_key"], "test-deepseek")
+        self.assertEqual(builder.call_args.kwargs["base_url"], "https://api.deepseek.com")
+        self.assertEqual(builder.call_args.kwargs["extra_body"], {"thinking": {"type": "disabled"}})
+        self.assertEqual(self.manager.metrics[-1]["outcome"], "completed")
+
     async def test_dedup_capacity_timeout_cooldown_and_shutdown(self):
         a, b, c = await self.job("a"), await self.job("b"), await self.job("c")
         self.assertTrue(self.manager.submit(a))

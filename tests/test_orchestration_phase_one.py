@@ -123,7 +123,7 @@ class CandidateCommitTests(unittest.IsolatedAsyncioTestCase):
                     return AIMessage(content='{"route":"rag","reason":"test"}')
                 if "相关性判断器" in prompt:
                     return AIMessage(content='{"is_relevant":true,"reason":"test"}')
-                if "忠实于给定" in prompt:
+                if "hallucination_pass" in prompt:
                     self.judge_count += 1
                     passed = self.judge_count > 1
                     return AIMessage(

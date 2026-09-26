@@ -23,9 +23,12 @@ class Settings(BaseSettings):
 
     dashscope_api_key: str = Field(default="", validation_alias="DASHSCOPE_API_KEY")
     dashscope_base_url: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    model_provider: Literal["dashscope", "deepseek"] = "dashscope"
+    deepseek_api_key: str = Field(default="", validation_alias="DEEPSEEK_API_KEY")
+    deepseek_base_url: str = "https://api.deepseek.com"
     model_name: str = "qwen3.8-flash"
     judge_model_name: str = "qwen3.8-flash"
-    # Keep the validated gate until live semantic comparison is available.
+    # Keep legacy for unvalidated deployments; locally validated providers can opt into judge.
     citation_validation_mode: Literal["legacy", "judge"] = "legacy"
     web_search_model: str = "qwen3.8-flash"
     web_search_endpoint: str = "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation"
@@ -98,6 +101,23 @@ class Settings(BaseSettings):
     max_archive_uncompressed_bytes: int = 100 * 1024 * 1024
     backend_url: str = "http://localhost:8000"
     frontend_origins: str = "http://127.0.0.1:5173,http://localhost:5173"
+
+    @property
+    def text_api_key(self) -> str:
+        if self.model_provider == "deepseek":
+            return self.deepseek_api_key
+        return self.dashscope_api_key
+
+    @property
+    def text_base_url(self) -> str:
+        if self.model_provider == "deepseek":
+            return self.deepseek_base_url
+        return self.dashscope_base_url
+
+    def text_extra_body(self, *, title: bool = False) -> dict:
+        if self.model_provider == "deepseek":
+            return {"thinking": {"type": "disabled"}}
+        return {"enable_thinking": False if title else self.qwen_enable_thinking}
 
     @field_validator("embedding_provider")
     @classmethod

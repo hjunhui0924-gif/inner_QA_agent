@@ -88,14 +88,14 @@ class TitleTaskManager:
                     return
                 model = ChatOpenAI(
                     model=settings.model_name,
-                    api_key=settings.dashscope_api_key,
-                    base_url=settings.dashscope_base_url,
+                    api_key=settings.text_api_key,
+                    base_url=settings.text_base_url,
                     temperature=0,
                     max_tokens=24,
                     timeout=self.timeout,
                     max_retries=0,
                     stream_usage=True,
-                    extra_body={"enable_thinking": False},
+                    extra_body=settings.text_extra_body(title=True),
                 )
                 budget.consume_model_call("session_title")
                 response = await model.ainvoke(

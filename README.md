@@ -494,12 +494,12 @@ python scripts/benchmark_chat_latency.py --base-url http://127.0.0.1:8000 --case
 脚本不默认保存正文或凭证，HTTP result 时间不代表 DOM 绘制。冻结案例 20 个，含 4 个追问链，每轮使用新 turn_id；前后质量与小样本统计边界见 [本轮实施报告](docs/product_experience_implementation_report.md)。
 
 
-### 引用结构与语义校验分工（待真实验收启用）
+### 引用结构与语义校验分工
 
 `CITATION_VALIDATION_MODE=legacy` 是当前默认，保留既有 Judge + 语义规则双重校验。
 新增可选 `judge` 模式：先检查引用编号、当前检索来源和摘录出处，再由在线 Judge 唯一判断引用支持、事实、条件/例外、否定和顺序；不再用词语重合或数字集合二次否决。无引用候选是否属于合理拒答也交给 Judge。来源权限仍由既有检索 ACL 决定，网页/通用路由及离线评测不变。
 
-该模式尚未完成真实对照验收：本次模型服务返回 `403 / AllocationQuota.FreeTierOnly`，因此未修改本地 `.env` 或切换默认模式。恢复模型额度后运行：
+本地现已使用 `MODEL_PROVIDER=deepseek`、`MODEL_NAME=deepseek-v4-pro`、`JUDGE_MODEL_NAME=deepseek-v4-pro` 和 `CITATION_VALIDATION_MODE=judge`，真实对照新模式 51/51 符合开发集预期。仓库保留 legacy 默认和回滚开关。DeepSeek 使用独立的 `DEEPSEEK_API_KEY` 与官方 `DEEPSEEK_BASE_URL=https://api.deepseek.com`；embedding、重排及原生联网搜索仍使用 DashScope。真实浏览器联调 12/14 通过，2 项阿里联网搜索仍不可用。复测命令：
 
 ```powershell
 python scripts/benchmark_citation_gate.py --live --baseline-ref 6e4f00a --repeats 3 --output-dir work/citation-gate-comparison-available

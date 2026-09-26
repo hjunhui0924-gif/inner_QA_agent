@@ -255,24 +255,24 @@ def _build_model(
     model_name: str | None = None,
     max_tokens: int | None = None,
 ) -> ChatOpenAI:
-    """Create the Qwen model configured through DashScope."""
+    """Create the configured text model."""
 
-    if not settings.dashscope_api_key:
+    if not settings.text_api_key:
         raise RuntimeError(
-            "DASHSCOPE_API_KEY is not set. Configure it in .env before running the model."
+            f"{settings.model_provider.upper()}_API_KEY is not set. Configure it in .env before running the model."
         )
     selected_model = settings.model_name if model_name is None else model_name.strip()
     if not selected_model:
         raise RuntimeError("Configured model name must not be empty.")
     model_options: dict[str, Any] = {
         "model": selected_model,
-        "api_key": settings.dashscope_api_key,
-        "base_url": settings.dashscope_base_url,
+        "api_key": settings.text_api_key,
+        "base_url": settings.text_base_url,
         "temperature": temperature,
         "streaming": True,
         "stream_usage": True,
         "max_retries": 0,
-        "extra_body": {"enable_thinking": settings.qwen_enable_thinking},
+        "extra_body": settings.text_extra_body(),
     }
     if max_tokens is not None:
         if max_tokens <= 0:

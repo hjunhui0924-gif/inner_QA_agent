@@ -737,7 +737,7 @@ async def _write_final_trace(trace: dict) -> None:
 
 async def _queue_first_title(request: Request, payload: ChatRequest) -> None:
     manager = getattr(request.app.state, 'title_tasks', None)
-    if manager is None or not settings.dashscope_api_key:
+    if manager is None or not settings.text_api_key:
         return
     try:
         user_id = _request_access_context(request).user_id
@@ -772,7 +772,7 @@ async def chat_sessions(request: Request, user_id: str) -> dict[str, object]:
     if _is_real_http_request(request):
         _assert_user_path(user_id, access_context)
     manager = getattr(request.app.state, "title_tasks", None)
-    if manager is not None and settings.dashscope_api_key:
+    if manager is not None and settings.text_api_key:
         candidates = await list_session_title_candidates(user_id)
         accepted = 0
         for candidate in candidates[:32]:

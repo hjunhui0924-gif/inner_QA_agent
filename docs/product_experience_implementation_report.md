@@ -1,6 +1,6 @@
 # 产品体验优化实施报告
 
-> 后续引用/Judge 分工改造：已提供可选 judge 模式，因模型接口 403/AllocationQuota.FreeTierOnly，真实对照未完成、默认仍为 legacy。见 [分工调整报告](citation_validation_split_report.md)。下述此前真实测试成功结果不能作为这次新模式的验收证据。
+> 后续引用/Judge 分工改造：已切换本地 DeepSeek v4 Pro 并启用 judge 模式，合成候选对照 51/51 通过；真实浏览器联调 12/14 通过，2 项阿里联网搜索仍不可用。见 [分工调整报告](citation_validation_split_report.md)。
 
 ## 2026-09-27 后续验收更新
 
