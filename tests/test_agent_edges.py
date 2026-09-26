@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import unittest
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 from backend.agent.edges import route_after_hallucination_check
 from backend.agent.nodes import check_hallucination
@@ -26,6 +26,63 @@ class HallucinationRetryTests(unittest.TestCase):
 
 
 class HallucinationNodeTests(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        mode = patch("backend.agent.nodes.settings.citation_validation_mode", "judge")
+        mode.start()
+        self.addCleanup(mode.stop)
+
+    async def test_legacy_mode_keeps_semantic_rule_veto(self):
+        judge = AsyncMock()
+        judge.ainvoke.return_value = AIMessage(content='{"hallucination_pass":true}')
+        with patch("backend.agent.nodes.settings.citation_validation_mode", "legacy"), patch("backend.agent.nodes._build_model", return_value=judge):
+            result = await check_hallucination({
+                "route": "rag", "query": "住宿标准？",
+                "candidate_answer": "住宿限额600元 [C1]。",
+                "retrieved_docs": [Document(page_content="住宿限额500元。")],
+            })
+        self.assertFalse(result["hallucination_pass"])
+        self.assertEqual(result["failure_stage"], "citation")
+
+    async def test_judge_mode_malformed_verdict_fails_closed(self):
+        for output in ['{}', '{"hallucination_pass":"true"}', 'not JSON']:
+            judge = AsyncMock()
+            judge.ainvoke.return_value = AIMessage(content=output)
+            with patch("backend.agent.nodes._build_model", return_value=judge):
+                result = await check_hallucination({
+                    "route": "rag", "query": "住宿标准？",
+                    "candidate_answer": "住宿限额500元 [C1]。",
+                    "retrieved_docs": [Document(page_content="住宿限额500元。")],
+                })
+            self.assertFalse(result["hallucination_pass"])
+            self.assertEqual(result["failure_stage"], "hallucination")
+
+    async def test_judge_accepted_translation_has_no_second_semantic_veto(self) -> None:
+        class Judge:
+            async def ainvoke(self, messages):
+                return AIMessage(content='{"hallucination_pass":true,"reason":"faithful translation"}')
+
+        with patch("backend.agent.nodes._build_model", return_value=Judge()):
+            result = await check_hallucination({
+                "route": "rag", "query": "Explain the leave process in English.",
+                "candidate_answer": "Your manager must approve leave before HR records it [C1].",
+                "retrieved_docs": [Document(page_content="请假先提交申请，经直属主管批准后交人事备案。")],
+            })
+        self.assertTrue(result["hallucination_pass"])
+        self.assertEqual(result["answer_disposition"], "accepted")
+
+    async def test_invalid_citation_stops_before_judge(self) -> None:
+        with patch("backend.agent.nodes._build_model") as builder:
+            result = await check_hallucination({
+                "route": "rag", "query": "审批要求？",
+                "candidate_answer": "需要主管审批 [C9]。",
+                "retrieved_docs": [Document(page_content="需要主管审批。")],
+            })
+        builder.assert_not_called()
+        self.assertFalse(result["hallucination_pass"])
+        self.assertEqual(result["failure_stage"], "citation")
+        self.assertEqual(result["hallucination_retry_count"], 1)
+        self.assertEqual(result["model_call_count"], 0)
+
     async def test_missing_documents_increments_failure_count(self) -> None:
         result = await check_hallucination(
             {
@@ -54,10 +111,10 @@ class HallucinationNodeTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(result["hallucination_pass"])
 
     async def test_wrong_citation_target_fails_closed(self) -> None:
-        class AlwaysPassJudge:
+        class RejectWrongTargetJudge:
             async def ainvoke(self, prompt_messages: list[object]) -> AIMessage:
                 return AIMessage(
-                    content='{"hallucination_pass":true,"reason":"supported"}'
+                    content='{"hallucination_pass":false,"reason":"C1 is about licensing, not final decisions"}'
                 )
 
         documents = [
@@ -70,7 +127,7 @@ class HallucinationNodeTests(unittest.IsolatedAsyncioTestCase):
                 metadata={"source_id": "right", "document_id": "right", "chunk_id": "right:0"},
             ),
         ]
-        with patch("backend.agent.nodes._build_model", return_value=AlwaysPassJudge()):
+        with patch("backend.agent.nodes._build_model", return_value=RejectWrongTargetJudge()):
             result = await check_hallucination(
                 {
                     "route": "rag",
@@ -82,7 +139,7 @@ class HallucinationNodeTests(unittest.IsolatedAsyncioTestCase):
 
         self.assertFalse(result["hallucination_pass"])
         self.assertEqual(result["answer_disposition"], "pending")
-        self.assertEqual(result["failure_stage"], "citation")
+        self.assertEqual(result["failure_stage"], "hallucination")
 
     async def test_paraphrased_supported_citation_remains_accepted(self) -> None:
         class AlwaysPassJudge:

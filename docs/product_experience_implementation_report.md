@@ -1,5 +1,7 @@
 # 产品体验优化实施报告
 
+> 后续引用/Judge 分工改造：已提供可选 judge 模式，因模型接口 403/AllocationQuota.FreeTierOnly，真实对照未完成、默认仍为 legacy。见 [分工调整报告](citation_validation_split_report.md)。下述此前真实测试成功结果不能作为这次新模式的验收证据。
+
 ## 2026-09-27 后续验收更新
 
 本节覆盖后文 362e43f 初次交付的待办状态；历史 144 轮数据原样保留，不能与此次样本混算。

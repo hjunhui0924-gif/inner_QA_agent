@@ -119,6 +119,40 @@ def citation_markers(answer: str) -> set[str]:
     return {f"C{item}" for item in _MARKER_PATTERN.findall(answer)}
 
 
+def validate_citation_structure(
+    answer: str, documents: Sequence[Document], citations: Sequence[Citation]
+) -> tuple[bool, str]:
+    """Check source pointers and quote provenance, not semantic entailment.
+
+    Documents must be the already-authorized retrieval result. The server
+    rebuilds citations from those documents; model-supplied metadata is ignored.
+    Citationless candidates proceed to the Judge: deciding whether they are
+    justified refusals or uncited factual answers is itself a semantic task.
+    """
+    markers = citation_markers(answer)
+    if not markers:
+        return (True, "") if not citations else (False, "存在未被回答引用的来源记录。")
+    by_id = {citation["citation_id"]: citation for citation in citations}
+    if markers != set(by_id) or len(by_id) != len(citations):
+        return False, "回答中的引用标记越界或无法对应当前检索证据。"
+    for marker in markers:
+        number = int(marker[1:])
+        if not 1 <= number <= len(documents):
+            return False, "引用编号超出当前检索证据范围。"
+        document = documents[number - 1]
+        citation = by_id[marker]
+        metadata = document.metadata
+        expected_source = str(metadata.get("source_id", metadata.get("document_id", ""))).strip()
+        if (citation.get("source_id", "") != expected_source
+                or citation.get("chunk_id", "") != str(metadata.get("chunk_id", "")).strip()):
+            return False, "引用来源与当前检索证据不一致。"
+        quote = re.sub(r"\s+", "", citation.get("quote", ""))
+        original = re.sub(r"\s+", "", document.page_content)
+        if not quote or quote not in original:
+            return False, "引用摘录不是对应检索原文的片段。"
+    return True, ""
+
+
 def validate_citation_claim_alignment(
     answer: str,
     citations: Sequence[Citation],

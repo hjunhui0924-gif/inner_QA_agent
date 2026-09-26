@@ -492,3 +492,17 @@ python scripts/benchmark_chat_latency.py --base-url http://127.0.0.1:8000 --case
 ```
 
 脚本不默认保存正文或凭证，HTTP result 时间不代表 DOM 绘制。冻结案例 20 个，含 4 个追问链，每轮使用新 turn_id；前后质量与小样本统计边界见 [本轮实施报告](docs/product_experience_implementation_report.md)。
+
+
+### 引用结构与语义校验分工（待真实验收启用）
+
+`CITATION_VALIDATION_MODE=legacy` 是当前默认，保留既有 Judge + 语义规则双重校验。
+新增可选 `judge` 模式：先检查引用编号、当前检索来源和摘录出处，再由在线 Judge 唯一判断引用支持、事实、条件/例外、否定和顺序；不再用词语重合或数字集合二次否决。无引用候选是否属于合理拒答也交给 Judge。来源权限仍由既有检索 ACL 决定，网页/通用路由及离线评测不变。
+
+该模式尚未完成真实对照验收：本次模型服务返回 `403 / AllocationQuota.FreeTierOnly`，因此未修改本地 `.env` 或切换默认模式。恢复模型额度后运行：
+
+```powershell
+python scripts/benchmark_citation_gate.py --live --baseline-ref 6e4f00a --repeats 3 --output-dir work/citation-gate-comparison-available
+```
+
+固定合成候选覆盖合理改写/翻译、日期、引用错配、条件遗漏、否定、拒答及注入内容。服务或输出格式错误会将比较标记为 blocked；新模式必须全部符合这组已标注预期才通过本轮 gate，不能把小型开发集当长期质量保证。详情见 [分工调整报告](docs/citation_validation_split_report.md)。

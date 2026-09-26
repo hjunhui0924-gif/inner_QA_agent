@@ -11,7 +11,32 @@ from backend.agent.citations import (
     build_citations,
     format_documents_for_prompt,
     validate_citation_claim_alignment,
+    validate_citation_structure,
 )
+
+
+class CitationStructureTests(unittest.TestCase):
+    def test_provenance_does_not_claim_semantic_entailment(self):
+        docs = [Document(page_content="住宿限额500元。", metadata={"source_id": "a", "chunk_id": "a:0"})]
+        answer = "住宿限额600元 [C1]。"
+        citations = build_citations(docs, answer)
+        self.assertTrue(validate_citation_structure(answer, docs, citations)[0])
+        # This is deliberately left for the online semantic Judge.
+        self.assertFalse(validate_citation_claim_alignment(answer, citations)[0])
+
+    def test_fabricated_quote_or_source_is_rejected(self):
+        docs = [Document(page_content="住宿限额500元。", metadata={"source_id": "a", "chunk_id": "a:0"})]
+        answer = "住宿限额500元 [C1]。"
+        citation = build_citations(docs, answer)[0]
+        for field, value in [("quote", "住宿限额600元。"), ("source_id", "other-user"), ("chunk_id", "other:0")]:
+            with self.subTest(field=field):
+                self.assertFalse(validate_citation_structure(answer, docs, [{**citation, field: value}])[0])
+
+    def test_citationless_candidates_leave_refusal_classification_to_judge(self):
+        docs = [Document(page_content="住宿限额500元。")]
+        self.assertTrue(validate_citation_structure("检索到的知识未包含该问题的答案。", docs, [])[0])
+        self.assertTrue(validate_citation_structure("住宿限额500元。", docs, [])[0])
+        self.assertTrue(validate_citation_structure("资料未说明育儿假天数，暂时无法回答。", docs, [])[0])
 
 
 class EffectiveDateCitationTests(unittest.TestCase):

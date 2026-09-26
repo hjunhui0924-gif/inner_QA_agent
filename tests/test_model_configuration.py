@@ -15,6 +15,12 @@ from scripts import run_answer_benchmark
 
 
 class ModelConfigurationTests(unittest.TestCase):
+    def test_citation_mode_defaults_to_validated_legacy_until_live_gate_passes(self):
+        self.assertEqual(Settings(_env_file=None).citation_validation_mode, "legacy")
+        self.assertEqual(Settings(_env_file=None, citation_validation_mode="judge").citation_validation_mode, "judge")
+        with self.assertRaises(ValidationError):
+            Settings(_env_file=None, citation_validation_mode="disabled")
+
     def test_text_generation_model_is_the_default_generation_and_judge_model(self) -> None:
         configured = Settings(_env_file=None)
 

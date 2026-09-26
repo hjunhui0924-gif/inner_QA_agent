@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Literal
 
 from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -24,6 +25,8 @@ class Settings(BaseSettings):
     dashscope_base_url: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
     model_name: str = "qwen3.8-flash"
     judge_model_name: str = "qwen3.8-flash"
+    # Keep the validated gate until live semantic comparison is available.
+    citation_validation_mode: Literal["legacy", "judge"] = "legacy"
     web_search_model: str = "qwen3.8-flash"
     web_search_endpoint: str = "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation"
     web_search_timeout_seconds: float = Field(default=20.0, gt=0, allow_inf_nan=False)
