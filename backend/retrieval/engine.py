@@ -148,6 +148,7 @@ class RetrievalResult:
     rerank_used: bool
     degraded_reason: str | None
     latency_ms: float
+    rerank_latency_ms: float = 0.0
     candidate_documents: list[Document] | None = None
     filtered_candidate_count: int = 0
     applied_filter: dict[str, Any] | None = None
@@ -323,6 +324,7 @@ class RetrievalEngine:
                 filtered_candidate_count=len(rerank_pool),
                 applied_filter=applied_filter,
             )
+        rerank_started = time.perf_counter()
         try:
             rerank_top_n = len(rerank_pool) if prefer_current else top_k
             scores = self._reranker.rerank(
@@ -330,6 +332,7 @@ class RetrievalEngine:
                 [candidate.document for candidate in rerank_pool],
                 rerank_top_n,
             )
+            rerank_latency_ms = (time.perf_counter() - rerank_started) * 1000
             documents = []
             for rank, score in enumerate(scores, start=1):
                 candidate = rerank_pool[score.index]
@@ -368,8 +371,10 @@ class RetrievalEngine:
                 candidate_documents=[candidate.document for candidate in rerank_pool],
                 filtered_candidate_count=len(rerank_pool),
                 applied_filter=applied_filter,
+                rerank_latency_ms=rerank_latency_ms,
             )
         except Exception:
+            rerank_latency_ms = (time.perf_counter() - rerank_started) * 1000
             documents = [
                 _candidate_document(candidate, retrieval_stage="fusion_fallback")
                 for candidate in rerank_pool[:top_k]
@@ -387,6 +392,7 @@ class RetrievalEngine:
                 candidate_documents=[candidate.document for candidate in rerank_pool],
                 filtered_candidate_count=len(rerank_pool),
                 applied_filter=applied_filter,
+                rerank_latency_ms=rerank_latency_ms,
             )
 
     def _dense_search(
@@ -545,6 +551,7 @@ class RetrievalEngine:
         candidate_documents: list[Document] | None = None,
         filtered_candidate_count: int = 0,
         applied_filter: dict[str, Any] | None = None,
+        rerank_latency_ms: float = 0.0,
     ) -> RetrievalResult:
         return RetrievalResult(
             documents=documents,
@@ -555,6 +562,7 @@ class RetrievalEngine:
             rerank_used=rerank_used,
             degraded_reason=degraded_reason,
             latency_ms=(time.perf_counter() - started) * 1000,
+            rerank_latency_ms=rerank_latency_ms,
             candidate_documents=candidate_documents,
             filtered_candidate_count=filtered_candidate_count,
             applied_filter=applied_filter,

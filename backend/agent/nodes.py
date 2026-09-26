@@ -723,6 +723,7 @@ async def retrieve(
             "rerank_used": retrieval.rerank_used,
             "degraded_reason": retrieval.degraded_reason,
             "latency_ms": retrieval.latency_ms,
+            "rerank_latency_ms": retrieval.rerank_latency_ms,
             "applied_filter": retrieval.applied_filter,
         }
         budget = _budget_for(runtime)

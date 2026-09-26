@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.api.routes import router
+from backend.agent.title_tasks import TitleTaskManager
 from backend.agent.checkpoint import TransientStateFilteringAsyncSqliteSaver
 from backend.agent.graph import build_graph
 from backend.agent.memory import (
@@ -31,7 +32,11 @@ async def lifespan(app: FastAPI):
         await checkpointer.setup()
         app.state.checkpointer = checkpointer
         app.state.graph = build_graph(checkpointer)
-        yield
+        app.state.title_tasks = TitleTaskManager()
+        try:
+            yield
+        finally:
+            await app.state.title_tasks.close()
 
 
 app = FastAPI(title="Enterprise Knowledge Agent", lifespan=lifespan)

@@ -233,10 +233,10 @@ def run_mvp_browser_checks(playwright: Playwright) -> None:
         question.fill("差旅报销需要谁审批？")
         page.get_by_role("button", name="发送").click()
         expect(page.locator("article.message.assistant").last).to_contain_text("直属主管审批")
-        expect(page.get_by_role("button", name="打开或隐藏引用证据")).to_contain_text("1")
+        expect(page.get_by_role("button", name="查看 1 条引用")).to_be_visible()
 
-        page.get_by_role("button", name="打开或隐藏引用证据").click()
-        evidence = page.get_by_role("complementary", name="引用证据")
+        page.get_by_role("button", name="查看 1 条引用").click()
+        evidence = page.get_by_role("complementary", name="引用来源")
         expect(evidence).to_be_visible()
         expect(evidence).to_contain_text("单笔超过5000元")
         page.get_by_role("button", name="关闭引用证据").click()
@@ -249,10 +249,10 @@ def run_mvp_browser_checks(playwright: Playwright) -> None:
         page.get_by_role("button", name="删除会话：费用报销制度").click()
         expect(page.get_by_role("dialog", name="彻底删除这个会话？")).to_be_visible()
         page.get_by_role("button", name="确认删除").click()
-        expect(page.get_by_text("工作中的问题，在这里找到答案。", exact=True)).to_be_visible()
+        expect(page.get_by_text("今天有什么工作问题？", exact=True)).to_be_visible()
 
-        page.get_by_role("link", name="知识库").click()
-        expect(page.get_by_role("heading", name="知识库", exact=True)).to_be_visible()
+        page.get_by_role("link", name="知识管理").click()
+        expect(page.get_by_role("heading", name="知识管理", exact=True)).to_be_visible()
         page.get_by_role("button", name="添加文档", exact=True).click()
         file_input = page.locator("#knowledge-file")
         file_input.set_input_files(

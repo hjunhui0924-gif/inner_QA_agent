@@ -535,6 +535,32 @@ async def list_session_title_candidates(user_id: str) -> list[dict[str, str]]:
     return candidates
 
 
+async def first_session_question(user_id: str, session_id: str) -> dict[str, Any] | None:
+    """Read the monotonic database identity of a surviving session's first question."""
+    async with aiosqlite.connect(settings.sqlite_db_path) as db:
+        cursor = await db.execute(
+            "SELECT m.id, m.content FROM chat_messages m JOIN chat_sessions s "
+            "ON s.user_id=m.user_id AND s.session_id=m.session_id "
+            "WHERE m.user_id=? AND m.session_id=? AND m.role='user' ORDER BY m.id LIMIT 1",
+            (user_id, session_id),
+        )
+        row = await cursor.fetchone()
+    return {'first_id': row[0], 'question': row[1]} if row else None
+
+
+async def update_title_if_first(user_id: str, session_id: str, first_id: int, title: str) -> bool:
+    """Conditional UPDATE only: cannot revive deleted sessions or rename a reused ID."""
+    async with aiosqlite.connect(settings.sqlite_db_path) as db:
+        cursor = await db.execute(
+            "UPDATE chat_sessions SET title=? WHERE user_id=? AND session_id=? "
+            "AND ?=(SELECT id FROM chat_messages WHERE user_id=? AND session_id=? "
+            "AND role='user' ORDER BY id LIMIT 1)",
+            (' '.join(title.split())[:24], user_id, session_id, first_id, user_id, session_id),
+        )
+        await db.commit()
+        return cursor.rowcount == 1
+
+
 async def update_chat_session_title(
     user_id: str,
     session_id: str,

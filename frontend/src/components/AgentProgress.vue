@@ -1,10 +1,31 @@
 <script setup lang="ts">
-import { computed, ref, useId, watch } from 'vue'
+import { computed, ref, useId, watch, onBeforeUnmount } from 'vue'
 import type { AgentStep } from '../types/api'
 
-const props = defineProps<{ steps: AgentStep[]; active: boolean }>()
+const props = defineProps<{
+  steps: AgentStep[]
+  active: boolean
+  startedAt?: number
+}>()
 
 const expanded = ref(false)
+const elapsed = ref(0)
+let timer: ReturnType<typeof setInterval> | undefined
+watch(
+  () => props.active,
+  (active) => {
+    clearInterval(timer)
+    if (active) {
+      const start = props.startedAt || Date.now()
+      elapsed.value = Math.floor((Date.now() - start) / 1000)
+      timer = setInterval(() => {
+        elapsed.value = Math.floor((Date.now() - start) / 1000)
+      }, 1000)
+    }
+  },
+  { immediate: true },
+)
+onBeforeUnmount(() => clearInterval(timer))
 const detailsId = `agent-step-list-${useId()}`
 
 const labels: Record<string, string> = {
@@ -69,11 +90,15 @@ const currentStep = computed(
 )
 
 const currentStepStatus = computed(() =>
-  currentStep.value ? stepStatus(currentStep.value) : props.active ? 'running' : 'pending',
+  currentStep.value
+    ? stepStatus(currentStep.value)
+    : props.active
+      ? 'running'
+      : 'pending',
 )
 
 const currentStepLabel = computed(() =>
-  currentStep.value ? stepLabel(currentStep.value) : '准备处理请求',
+  currentStep.value ? stepLabel(currentStep.value) : '正在连接服务…',
 )
 
 function toggleExpanded(): void {
@@ -106,6 +131,14 @@ watch(
         />
         <span class="progress-current-copy">
           <strong>{{ active ? currentStepLabel : '本次处理已结束' }}</strong>
+          <small v-if="active && elapsed >= 8"
+            >已等待 {{ elapsed }} 秒 ·
+            {{
+              elapsed >= 20
+                ? '本次处理时间较长，可继续等待或取消'
+                : '仍在处理，可继续等待或取消'
+            }}</small
+          >
         </span>
       </div>
       <button
@@ -139,7 +172,9 @@ watch(
         <span class="step-copy">
           <strong>{{ stepLabel(step) }}</strong>
           <small>{{ stepDescription(step) }}</small>
-          <span class="step-status-label">{{ statusLabels[stepStatus(step)] || '处理中' }}</span>
+          <span class="step-status-label">{{
+            statusLabels[stepStatus(step)] || '处理中'
+          }}</span>
         </span>
       </div>
     </div>

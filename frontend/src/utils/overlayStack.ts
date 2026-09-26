@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 export type OverlayKeydownHandler = (event: KeyboardEvent) => void
 
@@ -20,6 +20,11 @@ let nextOverlayId = 0
 let listening = false
 const openModalCount = ref(0)
 export const hasOpenModal = computed(() => openModalCount.value > 0)
+let savedOverflow = ''
+watch(hasOpenModal, open => {
+  if (open) { savedOverflow = document.body.style.overflow; document.body.style.overflow = 'hidden' }
+  else document.body.style.overflow = savedOverflow
+}, { flush: 'sync' })
 
 function removeFromStack(id: number): void {
   const index = openStack.indexOf(id)

@@ -1,6 +1,13 @@
 <script setup lang="ts">
-import { computed, nextTick, reactive, ref } from 'vue'
-import { Close, DocumentAdd, Refresh, Search, Document, Plus } from '@element-plus/icons-vue'
+import { computed, nextTick, reactive, ref, toRefs, onBeforeUnmount } from 'vue'
+import {
+  Close,
+  DocumentAdd,
+  Refresh,
+  Search,
+  Document,
+  Plus,
+} from '@element-plus/icons-vue'
 
 import WorkspaceDrawer from '../components/WorkspaceDrawer.vue'
 import DocumentDetailDrawer from '../components/DocumentDetailDrawer.vue'
@@ -14,6 +21,8 @@ import {
   formatFileSize,
   formatKnowledgeDateRange,
   KNOWLEDGE_FILE_ACCEPT,
+  KNOWLEDGE_FILE_EXTENSIONS,
+  MAX_KNOWLEDGE_UPLOAD_BYTES,
   knowledgeStatusLabel,
   knowledgeStatusTone,
   readableKnowledgeUploadError,
@@ -21,27 +30,39 @@ import {
   validateKnowledgeFile,
 } from '../utils/knowledge'
 
-const { knowledgeRecords, loadingKnowledge, uploading, loadKnowledge, uploadKnowledge } =
-  useWorkspace()
+const {
+  knowledgeRecords,
+  loadingKnowledge,
+  uploading,
+  loadKnowledge,
+  uploadKnowledge,
+  uploadForm,
+  knowledgeError,
+} = useWorkspace()
 
 const uploadOpen = ref(false)
-const title = ref('')
-const source = ref('internal_upload')
-const department = ref('unknown')
-const version = ref('v1')
-const status = ref('active')
-const effectiveFrom = ref('')
-const effectiveTo = ref('')
-const owner = ref('')
-const selectedFile = ref<File | null>(null)
+const {
+  title,
+  source,
+  department,
+  version,
+  status,
+  effectiveFrom,
+  effectiveTo,
+  owner,
+  selectedFile,
+  uploadError,
+  lastUpload,
+} = toRefs(uploadForm)
 const dragActive = ref(false)
-const uploadError = ref('')
-const lastUpload = ref<{ message: string; record: KnowledgeRecord } | null>(null)
 const selectedRecord = ref<KnowledgeRecord | null>(null)
 const detailOpen = ref(false)
 const detailLoading = ref(false)
 const detailError = ref('')
 let detailRequest = 0
+onBeforeUnmount(() => {
+  ++detailRequest
+})
 const detailTrigger = ref<HTMLButtonElement | null>(null)
 const filters = reactive({
   query: '',
@@ -50,8 +71,12 @@ const filters = reactive({
   version: '',
 })
 
-const filteredRecords = computed(() => filterKnowledgeRecords(knowledgeRecords.value, filters))
-const departments = computed(() => uniqueKnowledgeValues(knowledgeRecords.value, 'department'))
+const filteredRecords = computed(() =>
+  filterKnowledgeRecords(knowledgeRecords.value, filters),
+)
+const departments = computed(() =>
+  uniqueKnowledgeValues(knowledgeRecords.value, 'department'),
+)
 const uploadDepartments = computed(() =>
   [
     ...new Set([
@@ -65,18 +90,23 @@ const uploadDepartments = computed(() =>
     ]),
   ].filter((value) => value !== 'unknown'),
 )
-const statuses = computed(() => uniqueKnowledgeValues(knowledgeRecords.value, 'status'))
-const versions = computed(() => uniqueKnowledgeValues(knowledgeRecords.value, 'version'))
+const statuses = computed(() =>
+  uniqueKnowledgeValues(knowledgeRecords.value, 'status'),
+)
+const versions = computed(() =>
+  uniqueKnowledgeValues(knowledgeRecords.value, 'version'),
+)
 const activeRecordCount = computed(
   () =>
-    knowledgeRecords.value.filter((record) => knowledgeStatusTone(record.status) === 'active')
-      .length,
+    knowledgeRecords.value.filter(
+      (record) => knowledgeStatusTone(record.status) === 'active',
+    ).length,
 )
 const hasFilters = computed(() => Object.values(filters).some(Boolean))
 
 const fileSummary = computed(() => {
   if (!selectedFile.value)
-    return '支持 TXT、Markdown、CSV、JSON、PDF、DOCX、PY、LOG，单个文件不超过 20 MB'
+    return `支持 ${KNOWLEDGE_FILE_EXTENSIONS.map((extension) => extension.slice(1).toUpperCase()).join('、')}，单个文件不超过 ${formatFileSize(MAX_KNOWLEDGE_UPLOAD_BYTES)}`
   return formatFileSize(selectedFile.value.size)
 })
 
@@ -92,6 +122,7 @@ function clearFilters(): void {
 }
 
 function setFile(file?: File): void {
+  if (uploading.value) return
   const candidate = file ?? null
   const error = validateKnowledgeFile(candidate)
   if (error) {
@@ -116,6 +147,7 @@ function dropFile(event: DragEvent): void {
 }
 
 function removeSelectedFile(): void {
+  if (uploading.value) return
   selectedFile.value = null
   uploadError.value = ''
 }
@@ -172,8 +204,16 @@ async function loadDetails(): Promise<void> {
     if (request === detailRequest && detailOpen.value) {
       selectedRecord.value = { ...record, ...detail }
     }
-  } catch {
-    if (request === detailRequest) detailError.value = '文档内容加载失败，请重试。'
+  } catch (error) {
+    const status =
+      error && typeof error === 'object' && 'status' in error ? error.status : 0
+    if (request === detailRequest)
+      detailError.value =
+        status === 403
+          ? '无权访问该文档。'
+          : status === 404
+            ? '文档不存在或不可访问。'
+            : '文档内容加载失败，请重试。'
   } finally {
     if (request === detailRequest) detailLoading.value = false
   }
@@ -196,10 +236,16 @@ function closeDetails(): void {
     >
       <div>
         <p class="eyebrow">团队知识空间</p>
-        <h1>知识库</h1>
-        <p class="knowledge-description">让分散的文档，成为随时可用的团队知识。</p>
+        <h1>知识管理</h1>
+        <p class="knowledge-description">
+          维护团队问答所依据的制度、流程与工作资料。
+        </p>
       </div>
-      <button class="primary-button open-upload" type="button" @click="uploadOpen = true">
+      <button
+        class="primary-button open-upload"
+        type="button"
+        @click="uploadOpen = true"
+      >
         <el-icon aria-hidden="true"><Plus /></el-icon> 添加文档
       </button>
     </header>
@@ -213,9 +259,10 @@ function closeDetails(): void {
         <div class="library-heading">
           <div>
             <h2 id="library-title">
-              文档目录 <span class="count-badge">{{ knowledgeRecords.length }}</span>
+              文档目录
+              <span class="count-badge">{{ knowledgeRecords.length }}</span>
             </h2>
-            <p>{{ activeRecordCount }} 份已生效 · 支持按部门、版本与关键词查找</p>
+            <p>{{ activeRecordCount }} 份已生效 · 统计基于当前可访问列表</p>
           </div>
           <button
             class="secondary-button icon-text-button"
@@ -242,7 +289,11 @@ function closeDetails(): void {
           </label>
           <label>
             <span class="sr-only">部门</span>
-            <select v-model="filters.department" name="filter-department" aria-label="按部门筛选">
+            <select
+              v-model="filters.department"
+              name="filter-department"
+              aria-label="按部门筛选"
+            >
               <option value="">全部部门</option>
               <option v-for="value in departments" :key="value" :value="value">
                 {{ departmentLabel(value) }}
@@ -251,7 +302,11 @@ function closeDetails(): void {
           </label>
           <label>
             <span class="sr-only">状态</span>
-            <select v-model="filters.status" name="filter-status" aria-label="按状态筛选">
+            <select
+              v-model="filters.status"
+              name="filter-status"
+              aria-label="按状态筛选"
+            >
               <option value="">全部状态</option>
               <option v-for="value in statuses" :key="value" :value="value">
                 {{ knowledgeStatusLabel(value) }}
@@ -260,41 +315,83 @@ function closeDetails(): void {
           </label>
           <label>
             <span class="sr-only">版本</span>
-            <select v-model="filters.version" name="filter-version" aria-label="按版本筛选">
+            <select
+              v-model="filters.version"
+              name="filter-version"
+              aria-label="按版本筛选"
+            >
               <option value="">全部版本</option>
-              <option v-for="value in versions" :key="value" :value="value">{{ value }}</option>
+              <option v-for="value in versions" :key="value" :value="value">
+                {{ value }}
+              </option>
             </select>
           </label>
-          <button v-if="hasFilters" class="filter-clear" type="button" @click="clearFilters">
+          <button
+            v-if="hasFilters"
+            class="filter-clear"
+            type="button"
+            @click="clearFilters"
+          >
             清除筛选
           </button>
         </div>
 
-        <div v-if="loadingKnowledge" class="library-empty compact">
+        <div v-if="knowledgeError" class="field-error" role="alert">
+          {{ knowledgeError }}
+          <button type="button" class="text-button" @click="loadKnowledge">
+            重试
+          </button>
+        </div>
+        <div
+          v-if="loadingKnowledge && !knowledgeRecords.length"
+          class="library-empty compact"
+        >
           <span class="loading-ring" />
           <h3>正在读取知识库</h3>
         </div>
-        <div v-else-if="knowledgeRecords.length === 0" class="library-empty">
+        <div
+          v-else-if="knowledgeRecords.length === 0 && !knowledgeError"
+          class="library-empty"
+        >
           <span class="library-empty-icon" aria-hidden="true"
             ><el-icon><DocumentAdd /></el-icon
           ></span>
           <h3>从第一份文档开始</h3>
           <p>添加制度、流程或工作资料，让团队的每一个问题都有据可查。</p>
-          <button class="secondary-button" type="button" @click="uploadOpen = true">
+          <button
+            class="secondary-button"
+            type="button"
+            @click="uploadOpen = true"
+          >
             添加第一份文档
           </button>
         </div>
-        <div v-else-if="filteredRecords.length === 0" class="library-empty compact">
+        <div
+          v-else-if="filteredRecords.length === 0"
+          class="library-empty compact"
+        >
           <span class="empty-rule" />
           <h3>没有匹配的文档</h3>
           <p>尝试调整搜索词或筛选条件。</p>
-          <button class="secondary-button" type="button" @click="clearFilters">清除筛选</button>
+          <button class="secondary-button" type="button" @click="clearFilters">
+            清除筛选
+          </button>
         </div>
         <div v-else class="document-list">
           <article
             v-for="(record, index) in filteredRecords"
-            :key="String(record.source_id || record.id || `${displayName(record)}-${index}`)"
+            :key="
+              String(
+                record.source_id ||
+                  record.id ||
+                  `${displayName(record)}-${index}`,
+              )
+            "
             class="document-row"
+            :class="{
+              'recent-document':
+                lastUpload && record.title === lastUpload.record.title,
+            }"
           >
             <span class="document-index" aria-hidden="true"
               ><el-icon><Document /></el-icon
@@ -305,7 +402,9 @@ function closeDetails(): void {
                 {{ record.original_filename || '原始文件名未记录' }}
               </p>
               <div class="document-tags">
-                <span v-if="record.department">{{ departmentLabel(record.department) }}</span>
+                <span v-if="record.department">{{
+                  departmentLabel(record.department)
+                }}</span>
                 <span v-if="record.version">{{ record.version }}</span>
                 <span
                   v-if="record.status"
@@ -319,7 +418,10 @@ function closeDetails(): void {
             <div class="document-meta">
               <span>{{ sourceLabel(record.source) }}</span>
               <span>{{
-                formatKnowledgeDateRange(record.effective_from, record.effective_to)
+                formatKnowledgeDateRange(
+                  record.effective_from,
+                  record.effective_to,
+                )
               }}</span>
               <span v-if="record.owner">{{ record.owner }}</span>
             </div>
@@ -337,12 +439,17 @@ function closeDetails(): void {
           class="library-result-count"
           aria-live="polite"
         >
-          显示 {{ filteredRecords.length }} / {{ knowledgeRecords.length }} 份文档
+          显示 {{ filteredRecords.length }} /
+          {{ knowledgeRecords.length }} 份文档
         </p>
       </section>
     </div>
 
-    <WorkspaceDrawer :open="uploadOpen" title="添加文档" @close="uploadOpen = false">
+    <WorkspaceDrawer
+      :open="uploadOpen"
+      title="添加文档"
+      @close="uploadOpen = false"
+    >
       <section class="upload-panel" aria-labelledby="upload-title">
         <h3 id="upload-title">将文档添加到知识库</h3>
         <p>上传制度、流程或工作资料。完成后，即可在对话中提问并查看引用。</p>
@@ -376,12 +483,15 @@ function closeDetails(): void {
             class="file-clear"
             type="button"
             aria-label="移除已选择的文件"
+            :disabled="uploading"
             @click.prevent="removeSelectedFile"
           >
             <el-icon aria-hidden="true"><Close /></el-icon>
           </button>
         </div>
-        <p v-if="uploadError" class="field-error" role="alert">{{ uploadError }}</p>
+        <p v-if="uploadError" class="field-error" role="alert">
+          {{ uploadError }}
+        </p>
 
         <details class="upload-options">
           <summary>文档信息与生效设置 <span>可选</span></summary>
@@ -401,7 +511,11 @@ function closeDetails(): void {
             </label>
             <label>
               <span>来源标签</span>
-              <select v-model="source" name="document-source" :disabled="uploading">
+              <select
+                v-model="source"
+                name="document-source"
+                :disabled="uploading"
+              >
                 <option value="internal_upload">手动上传</option>
                 <option value="policy">制度文件</option>
                 <option value="process">流程规范</option>
@@ -409,9 +523,17 @@ function closeDetails(): void {
             </label>
             <label>
               <span>所属部门</span>
-              <select v-model="department" name="document-department" :disabled="uploading">
+              <select
+                v-model="department"
+                name="document-department"
+                :disabled="uploading"
+              >
                 <option value="unknown">未指定</option>
-                <option v-for="value in uploadDepartments" :key="value" :value="value">
+                <option
+                  v-for="value in uploadDepartments"
+                  :key="value"
+                  :value="value"
+                >
                   {{ departmentLabel(value) }}
                 </option>
               </select>
@@ -431,7 +553,11 @@ function closeDetails(): void {
             </label>
             <label>
               <span>生效状态</span>
-              <select v-model="status" name="document-status" :disabled="uploading">
+              <select
+                v-model="status"
+                name="document-status"
+                :disabled="uploading"
+              >
                 <option value="active">已生效</option>
                 <option value="draft">草稿</option>
                 <option value="deprecated">已停用</option>
@@ -480,7 +606,7 @@ function closeDetails(): void {
           :disabled="!selectedFile || uploading"
           @click="submitUpload"
         >
-          {{ uploading ? '正在上传…' : '上传文档' }}
+          {{ uploading ? '正在上传并处理文档' : '上传文档' }}
         </button>
 
         <div
@@ -489,14 +615,21 @@ function closeDetails(): void {
           :class="{ duplicate: lastUpload.record.deduplicated }"
           role="status"
         >
-          <p class="eyebrow">{{ lastUpload.record.deduplicated ? '重复检查' : '上传结果' }}</p>
+          <p class="eyebrow">
+            {{ lastUpload.record.deduplicated ? '重复检查' : '上传结果' }}
+          </p>
           <h3>
-            {{ lastUpload.record.deduplicated ? '检测到重复文件，未重复入库' : '文件已完成入库' }}
+            {{
+              lastUpload.record.deduplicated
+                ? '检测到重复文件，未重复入库'
+                : '文件已完成入库'
+            }}
           </h3>
           <p>{{ lastUpload.message }}</p>
           <span
             v-if="
-              lastUpload.record.similarity !== null && lastUpload.record.similarity !== undefined
+              lastUpload.record.similarity !== null &&
+              lastUpload.record.similarity !== undefined
             "
           >
             相似度：{{ (lastUpload.record.similarity * 100).toFixed(1) }}%
@@ -506,8 +639,12 @@ function closeDetails(): void {
     </WorkspaceDrawer>
 
     <DocumentDetailDrawer
-      :open="detailOpen" :record="selectedRecord" :loading="detailLoading" :error="detailError"
-      @close="closeDetails" @retry="loadDetails"
+      :open="detailOpen"
+      :record="selectedRecord"
+      :loading="detailLoading"
+      :error="detailError"
+      @close="closeDetails"
+      @retry="loadDetails"
     />
   </section>
 </template>

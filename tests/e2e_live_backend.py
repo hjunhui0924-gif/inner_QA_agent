@@ -170,7 +170,7 @@ def run_live() -> int:
 
             def upload():
                 nonlocal source_id
-                page.get_by_role("link", name="知识库", exact=True).click()
+                page.get_by_role("link", name="知识管理", exact=True).click()
                 page.get_by_role("button", name="添加文档", exact=True).click()
                 page.locator("#knowledge-file").set_input_files({"name": "live-travel-policy.md", "mimeType": "text/markdown", "buffer": POLICY.encode("utf-8")})
                 page.locator(".upload-options summary").click()
@@ -230,12 +230,12 @@ def run_live() -> int:
 
                 def rag():
                     nonlocal rag_session
-                    page.get_by_role("link", name="对话", exact=True).click()
+                    page.get_by_role("link", name="返回问答", exact=True).click()
                     detail = send("根据接口联调差旅报销制度，单笔差旅报销金额超过5000元需要谁审批？", ["直属主管", "财务负责人"])
                     rag_session = detail["session_id"]
                     assert detail["citation_count"] > 0, "No citations for knowledge answer"
-                    page.get_by_role("button", name="打开或隐藏引用证据").click()
-                    expect(page.get_by_role("complementary", name="引用证据")).to_contain_text("财务负责人")
+                    page.locator(".citation-row button").last.click()
+                    expect(page.get_by_role("complementary", name="引用来源")).to_contain_text("财务负责人")
                     page.screenshot(path=str(run_dir / "rag-answer.png"))
                     page.get_by_role("button", name="关闭引用证据", exact=True).click()
                     return detail
@@ -256,7 +256,7 @@ def run_live() -> int:
                         page.locator(".session-row").filter(has_text=title).click()
                         expect(page.locator("article.message.assistant")).to_have_count(2)
                         if citations_persisted:
-                            expect(page.get_by_role("button", name="打开或隐藏引用证据")).to_be_visible()
+                            expect(page.locator(".citation-row button").last).to_be_visible()
                         else:
                             expect(page.locator("article.message.assistant").last).to_contain_text(messages[-1]["content"][:15])
                         return {"persisted_messages": len(messages), "generated_title": title, "history_citations": citations_persisted}
@@ -290,8 +290,8 @@ def run_live() -> int:
                 assert detail["failure_type"] == "none", f"Web search degraded: {detail}"
                 assert "Python" in detail["answer"] and "编程" in detail["answer"], f"Search did not answer the question: {detail}"
                 assert detail["citation_count"] > 0
-                page.get_by_role("button", name="打开或隐藏引用证据").click()
-                panel = page.get_by_role("complementary", name="引用证据")
+                page.locator(".citation-row button").last.click()
+                panel = page.get_by_role("complementary", name="引用来源")
                 links = panel.get_by_role("link", name="打开网页来源")
                 expect(links).to_have_count(detail["citation_count"])
                 for link in links.all():
@@ -306,8 +306,8 @@ def run_live() -> int:
                 sessions = api.get(f"{WEB}/api/chat/sessions/user_001").json()["items"]
                 title = next(item["title"] for item in sessions if item["session_id"] == detail["session_id"])
                 page.locator(".session-row").filter(has_text=title).click()
-                page.get_by_role("button", name="打开或隐藏引用证据").click()
-                expect(page.get_by_role("complementary", name="引用证据").get_by_role("link", name="打开网页来源")).to_have_count(detail["citation_count"])
+                page.locator(".citation-row button").last.click()
+                expect(page.get_by_role("complementary", name="引用来源").get_by_role("link", name="打开网页来源")).to_have_count(detail["citation_count"])
                 page.get_by_role("button", name="关闭引用证据", exact=True).click()
                 return detail
 

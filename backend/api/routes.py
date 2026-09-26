@@ -12,12 +12,12 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
-from langchain_core.messages import SystemMessage
-from langchain_openai import ChatOpenAI
+from starlette.background import BackgroundTasks
 from pydantic import BaseModel, Field, field_validator
 
 from backend.agent.memory import (
     add_knowledge_record,
+    first_session_question,
     append_chat_message,
     extract_document_from_upload,
     get_knowledge_record,
@@ -28,8 +28,6 @@ from backend.agent.memory import (
     load_chat_messages,
     persist_completed_turn,
     save_uploaded_file,
-    update_chat_session_title,
-    upsert_chat_session,
 )
 from backend.agent.conversation import estimate_text_tokens
 from backend.agent.sessions import (
@@ -46,20 +44,17 @@ from backend.auth.access import (
     require_knowledge_admin,
     resolve_access_context,
 )
+from backend.agent.title_tasks import TitleJob
 from backend.config import settings
 from backend.observability.tracing import build_trace, record_trace
-from backend.observability.metrics import record_call_stats
 from backend.observability.safe_errors import RUNTIME_ERROR_CODE
 from backend.observability.budget import (
-    BudgetExceededError,
     RequestBudget,
     RunContext,
-    budget_deadline,
 )
 
 
 router = APIRouter()
-_TITLE_REFRESH_ATTEMPTED_USERS: set[str] = set()
 
 NODE_STATUS_MESSAGES = {
     "manage_conversation_context": "正在整理会话上下文",
@@ -527,6 +522,8 @@ async def _stream_graph_unlocked_core(
     current_node = ""
     final_state: dict[str, object] = dict(graph_input)
     observed_status_events: list[str] = []
+    stage_starts: dict[str, tuple[str, float]] = {}
+    stage_timings: list[dict] = []
     disconnected = False
     run_context = RunContext(
         budget=budget,
@@ -547,6 +544,13 @@ async def _stream_graph_unlocked_core(
             event_name = str(event.get("event", ""))
             node_name = _extract_node_name(event)
 
+            run_id = str(event.get("run_id", node_name))
+            if node_name in NODE_STATUS_MESSAGES and event.get("name") == node_name:
+                if event_name == "on_chain_start":
+                    stage_starts[run_id] = (node_name, time.perf_counter())
+                elif event_name == "on_chain_end" and run_id in stage_starts:
+                    stage, started = stage_starts.pop(run_id)
+                    stage_timings.append({'stage': stage, 'elapsed_ms': (time.perf_counter() - started) * 1000})
             if event_name == "on_chain_end":
                 data = event.get("data") or {}
                 output = data.get("output") if isinstance(data, dict) else None
@@ -579,6 +583,7 @@ async def _stream_graph_unlocked_core(
         response_citations = final_state.get("citations", [])
         if not isinstance(response_citations, list):
             response_citations = []
+        persistence_started = time.perf_counter()
         completed_turn = await persist_completed_turn(
             user_id=payload.user_id,
             session_id=payload.session_id,
@@ -597,50 +602,6 @@ async def _stream_graph_unlocked_core(
         if not isinstance(response_citations, list):
             response_citations = []
 
-        existing_sessions = await list_chat_sessions(payload.user_id)
-        is_new_session = not any(
-            item.get("session_id") == payload.session_id for item in existing_sessions
-        )
-        if is_new_session and settings.dashscope_api_key:
-            title_call_started_at = time.perf_counter()
-            title_call_reserved = False
-            try:
-                budget.consume_model_call("session_title")
-                title_call_reserved = True
-                title_model = ChatOpenAI(
-                    model=settings.model_name,
-                    api_key=settings.dashscope_api_key,
-                    base_url=settings.dashscope_base_url,
-                    temperature=0,
-                    max_tokens=24,
-                    timeout=10,
-                    max_retries=0,
-                    stream_usage=True,
-                    extra_body={"enable_thinking": False},
-                )
-                async with budget_deadline(budget, "session_title"):
-                    title_response = await title_model.ainvoke([
-                        SystemMessage(content=(
-                            "请把用户的提问概括成一个简短会话标题。只返回标题本身，中文，"
-                            "不超过12个字，不要标点，不要解释。\n用户提问：" + payload.message
-                        ))
-                    ])
-                budget.record_response(title_response)
-                generated_title = str(getattr(title_response, "content", "")).strip()[:24]
-                if generated_title:
-                    await upsert_chat_session(payload.user_id, payload.session_id, generated_title)
-            except BudgetExceededError:
-                pass
-            except Exception:
-                pass
-            title_stats = record_call_stats(
-                final_state,
-                model_calls=1 if title_call_reserved else 0,
-                started_at=title_call_started_at,
-            )
-            final_state.update(title_stats)
-            final_state["budget_snapshot"] = budget.snapshot()
-
         await append_chat_message(
             user_id=payload.user_id,
             session_id=payload.session_id,
@@ -658,6 +619,8 @@ async def _stream_graph_unlocked_core(
             turn_id=str(graph_input["turn_id"]),
             message_id=f"{graph_input['turn_id']}:assistant",
         )
+        stage_timings.append({'stage': 'persistence', 'elapsed_ms': (time.perf_counter() - persistence_started) * 1000})
+        final_state['stage_timings'] = stage_timings[-100:]
         for chunk in _answer_chunks(final_answer):
             yield _sse_event({"type": "token", "content": chunk})
 
@@ -710,14 +673,11 @@ async def _stream_graph_unlocked_core(
                 },
             )
             if settings.trace_enabled:
-                await asyncio.to_thread(
-                    record_trace,
-                    final_trace,
-                    settings.trace_log_path,
-                    max_bytes=settings.trace_max_bytes,
-                    backup_count=settings.trace_backup_count,
-                    retention_days=settings.trace_retention_days,
-                )
+                background = getattr(getattr(request, 'state', None), 'delivery_tasks', None)
+                if background is not None:
+                    background.add_task(_write_final_trace, final_trace)
+                else:
+                    await _write_final_trace(final_trace)
         except Exception:
             # The authoritative result and done event have already been sent.
             # Trace persistence must not append a second error stream.
@@ -765,12 +725,40 @@ async def _stream_graph_unlocked_core(
         yield _sse_event({"type": "done", "trace_id": trace_id})
 
 
+async def _write_final_trace(trace: dict) -> None:
+    try:
+        await asyncio.to_thread(record_trace, trace, settings.trace_log_path,
+                                max_bytes=settings.trace_max_bytes,
+                                backup_count=settings.trace_backup_count,
+                                retention_days=settings.trace_retention_days)
+    except Exception:
+        pass
+
+
+async def _queue_first_title(request: Request, payload: ChatRequest) -> None:
+    manager = getattr(request.app.state, 'title_tasks', None)
+    if manager is None or not settings.dashscope_api_key:
+        return
+    try:
+        user_id = _request_access_context(request).user_id
+        first = await first_session_question(user_id, payload.session_id)
+        if first and first['question'] == payload.message.strip():
+            manager.submit(TitleJob(user_id, payload.session_id,
+                                    first['first_id'], first['question']), priority=True)
+    except Exception:
+        pass  # Best effort; the delivered answer and fallback title remain usable.
+
+
 @router.post("/chat/stream", dependencies=[Depends(require_access_context)])
 async def chat_stream(request: Request, payload: ChatRequest) -> StreamingResponse:
     """Stream a single chat turn as SSE."""
 
+    background = BackgroundTasks()
+    background.add_task(_queue_first_title, request, payload)
+    request.state.delivery_tasks = background
     return StreamingResponse(
         _stream_graph(request, payload),
+        background=background,
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "Connection": "keep-alive"},
     )
@@ -783,41 +771,17 @@ async def chat_sessions(request: Request, user_id: str) -> dict[str, object]:
     access_context = _request_access_context(request)
     if _is_real_http_request(request):
         _assert_user_path(user_id, access_context)
-    budget = _request_budget()
-    if user_id not in _TITLE_REFRESH_ATTEMPTED_USERS and settings.dashscope_api_key:
-        _TITLE_REFRESH_ATTEMPTED_USERS.add(user_id)
+    manager = getattr(request.app.state, "title_tasks", None)
+    if manager is not None and settings.dashscope_api_key:
         candidates = await list_session_title_candidates(user_id)
-        async def refresh_title(candidate: dict[str, str]) -> None:
-            try:
-                budget.consume_model_call("session_title_refresh")
-                title_model = ChatOpenAI(
-                    model=settings.model_name,
-                    api_key=settings.dashscope_api_key,
-                    base_url=settings.dashscope_base_url,
-                    temperature=0,
-                    max_tokens=24,
-                    timeout=10,
-                    max_retries=0,
-                    stream_usage=True,
-                    extra_body={"enable_thinking": False},
-                )
-                async with budget_deadline(budget, "session_title_refresh"):
-                    response = await title_model.ainvoke([
-                        SystemMessage(content=(
-                            "根据用户第一次提问生成一个能概括会话主题的一句话标题。"
-                            "只返回标题，不超过12个汉字，不要引号、标点或解释。\n"
-                            f"第一次提问：{candidate['first_question']}"
-                        ))
-                    ])
-                budget.record_response(response)
-                title = str(getattr(response, "content", "")).strip()
-                if title:
-                    await update_chat_session_title(
-                        user_id, candidate["session_id"], title
-                    )
-            except Exception:
-                return
-        await asyncio.gather(*(refresh_title(candidate) for candidate in candidates))
+        accepted = 0
+        for candidate in candidates[:32]:
+            first = await first_session_question(user_id, candidate['session_id'])
+            if first and manager.submit(TitleJob(user_id, candidate['session_id'],
+                                                 first['first_id'], first['question'])):
+                accepted += 1
+            if accepted >= 2:
+                break
     return {"items": await list_chat_sessions(user_id)}
 
 

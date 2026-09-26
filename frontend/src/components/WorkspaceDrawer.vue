@@ -46,7 +46,10 @@ watch(
   async (open) => {
     overlay?.setOpen(open)
     if (open) {
-      previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null
+      previousFocus =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null
       await nextTick()
       closeButton.value?.focus()
     } else {
@@ -65,32 +68,37 @@ onBeforeUnmount(() => overlay?.unregister())
 
 <template>
   <Teleport to="body">
-    <div v-if="open" class="workspace-drawer-shell">
-      <div class="workspace-drawer-scrim" @click="emit('close')" />
-      <section
-        ref="panel"
-        class="workspace-drawer"
-        role="dialog"
-        aria-modal="true"
-        :aria-label="title"
-      >
-        <header class="detail-drawer-header">
-          <div>
-            <p class="eyebrow">知识库</p>
-            <h2>{{ title }}</h2>
-          </div>
-          <button
-            ref="closeButton"
-            class="icon-button"
-            type="button"
-            :aria-label="`关闭${title}`"
-            @click="emit('close')"
-          >
-            <el-icon aria-hidden="true"><Close /></el-icon>
-          </button>
-        </header>
-        <div class="workspace-drawer-body"><slot /></div>
-      </section>
-    </div>
+    <Transition
+      name="upload-drawer"
+      @before-leave="(element: Element) => element.setAttribute('inert', '')"
+    >
+      <div v-if="open" class="workspace-drawer-shell">
+        <div class="workspace-drawer-scrim" @click="emit('close')" />
+        <section
+          ref="panel"
+          class="workspace-drawer"
+          role="dialog"
+          aria-modal="true"
+          :aria-label="title"
+        >
+          <header class="detail-drawer-header">
+            <div>
+              <p class="eyebrow">知识库</p>
+              <h2>{{ title }}</h2>
+            </div>
+            <button
+              ref="closeButton"
+              class="icon-button"
+              type="button"
+              :aria-label="`关闭${title}`"
+              @click="emit('close')"
+            >
+              <el-icon aria-hidden="true"><Close /></el-icon>
+            </button>
+          </header>
+          <div class="workspace-drawer-body"><slot /></div>
+        </section>
+      </div>
+    </Transition>
   </Teleport>
 </template>

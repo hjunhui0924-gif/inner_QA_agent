@@ -1,5 +1,15 @@
 /* Knowledge Workspace: quiet neutrals with a single cobalt accent. */
 :root {
+  --text-body: 16px;
+  --text-control: 14px;
+  --text-caption: 12px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --motion-entry: 300ms;
   color-scheme: light;
   --canvas: #f8f9fc;
   --surface: #ffffff;

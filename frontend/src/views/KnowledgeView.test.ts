@@ -81,6 +81,8 @@ afterEach(() => {
   workspace.knowledgeRecords.value = []
   workspace.loadingKnowledge.value = false
   workspace.uploading.value = false
+  Object.assign(workspace.uploadForm, { title: '', selectedFile: null, uploadError: '', lastUpload: null })
+  workspace.knowledgeError.value = ''
   serviceMocks.uploadKnowledge.mockReset()
   serviceMocks.fetchKnowledgeRecords.mockReset()
   serviceMocks.fetchKnowledgeRecord.mockReset()

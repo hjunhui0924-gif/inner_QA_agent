@@ -530,3 +530,7 @@ a {
     scroll-behavior: auto !important;
   }
 }
+
+.workspace-secondary-nav { margin-top: auto; padding-top:12px; border-top:1px solid var(--line); }
+.workspace-secondary-nav a { font-size:13px; }
+a.secondary-button { border-radius:var(--radius-control); }

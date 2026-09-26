@@ -1,6 +1,8 @@
 import { createApp, defineComponent, h, nextTick, reactive } from 'vue'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
+const downloadMock = vi.hoisted(() => vi.fn())
+vi.mock('../services/api', () => ({ downloadKnowledge: downloadMock }))
 import DocumentDetailDrawer from './DocumentDetailDrawer.vue'
 import type { KnowledgeRecord } from '../types/api'
 
@@ -46,6 +48,7 @@ function mountDrawer() {
 }
 
 afterEach(() => {
+  downloadMock.mockReset()
   app?.unmount()
   host?.remove()
   app = null
@@ -96,4 +99,24 @@ describe('DocumentDetailDrawer', () => {
 
     expect(document.activeElement).toBe(close)
   })
+  it('keeps document details after download failure and ignores a closed request', async () => {
+    const { state } = mountDrawer()
+    state.open = true
+    await nextTick()
+    downloadMock.mockRejectedValueOnce(new Error('network'))
+    host?.querySelector<HTMLButtonElement>('.detail-actions button')?.click()
+    await vi.waitFor(() => expect(host?.querySelector('.detail-actions .field-error')?.textContent).toContain('来源下载失败'))
+    expect(host?.textContent).toContain('费用报销制度')
+    let reject!: (error: Error) => void
+    downloadMock.mockImplementationOnce(() => new Promise((_resolve, fail) => { reject = fail }))
+    host?.querySelector<HTMLButtonElement>('.detail-actions button')?.click()
+    state.open = false
+    await nextTick()
+    reject(new Error('old request'))
+    await nextTick()
+    state.open = true
+    await nextTick()
+    expect(host?.querySelector('.detail-actions .field-error')).toBeNull()
+  })
+
 })

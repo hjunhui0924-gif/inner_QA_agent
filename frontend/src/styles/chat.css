@@ -148,8 +148,8 @@
 .message-content {
   min-width: 0;
   overflow-wrap: anywhere;
-  font-size: 15px;
-  line-height: 1.9;
+  font-size: var(--text-body);
+  line-height: 1.85;
 }
 .message-content p {
   margin: 0 0 12px;
@@ -642,7 +642,7 @@
     display: none;
   }
 }
-@media (max-width: 900px) {
+@media (max-width: 1279px) {
   .chat-layout.evidence-visible {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -799,3 +799,29 @@
     display: none;
   }
 }
+
+/* Empty state uses one composer, in reading order before suggested questions. */
+.is-empty .chat-surface { grid-template-rows: auto minmax(0, 1fr) auto minmax(0, 1fr); }
+.is-empty .conversation { align-self: end; overflow: auto; }
+.is-empty .chat-empty { width: min(780px, calc(100% - 48px)); margin: 24px auto; }
+.is-empty .chat-empty h2 { font-size: clamp(24px, 2.5vw, 30px); margin: 0; text-align: center; }
+.is-empty .composer-wrap { padding-bottom: 0; }
+.is-empty .prompt-grid { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin:16px 0 8px; }
+.is-empty .prompt-grid button { min-height:44px; padding:10px 14px; display:block; border:1px solid var(--line); background:var(--canvas); }
+.is-empty .prompt-grid button > span, .is-empty .prompt-icon, .is-empty .prompt-action { display:none; }
+.is-empty .prompt-grid strong { font-size:12px; font-weight:400; }
+.citation-row button { min-height:44px; }
+.evidence-note, .verification-label, .evidence-card-heading p, .evidence-header .eyebrow, .copy-quote { font-size:12px; }
+.progress-current-copy small { display:block; font-size:12px; color:var(--ink-soft); margin-top:4px; }
+@media(max-height:650px) {
+  .is-empty .chat-surface { grid-template-rows:auto minmax(0,1fr) auto; }
+  .is-empty .chat-empty { margin:12px auto; }
+  .is-empty .prompt-grid { margin:8px 0; gap:4px; }
+}
+@media(max-height:420px) {
+  .is-empty .chat-empty h2 { font-size:20px; }
+  .is-empty .prompt-grid { display:none; }
+}
+
+.evidence-panel.open { animation:evidence-enter var(--transition-panel); }
+@keyframes evidence-enter { from { opacity:0; transform:translateX(12px); } to { opacity:1; transform:translateX(0); } }

@@ -237,3 +237,98 @@ describe('useWorkspace answer delivery', () => {
     expect(workspace.toasts.value.at(-1)?.detail).toBe('会话操作未完成，请稍后重试。')
   })
 })
+
+describe('workspace task boundaries', () => {
+  it('unlocks sending without waiting for a delayed sessions response', async () => {
+    let resolveList!: (value: never[]) => void
+    serviceMocks.fetchSessions.mockImplementationOnce(() => new Promise(resolve => { resolveList = resolve }))
+    serviceMocks.streamChat.mockImplementationOnce(async (_payload, event) => event(resultEvent('已交付')))
+    const workspace = useWorkspace()
+    await workspace.sendMessage('问题')
+    expect(workspace.sending.value).toBe(false)
+    expect(workspace.messages.value.at(-1)?.content).toBe('已交付')
+    expect(workspace.loadingSessions.value).toBe(true)
+    resolveList([])
+    await Promise.resolve()
+  })
+
+  it('ignores a list response started before deletion', async () => {
+    let resolveList!: (value: any) => void
+    serviceMocks.fetchSessions.mockImplementationOnce(() => new Promise(resolve => { resolveList = resolve }))
+    const workspace = useWorkspace()
+    workspace.sessions.value = [{ session_id: 'obsolete', title: '旧会话', created_at: '', updated_at: '', last_message: '' }]
+    const loading = workspace.loadSessions()
+    await workspace.removeSession('obsolete')
+    resolveList([{ session_id: 'obsolete', title: '旧会话' }])
+    await loading
+    expect(workspace.sessions.value).toEqual([])
+  })
+
+  it('shares initialization and retries failed health without loading knowledge for chat', async () => {
+    serviceMocks.fetchHealth.mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce({ status: 'ok' })
+    serviceMocks.fetchKnowledgeRecords.mockClear()
+    const workspace = useWorkspace()
+    await Promise.all([workspace.initialize('chat'), workspace.initialize('chat')])
+    expect(workspace.backendOnline.value).toBe(false)
+    await workspace.initialize('chat')
+    expect(workspace.backendOnline.value).toBe(true)
+    expect(serviceMocks.fetchKnowledgeRecords).not.toHaveBeenCalled()
+  })
+
+  it('keeps distinct in-memory drafts per session', async () => {
+    const workspace = useWorkspace()
+    const original = workspace.sessionId.value
+    workspace.draft.value = '草稿 A'
+    workspace.newSession()
+    workspace.draft.value = '草稿 B'
+    serviceMocks.fetchHistory.mockResolvedValue([])
+    await workspace.openSession(original)
+    expect(workspace.draft.value).toBe('草稿 A')
+  })
+})
+
+describe('upload and refresh lifecycle', () => {
+  it('retains file and metadata after failure and prevents duplicate uploads', async () => {
+    const workspace = useWorkspace()
+    const file = new File(['policy'], 'policy.md')
+    workspace.uploadForm.selectedFile = file
+    workspace.uploadForm.title = '保留标题'
+    let reject!: (reason: Error) => void
+    serviceMocks.uploadKnowledge.mockImplementationOnce(() => new Promise((_resolve, fail) => { reject = fail }))
+    const pending = workspace.uploadKnowledge(file, '保留标题', 'internal_upload', { version: 'v2' })
+    expect(workspace.uploadTask.file).toBe(file)
+    expect(workspace.uploadTask.metadata.version).toBe('v2')
+    await expect(workspace.uploadKnowledge(file, '重复', 'internal_upload')).rejects.toThrow()
+    reject(new Error('network'))
+    await expect(pending).rejects.toThrow()
+    expect(workspace.uploadForm.selectedFile).toBe(file)
+    expect(workspace.uploadForm.title).toBe('保留标题')
+    expect(workspace.uploadForm.uploadError).toBeTruthy()
+    expect(workspace.uploadTask.file).toBeNull()
+    expect(workspace.uploading.value).toBe(false)
+  })
+  it('keeps the existing document list when a refresh fails', async () => {
+    const workspace = useWorkspace()
+    workspace.knowledgeRecords.value = [{ title: '现有资料', source_id: 'existing', source: 'policy' }]
+    serviceMocks.fetchKnowledgeRecords.mockRejectedValueOnce(new Error('offline'))
+    await workspace.loadKnowledge()
+    expect(workspace.knowledgeRecords.value[0]?.title).toBe('现有资料')
+    expect(workspace.knowledgeError.value).toBeTruthy()
+  })
+})
+
+describe('reconnect after previously healthy startup', () => {
+  it('checks health again after a subsequent chat transport failure', async () => {
+    const workspace = useWorkspace()
+    serviceMocks.fetchHealth.mockResolvedValue({ status: 'ok' })
+    workspace.backendOnline.value = false
+    await workspace.initialize('chat')
+    serviceMocks.streamChat.mockRejectedValueOnce(new Error('offline'))
+    await workspace.sendMessage('断网')
+    expect(workspace.backendOnline.value).toBe(false)
+    serviceMocks.fetchHealth.mockClear()
+    await workspace.initialize('chat')
+    expect(serviceMocks.fetchHealth).toHaveBeenCalledOnce()
+    expect(workspace.backendOnline.value).toBe(true)
+  })
+})

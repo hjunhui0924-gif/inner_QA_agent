@@ -24,6 +24,8 @@ const drawer = ref<HTMLElement | null>(null)
 const closeButton = ref<HTMLButtonElement | null>(null)
 const downloading = ref(false)
 const downloadError = ref('')
+let downloadGeneration = 0
+watch(() => [props.open, props.record?.source_id], () => { ++downloadGeneration; downloading.value = false; downloadError.value = '' })
 let overlay: ReturnType<typeof registerOverlay> | null = null
 
 function closeOnEscape(event: KeyboardEvent): void {
@@ -64,22 +66,26 @@ function trapFocus(event: KeyboardEvent): void {
 async function downloadRecord(): Promise<void> {
   const sourceId = props.record?.source_id
   if (!sourceId || downloading.value) return
+  const generation = ++downloadGeneration
+  const filename = props.record?.original_filename || `${sourceId}.bin`
   downloading.value = true
   downloadError.value = ''
   try {
     const blob = await downloadKnowledge(sourceId)
+    if (generation !== downloadGeneration || !props.open) return
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = props.record?.original_filename || `${sourceId}.bin`
+    link.download = filename
     document.body.appendChild(link)
     link.click()
     link.remove()
     URL.revokeObjectURL(url)
-  } catch {
-    downloadError.value = '来源下载失败，请稍后重试。'
+  } catch (error) {
+    const status = error && typeof error === 'object' && 'status' in error ? error.status : 0
+    if (generation === downloadGeneration) downloadError.value = status === 403 ? '无权下载该来源。' : status === 404 ? '来源文件不存在或不可访问。' : '来源下载失败，请稍后重试。'
   } finally {
-    downloading.value = false
+    if (generation === downloadGeneration) downloading.value = false
   }
 }
 
@@ -95,6 +101,7 @@ onMounted(() => {
   overlay.setOpen(props.open)
 })
 onBeforeUnmount(() => {
+  ++downloadGeneration
   overlay?.unregister()
   overlay = null
 })
@@ -137,6 +144,7 @@ watch(
       </header>
 
       <div v-if="record" class="detail-drawer-body">
+        <p class="source-version-note">以下为当前可访问文档信息，不代表历史回答使用时的版本快照。</p>
         <div class="detail-title-block">
           <span class="document-type-mark">DOC</span>
           <div>

@@ -15,7 +15,7 @@
 - 时间、知识库和联网搜索工具统一返回可序列化的 `tool_result`（`ok`、`text`、`sources`、`error`），并保留兼容的字符串 `tool_output`
 - 有界多轮会话、自动摘要、首问会话标题生成与完整会话删除
 - SSE 流式输出
-- Vue 3 企业知识工作台（已完成 FastAPI 接口集成）
+- Vue 3 产品首页、问答工作台与独立知识管理（FastAPI 接口集成）
 - 知识库两层去重
   - 精确去重：内容指纹
   - 近似去重：文本相似度阈值
@@ -477,3 +477,18 @@ python scripts/run_answer_benchmark.py --top-k 5
 ## License
 
 MIT
+
+## 产品体验与延迟测量（2026-09-26）
+
+`/` 为静态产品首页，`/chat` 为问答，`/knowledge` 为知识管理。保持开发身份和现有服务端 ACL，不包含真实角色登录、文档编辑/删除/版本回滚。回答以 SSE `result.content` 为权威，候选 token 不直接展示。
+
+首问先保存确定性回退标题并交付答案，之后应用管理的后台队列生成摘要（并发 2，等待 32，单任务 10 秒、无自动模型重试）。标题按首问数据库 ID 条件更新；删除不会被后台任务复活。GET 会话列表只读取并限量入队旧标题，失败冷却 10 分钟。队列为单进程尽力执行，关停取消等待，非持久任务系统。标题有独立预算和 trace 记录，不增加已交付答案预算。
+
+真实链路及基准仅在隔离语料和会话中运行：
+
+```powershell
+python scripts/benchmark_chat_latency.py --help
+python scripts/benchmark_chat_latency.py --base-url http://127.0.0.1:8000 --cases tests/fixtures/chat_latency_cases.json --repeats 3 --output-dir work/chat-latency --live
+```
+
+脚本不默认保存正文或凭证，HTTP result 时间不代表 DOM 绘制。冻结案例 20 个，含 4 个追问链，每轮使用新 turn_id；前后质量与小样本统计边界见 [本轮实施报告](docs/product_experience_implementation_report.md)。

@@ -55,7 +55,7 @@
   padding: 0 7px;
   background: var(--surface-muted);
   border-radius: 6px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--ink-soft);
 }
@@ -146,7 +146,7 @@
 .document-main > p {
   margin: 0;
   color: var(--ink-faint);
-  font-size: 11px;
+  font-size: 12px;
   overflow-wrap: anywhere;
 }
 .document-tags {
@@ -156,7 +156,7 @@
   margin-top: 8px;
 }
 .document-tags > span {
-  font-size: 10px;
+  font-size: 12px;
   padding: 1px 6px;
   border-radius: 4px;
   background: var(--surface-muted);
@@ -166,7 +166,7 @@
   display: inline-flex;
   align-items: center;
   padding: 2px 7px;
-  font-size: 11px;
+  font-size: 12px;
   border-radius: 5px;
   background: var(--surface-muted);
   color: var(--ink-soft);
@@ -188,7 +188,7 @@
 .document-meta {
   display: grid;
   gap: 4px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--ink-faint);
   overflow-wrap: anywhere;
 }
@@ -342,7 +342,7 @@
 }
 .drop-zone-content > span:last-child {
   color: var(--ink-faint);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.8;
 }
 .file-clear {
@@ -370,7 +370,7 @@
 .upload-options summary span {
   float: right;
   color: var(--ink-faint);
-  font-size: 11px;
+  font-size: 12px;
 }
 .form-grid {
   display: grid;
@@ -482,11 +482,11 @@
     gap: 8px;
   }
   .library-heading p {
-    font-size: 11px;
+    font-size: 12px;
     max-width: 190px;
   }
   .library-heading .secondary-button {
-    font-size: 11px;
+    font-size: 12px;
     padding: 0 8px;
     white-space: nowrap;
   }
@@ -496,7 +496,7 @@
   }
   .document-filters select {
     padding: 0 5px;
-    font-size: 11px;
+    font-size: 12px;
   }
   .document-row {
     grid-template-columns: 30px minmax(0, 1fr) auto;
@@ -511,7 +511,7 @@
   }
   .document-details-button {
     padding: 0 6px;
-    font-size: 11px;
+    font-size: 12px;
   }
   .workspace-drawer-body {
     padding: 22px 20px calc(22px + var(--safe-area-bottom));
@@ -522,4 +522,18 @@
   .document-detail-drawer {
     width: 100vw;
   }
+}
+
+.management-layout .knowledge-page { max-width:1280px; margin:auto; }
+.recent-document { background:var(--accent-soft); transition:background var(--transition-fast); }
+.source-version-note { font-size:12px; color:var(--ink-soft); line-height:1.8; }
+
+.upload-drawer-enter-active .workspace-drawer, .upload-drawer-leave-active .workspace-drawer { transition:transform var(--transition-panel), opacity var(--transition-panel); }
+.upload-drawer-enter-active .workspace-drawer-scrim, .upload-drawer-leave-active .workspace-drawer-scrim { transition:opacity var(--transition-panel); }
+.upload-drawer-enter-from .workspace-drawer, .upload-drawer-leave-to .workspace-drawer { transform:translateX(100%); opacity:0; }
+.upload-drawer-enter-from .workspace-drawer-scrim, .upload-drawer-leave-to .workspace-drawer-scrim { opacity:0; }
+.upload-drawer-leave-active { pointer-events:none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .upload-drawer-enter-from .workspace-drawer, .upload-drawer-leave-to .workspace-drawer { transform:none; opacity:1; }
 }

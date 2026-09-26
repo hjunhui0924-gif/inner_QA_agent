@@ -208,10 +208,10 @@ onBeforeUnmount(() => {
     :inert="(mobileViewport && !open) || pendingDelete || blocked ? true : undefined"
   >
     <header class="wordmark">
-      <div class="brand-new-chat">
+      <RouterLink to="/" class="brand-new-chat">
         <img src="/knowledge-assistant.png" alt="" width="27" height="27" class="brand-icon" />
         <div><span>内部知识助手</span><small>团队知识工作台</small></div>
-      </div>
+      </RouterLink>
     </header>
 
     <button
@@ -228,9 +228,7 @@ onBeforeUnmount(() => {
       <RouterLink to="/chat"
         ><el-icon aria-hidden="true"><ChatDotRound /></el-icon><span>对话</span></RouterLink
       >
-      <RouterLink to="/knowledge"
-        ><el-icon aria-hidden="true"><Document /></el-icon><span>知识库</span></RouterLink
-      >
+
     </nav>
 
     <section class="session-section" aria-labelledby="session-heading">
@@ -271,7 +269,7 @@ onBeforeUnmount(() => {
         role="status"
         aria-live="polite"
       >
-        正在生成当前会话标题…
+        正在处理首个问题…
       </div>
       <div v-else-if="sessions.length === 0" class="session-empty">
         暂无历史会话，从一次提问开始。
@@ -296,7 +294,7 @@ onBeforeUnmount(() => {
               v-if="sessionTitlePending && session.session_id === sessionId"
               class="session-title-status"
             >
-              正在生成标题…
+              正在处理首问…
             </span>
           </button>
           <button
@@ -312,6 +310,9 @@ onBeforeUnmount(() => {
       </div>
     </section>
 
+    <nav class="primary-nav workspace-secondary-nav" aria-label="其他工作区">
+      <RouterLink to="/knowledge"><el-icon aria-hidden="true"><Document /></el-icon><span>知识管理</span></RouterLink>
+    </nav>
     <footer class="sidebar-footer">
       <span class="status-dot" :class="{ online: backendOnline }" aria-hidden="true" />
       <div>

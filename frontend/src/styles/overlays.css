@@ -93,14 +93,14 @@
 .technical-details {
   margin-top: 8px;
   color: var(--ink-faint);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .technical-details summary {
   display: inline-flex;
   align-items: center;
   list-style: none;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .technical-details summary::-webkit-details-marker {
@@ -121,7 +121,7 @@
   overflow-wrap: anywhere;
   color: var(--ink-faint);
   font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .detail-drawer-shell {
@@ -160,7 +160,7 @@
   background: var(--surface);
   box-shadow: var(--shadow-raised);
   transform: translateX(105%);
-  transition: transform 240ms var(--ease-out);
+  transition: transform var(--transition-panel);
 }
 
 .document-detail-drawer.open {
@@ -205,7 +205,7 @@
   border-radius: 4px 10px 4px 4px;
   color: var(--accent);
   font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .detail-title-block h3 {
@@ -221,7 +221,7 @@
 .detail-drawer-note {
   margin: 0;
   color: var(--ink-faint);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.6;
   overflow-wrap: anywhere;
 }
@@ -250,7 +250,7 @@
   overflow-wrap: anywhere;
   color: var(--ink-faint);
   font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .detail-fields {
@@ -270,7 +270,7 @@
 
 .detail-fields dt {
   color: var(--ink-faint);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .detail-fields dd {
@@ -304,7 +304,7 @@
 
 .detail-section-heading span {
   color: var(--ink-faint);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .detail-preview > p {
@@ -332,7 +332,7 @@
 
 .detail-integrity dt {
   color: var(--ink-faint);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .detail-integrity dd {
@@ -341,7 +341,7 @@
   overflow-wrap: anywhere;
   color: var(--ink-soft);
   font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -415,7 +415,7 @@
 .toast p {
   margin: 4px 0 0;
   color: var(--ink-soft);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -428,7 +428,7 @@
   border: 0;
   background: transparent;
   color: var(--ink-faint);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .modal-scrim {

@@ -207,9 +207,8 @@ describe('AppSidebar', () => {
       await vi.waitFor(() => expect(document.activeElement).toBe(
         host?.querySelector('.start-chat-button'),
       ))
-      const start = host?.querySelector<HTMLButtonElement>('.start-chat-button')
-      const deleteButtons = host?.querySelectorAll<HTMLButtonElement>('.session-delete')
-      const last = deleteButtons?.[deleteButtons.length - 1]
+      const start = host?.querySelector<HTMLElement>('.brand-new-chat')
+      const last = host?.querySelector<HTMLElement>('.workspace-secondary-nav a')
       if (!start || !last) throw new Error('sidebar controls not found')
       start.focus()
       window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true }))

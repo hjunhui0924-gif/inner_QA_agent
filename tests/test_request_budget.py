@@ -224,7 +224,7 @@ class BudgetedGraphTests(unittest.IsolatedAsyncioTestCase):
 
 
 class BudgetedApiTests(unittest.IsolatedAsyncioTestCase):
-    async def test_api_passes_one_budget_context_to_graph_and_title_call(self) -> None:
+    async def test_api_budget_excludes_background_title_call(self) -> None:
         class FakeGraph:
             def __init__(self) -> None:
                 self.context = None
@@ -270,15 +270,13 @@ class BudgetedApiTests(unittest.IsolatedAsyncioTestCase):
             patch("backend.api.routes.persist_completed_turn", new=AsyncMock(return_value=committed)), \
             patch("backend.api.routes.list_chat_sessions", new=AsyncMock(return_value=[])), \
             patch("backend.api.routes.append_chat_message", new=AsyncMock()), \
-            patch("backend.api.routes.upsert_chat_session", new=AsyncMock()), \
-            patch("backend.api.routes.ChatOpenAI", return_value=TitleModel()), \
             patch.object(__import__("backend.api.routes", fromlist=["settings"]).settings, "dashscope_api_key", "test-key"), \
             patch.object(__import__("backend.api.routes", fromlist=["settings"]).settings, "trace_enabled", False):
             events = [event async for event in _stream_graph_unlocked(request, payload)]
 
         self.assertIsNotNone(graph.context)
         self.assertIs(graph.context.budget, budget)
-        self.assertEqual(budget.model_calls, 1)
+        self.assertEqual(budget.model_calls, 0)
         self.assertIn("正式答案", "".join(events))
 
 

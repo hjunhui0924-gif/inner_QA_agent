@@ -39,7 +39,7 @@ def check_viewports(browser) -> None:  # type: ignore[no-untyped-def]
         try:
             page.goto(f"{BASE_URL}/chat", wait_until="domcontentloaded")
             expect(page.get_by_label("向企业知识库提问")).to_be_visible()
-            expect(page.locator(".welcome-mark")).to_be_visible()
+            expect(page.get_by_role("heading", name="今天有什么工作问题？")).to_be_visible()
             assert_in_viewport(page, ".composer")
             assert page.locator(".conversation").evaluate("el => el.scrollTop") == 0
             assert_in_viewport(page, ".chat-empty h2")
@@ -125,9 +125,9 @@ def check_answer_interactions(browser) -> None:  # type: ignore[no-untyped-def]
         assert page.locator(".agent-progress").bounding_box()["height"] <= 50
 
         # Route navigation preserves the conversation and returns to its latest answer.
-        page.get_by_role("link", name="知识库", exact=True).click()
+        page.get_by_role("link", name="知识管理", exact=True).click()
         expect(page.locator(".library-panel")).to_be_visible()
-        page.get_by_role("link", name="对话", exact=True).click()
+        page.get_by_role("link", name="返回问答", exact=True).click()
         expect(page.locator("article.message.assistant")).to_have_count(1)
         assert page.locator(".conversation").evaluate("el => el.scrollHeight - el.scrollTop - el.clientHeight") < 10
 
@@ -144,16 +144,16 @@ def check_answer_interactions(browser) -> None:  # type: ignore[no-untyped-def]
         expect(page.get_by_role("button", name="回到最新回答")).to_have_count(0)
 
         page.locator("article.message.assistant").last.get_by_role("button", name="查看引用 C1").click()
-        evidence = page.get_by_role("complementary", name="引用证据")
+        evidence = page.get_by_role("complementary", name="引用来源")
         expect(evidence).to_be_visible()
         expect(evidence).to_contain_text("已核对引用出处")
         assert_in_viewport(page, ".composer")
         page.screenshot(path=str(ROOT / "work" / "workspace-answer-desktop.png"))
         page.set_viewport_size({"width": 390, "height": 844})
-        evidence = page.get_by_role("dialog", name="引用证据")
+        evidence = page.get_by_role("dialog", name="引用来源")
         expect(evidence).to_be_visible()
         page.keyboard.press("Escape")
-        expect(page.get_by_role("dialog", name="引用证据")).to_have_count(0)
+        expect(page.get_by_role("dialog", name="引用来源")).to_have_count(0)
         assert_in_viewport(page, ".composer")
         assert_no_page_overflow(page)
         for width, height in [(568, 320), (667, 375), (1200, 400)]:
