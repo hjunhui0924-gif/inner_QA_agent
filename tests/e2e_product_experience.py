@@ -80,7 +80,7 @@ def check_task_state(browser):
         "直属主管"
     )
     first = page.locator(".message.assistant").first
-    trigger = first.get_by_role("button", name="查看引用 C1")
+    trigger = first.get_by_role("button", name="查看参考来源 1")
     trigger.click()
     expect(page.get_by_role("complementary", name="引用来源")).to_be_visible()
     old_quote = page.locator(".evidence-card blockquote").inner_text()
@@ -117,7 +117,7 @@ def check_task_state(browser):
     page.get_by_role("button", name="关闭引用证据").click()
     expect(trigger).to_be_focused()
     page.locator(".message.assistant").last.get_by_role(
-        "button", name="查看引用 C1"
+        "button", name="查看参考来源 1"
     ).click()
     expect(page.locator(".evidence-card blockquote")).to_have_text("第二份原文")
     page.keyboard.press("Escape")
@@ -185,9 +185,16 @@ def check_upload_and_large_list(browser):
         "**/api/knowledge/records", lambda route: route.fulfill(json={"items": records})
     )
     page.goto(BASE_URL + "/knowledge")
-    expect(page.locator(".document-row")).to_have_count(100)
+    expect(page.locator(".document-row")).to_have_count(10)
+    expect(page.get_by_label("每页文档数量")).to_have_count(0)
+    expect(page.locator(".library-result-count")).to_contain_text("共 100 份")
+    for _ in range(9):
+        page.get_by_role("button", name="下一页", exact=True).click()
+    expect(page.locator(".document-row").first).to_contain_text("090")
+    expect(page.get_by_role("button", name="下一页", exact=True)).to_be_disabled()
     page.get_by_label("搜索文档", exact=True).fill("099")
     expect(page.locator(".document-row")).to_have_count(1)
+    expect(page.get_by_role("button", name="上一页", exact=True)).to_be_disabled()
     assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
     page.screenshot(path=str(OUT / "knowledge-mobile.png"))
     pending = []
@@ -220,7 +227,7 @@ def check_upload_and_large_list(browser):
     ).to_be_visible()
     page.screenshot(path=str(OUT / "upload-mobile.png"))
     page.get_by_role("button", name="关闭添加文档").click()
-    expect(page.locator(".document-row")).to_have_count(100)
+    expect(page.locator(".document-row")).to_have_count(10)
     context.close()
 
 

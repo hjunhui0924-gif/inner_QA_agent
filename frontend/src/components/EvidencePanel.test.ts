@@ -71,6 +71,7 @@ describe('EvidencePanel', () => {
     expect(link?.rel).toBe('noopener noreferrer')
     expect(host?.textContent).toContain('搜索服务提供的来源')
     expect(host?.querySelector('blockquote')).toBeNull()
+    expect(host?.querySelector('.evidence-number')?.textContent).toBe('[1]')
     expect(host?.querySelector('.copy-quote')).toBeNull()
   })
 

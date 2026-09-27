@@ -60,4 +60,4 @@
 - [重试折叠](../work/ux-fix/07-retry-group.png)
 - [操作脚本](../work/ux-fix/verify.py)
 
-阿里原生联网搜索仍不可用。本轮验证的是错误后的恢复流程，未恢复供应商额度，也没有替换搜索引擎。手机验证限于响应式视口与触控模拟，未覆盖真机软键盘。
+本报告当时阿里原生联网搜索不可用，验证的是错误后的恢复流程。后续已按用户授权切换 Tavily + DeepSeek，见 [Tavily 接入记录](tavily_search_integration.md) 和 [最新收尾报告](product_experience_final_acceptance.md)。手机验证仍限于响应式视口与触控模拟，未覆盖真机软键盘。

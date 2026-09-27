@@ -258,14 +258,14 @@ async function copyQuote(citation: Citation, event: Event): Promise<void> {
 
     <p v-if="context" class="evidence-note">{{ context }}</p>
     <div v-if="citations.length === 0" class="evidence-empty">
-      <span class="evidence-number">C1</span>
+      <span class="evidence-number">[1]</span>
       <h3>回答后查看来源</h3>
       <p>在这里查看文档原文、所在位置或网页来源，核对回答依据。</p>
     </div>
 
     <div v-else ref="evidenceList" class="evidence-list">
       <article
-        v-for="citation in citations"
+        v-for="(citation, index) in citations"
         :key="citation.citation_id"
         class="evidence-card"
         :data-citation-id="citation.citation_id"
@@ -273,7 +273,7 @@ async function copyQuote(citation: Citation, event: Event): Promise<void> {
         tabindex="-1"
       >
         <div class="evidence-card-heading">
-          <span class="evidence-number">{{ citation.citation_id }}</span>
+          <span class="evidence-number">[{{ index + 1 }}]</span>
           <div>
             <h3>{{ citation.title || '未命名文档' }}</h3>
             <p>

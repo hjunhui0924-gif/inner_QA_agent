@@ -1,5 +1,6 @@
 export interface Citation {
   citation_id: string
+  evidence_id?: string
   source_id?: string
   document_id?: string
   title: string

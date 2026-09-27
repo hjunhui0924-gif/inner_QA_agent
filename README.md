@@ -1,6 +1,6 @@
 # 企业内部知识助手
 
-一个基于 `LangGraph + Qwen + FastAPI + Vue 3` 的企业内部知识问答项目，用于将企业制度、流程、合同、财务、人事等内部文档接入知识库，并通过 RAG 提供可检索、可追溯的问答能力。
+一个基于 `LangGraph + DeepSeek/Qwen + FastAPI + Vue 3` 的企业内部知识问答项目，用于将企业制度、流程、合同、财务、人事等内部文档接入知识库，并通过 RAG 提供可检索、可追溯的问答能力。
 
 ## 项目简介
 
@@ -14,7 +14,7 @@
 - RAG 检索与回答校验
 - 时间、知识库和联网搜索工具统一返回可序列化的 `tool_result`（`ok`、`text`、`sources`、`error`），并保留兼容的字符串 `tool_output`
 - 有界多轮会话、自动摘要、首问会话标题生成与完整会话删除
-- SSE 流式输出
+- SSE 状态与正式答案交付；普通通用非联网回答支持增量预览
 - Vue 3 产品首页、问答工作台与独立知识管理（FastAPI 接口集成）
 - 知识库两层去重
   - 精确去重：内容指纹
@@ -32,7 +32,9 @@ GitHub 提交边界和本地运行文件清单见
 
 - `LangGraph`：Agent 工作流编排
 - `LangChain`：消息、文档、工具与模型接口
-- `Qwen / DashScope`：大模型调用
+- `DeepSeek / Qwen（DashScope）`：可配置文本生成与 Judge
+- `DashScope`：Embedding 与重排
+- `Tavily / DashScope`：可配置联网搜索
 - `FastAPI`：后端接口
 - `Vue 3 + Vite + TypeScript + Element Plus`：默认 Web 前端
 - `SQLite`：用户记忆、会话历史
@@ -80,10 +82,13 @@ npm install
 
 ## 环境变量
 
-在项目根目录创建 `.env`：
+复制 `.env.example` 为项目根目录的 `.env` 并填写自己的凭据。模板默认保留 DashScope + legacy 校验配置；以下为该配置示例（不是当前本地验收配置）：
 
 ```env
+MODEL_PROVIDER=dashscope
 DASHSCOPE_API_KEY=你的DashScopeKey
+CITATION_VALIDATION_MODE=legacy
+WEB_SEARCH_PROVIDER=dashscope
 MODEL_NAME=qwen3.8-flash
 JUDGE_MODEL_NAME=qwen3.8-flash
 QWEN_ENABLE_THINKING=false
@@ -127,6 +132,21 @@ MODEL_INPUT_PRICE_PER_1K=0
 MODEL_OUTPUT_PRICE_PER_1K=0
 ```
 
+当前本地验收使用 DeepSeek 文本模型与 Tavily 搜索，可在上述配置基础上替换以下项：
+
+```env
+MODEL_PROVIDER=deepseek
+DEEPSEEK_API_KEY=你的DeepSeekKey
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+MODEL_NAME=deepseek-v4-pro
+JUDGE_MODEL_NAME=deepseek-v4-pro
+CITATION_VALIDATION_MODE=judge
+WEB_SEARCH_PROVIDER=tavily
+TAVILY_API_KEY=你的TavilyKey
+```
+
+Embedding 与重排仍使用 DashScope，需要保留 `DASHSCOPE_API_KEY`。上述三个服务分别使用各自凭据，不能互换；不包含 DeepSeek 原生联网能力。配置在后端启动时读取，变更后重启。模板中的价格为 0 表示未配置估算价格，不代表免费。
+
 会话上下文使用保守的中英文混合 Token 估算。达到 10000 Token 时，系统使用
 `MODEL_NAME` 配置的模型将较早对话压缩到约 1500 Token，保留最近 4 轮和当前问题；如果
 最近对话本身过长，会继续压缩更早轮次以满足 12000 Token 的会话预算。摘要模型
@@ -139,18 +159,17 @@ Checkpoint，因此复用原会话 ID 也不会恢复旧上下文。同一会话
 
 每个新会话在第一次提问前选择一次模式，开始对话后模式锁定；如需切换，必须开启
 新对话。知识库模式只允许使用内部知识证据，无关问题会拒答并建议切换通用模式。
-通用模式可以直接回答开放问题；用户显式开启“联网搜索”或问题包含明显实时检索
-意图时，后端调用 DashScope 原生联网搜索，直接复用带来源的回答，将来源编号统一为
-`[C1]` 等引用，并在证据面板提供网页链接。联网结果不属于企业内部证据，标记为
-“搜索服务提供的来源”，不展示未经抓取核验的原文摘录。首次提问完成后，系统使用模型生成
-简短会话标题；标题只依据第一问生成，后续消息不会覆盖。旧版直接使用问题文本作为
-标题的会话，会在首次读取会话列表时尝试批量回填模型摘要标题。
+通用模式可以直接回答开放问题；联网搜索必须由用户显式开启，关闭时不会因问题关键词自动联网。
+本地使用 Tavily 检索网页摘要，再由 DeepSeek 生成带来源回答；也保留 DashScope 原生搜索适配器。
+接口使用 `[C1]` 等引用标记，前端映射为论文式上标 `[1]`，点击后可查看原文或网页来源。
+联网资料与企业内部证据分开展示，标记为“搜索服务提供的来源”；没有可用原文时不提供原文复制。
+首问答案交付后，有界后台队列生成会话标题；旧标题在读取列表时限量入队，不阻塞回答或列表响应。
 
 工具执行结果同时保留结构化字段和现有字符串兼容字段。工具异常使用稳定错误码，
 不会把内部路径、上游响应正文或异常堆栈送入生成提示、SSE 或 Trace；搜索没有可验证
 URL 时不会创建伪来源。搜索无结果、服务异常、答案缺有效引用分别返回
 `web_search_no_results`、`web_search_unavailable`、`web_answer_invalid`，不交付无效候选。
-原生搜索使用现有 DashScope 凭证，超时由 `WEB_SEARCH_TIMEOUT_SECONDS` 控制；模型、工具
+Tavily 使用独立 `TAVILY_API_KEY`，DashScope 原生搜索使用 DashScope 凭证。搜索超时由 `WEB_SEARCH_TIMEOUT_SECONDS` 控制；模型、工具
 调用及已知 Token 用量计入请求预算。网页引用只验证来源指针，不能替代全文事实校验。
 
 每次问答请求创建独立的 `RequestBudget`，默认最多 12 次模型调用、2 次工具调用和
@@ -167,7 +186,7 @@ checkpoint。达到调用、耗时、Token 或费用限制时，系统提交安�
 先按 ACL 过滤向量和词法候选，来源查看与下载、会话读写和知识库管理入口也会做服务端授权。
 未完成可信身份接入、历史文档 ACL 迁移和权限验收前，不宣称满足多用户企业生产安全要求。
 
-回答生成默认使用 `qwen3.8-flash`，并关闭思考模式。自动语义校验通过 `JUDGE_MODEL_NAME` 独立配置；当前同样设为 `qwen3.8-flash`，后续可以切换成不同模型做交叉评判。本次选择依据是小样本模型比较和真实联调，不代表全面模型排名；详见 [回答与搜索优化说明](docs/answer_search_optimization.md)。评测执行和指标计算全自动运行；原有 34 题继续作为法规开发集，同时新增企业制度分层评测集。
+仓库默认文本模型为 `qwen3.8-flash`；当前本地验收配置为 DeepSeek `deepseek-v4-pro`。自动语义校验通过 `JUDGE_MODEL_NAME` 配置，当前与生成模型相同，同模型 Judge 不构成独立质量证明。模型选择和历史小样本结果见 [回答与搜索优化说明](docs/answer_search_optimization.md)；最新配置与验收边界见 [产品体验收尾报告](docs/product_experience_final_acceptance.md)。原有 34 题为法规开发集，另有企业制度分层评测集，不能将开发集成绩视为生产准确率。
 
 默认使用 DashScope `qwen3.7-text-embedding` 作为中文语义检索模型。Embedding
 提供方、模型、维度或索引版本发生变化时，系统会自动使用新的 Chroma
@@ -480,7 +499,7 @@ MIT
 
 ## 产品体验与延迟测量（2026-09-26）
 
-`/` 为静态产品首页，`/chat` 为问答，`/knowledge` 为知识管理。保持开发身份和现有服务端 ACL，不包含真实角色登录、文档编辑/删除/版本回滚。回答以 SSE `result.content` 为权威，候选 token 不直接展示。
+`/` 为静态产品首页，`/chat` 为问答，`/knowledge` 为知识管理。保持开发身份和现有服务端 ACL，不包含真实角色登录、文档编辑/删除/版本回滚。回答以 SSE `result.content` 为权威；知识库和联网候选不直接展示，普通通用非联网回答使用独立预览事件。
 
 首问先保存确定性回退标题并交付答案，之后应用管理的后台队列生成摘要（并发 2，等待 32，单任务 10 秒、无自动模型重试）。标题按首问数据库 ID 条件更新；删除不会被后台任务复活。GET 会话列表只读取并限量入队旧标题，失败冷却 10 分钟。队列为单进程尽力执行，关停取消等待，非持久任务系统。标题有独立预算和 trace 记录，不增加已交付答案预算。
 
@@ -499,7 +518,7 @@ python scripts/benchmark_chat_latency.py --base-url http://127.0.0.1:8000 --case
 `CITATION_VALIDATION_MODE=legacy` 是当前默认，保留既有 Judge + 语义规则双重校验。
 新增可选 `judge` 模式：先检查引用编号、当前检索来源和摘录出处，再由在线 Judge 唯一判断引用支持、事实、条件/例外、否定和顺序；不再用词语重合或数字集合二次否决。无引用候选是否属于合理拒答也交给 Judge。来源权限仍由既有检索 ACL 决定，网页/通用路由及离线评测不变。
 
-本地现已使用 `MODEL_PROVIDER=deepseek`、`MODEL_NAME=deepseek-v4-pro`、`JUDGE_MODEL_NAME=deepseek-v4-pro` 和 `CITATION_VALIDATION_MODE=judge`，真实对照新模式 51/51 符合开发集预期。仓库保留 legacy 默认和回滚开关。DeepSeek 使用独立的 `DEEPSEEK_API_KEY` 与官方 `DEEPSEEK_BASE_URL=https://api.deepseek.com`；embedding、重排及原生联网搜索仍使用 DashScope。真实浏览器联调 12/14 通过，2 项阿里联网搜索仍不可用。复测命令：
+本地现已使用 `MODEL_PROVIDER=deepseek`、`MODEL_NAME=deepseek-v4-pro`、`JUDGE_MODEL_NAME=deepseek-v4-pro` 和 `CITATION_VALIDATION_MODE=judge`。仓库保留 legacy 默认与回滚开关；embedding 和重排仍使用 DashScope，联网已切换 Tavily。分工改造时的 51/51 合成候选对照及 12/14 浏览器结果属于历史阶段，其中阿里联网失败已由后续 Tavily 接入替代；不作为当前完整验收结论。历史对照的复测命令：
 
 ```powershell
 python scripts/benchmark_citation_gate.py --live --baseline-ref 6e4f00a --repeats 3 --output-dir work/citation-gate-comparison-available
@@ -512,3 +531,13 @@ python scripts/benchmark_citation_gate.py --live --baseline-ref 6e4f00a --repeat
 不联网的通用回答现在支持真正的增量预览（SSE `preview_delta`），以“生成中”展示；`result.content` 仍是唯一正式结果。知识库和联网回答继续校验后交付，取消/断网的预览不作为完整答案保存。`web_search=false` 明确禁止自动联网，不再因问题关键词重新开启。
 
 回答期间可编辑下一条草稿；取消后可重新生成或编辑；重试按同一问题折叠，关联随历史保存。知识管理页提示后台任务状态。未填写的上传生效日期与索引边界日期分开展示。行为、协议、测试与真实截图见 [交互修复报告](docs/interaction_recovery_implementation.md)。
+
+
+## 当前交付状态（2026-09-28）
+
+- 知识管理固定每页 10 份，筛选后回到第一页；不提供页容量选项，不是服务端分页。
+- 引用在正文显示上标 `[1]`，回答底部提供参考来源；来源面板和摘要编号一致，点击查看原文。鼠标采用轻微背景反馈，键盘保留焦点提示。
+- 知识库生成使用稳定证据标识，后端验证当前允许来源后转换为接口引用，解决多轮检索重排导致的历史编号错配。稳定标识不取代事实与引用支持判断。
+- M1–M5 功能已实现，M6 尚未全部验收；最终版本性能对照、账单级成本、真机及兼容性、多版本知识质量仍有待办。联网深度质量优化按用户范围暂缓，不宣称全网事实准确或长期 SLA。
+
+相关说明：[优化方案与 M6 执行清单](docs/product_experience_optimization_plan.md)、[当前验收报告](docs/product_experience_final_acceptance.md)、[来源身份修复](docs/stable_evidence_identity_fix.md)、[Tavily 接入](docs/tavily_search_integration.md)。本地 `work/` 证据不提交到 GitHub；仓库包含测试脚本、案例和明确的验证范围。

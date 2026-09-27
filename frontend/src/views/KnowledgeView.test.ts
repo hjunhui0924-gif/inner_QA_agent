@@ -91,6 +91,26 @@ afterEach(() => {
 })
 
 describe('KnowledgeView', () => {
+  it('paginates ten records per page and resets after filtering', async () => {
+    const workspace = mountView()
+    workspace.knowledgeRecords.value = Array.from({ length: 25 }, (_, i) => ({ ...records[0]!, source_id: `doc-${i}`, title: `文档-${i}` }))
+    await nextTick()
+    expect(host?.querySelectorAll('.document-row')).toHaveLength(10)
+    const next = host!.querySelector<HTMLButtonElement>('nav[aria-label="文档分页"] button:last-child')!
+    next.click()
+    await nextTick()
+    expect(host?.querySelector('.document-row h3')?.textContent).toBe('文档-10')
+    next.click()
+    await nextTick()
+    expect(host?.querySelectorAll('.document-row')).toHaveLength(5)
+    const search = host!.querySelector<HTMLInputElement>('.filter-search input')!
+    search.value = '文档-24'
+    search.dispatchEvent(new Event('input', { bubbles: true }))
+    await nextTick()
+    expect(host?.querySelectorAll('.document-row')).toHaveLength(1)
+    expect(next.disabled).toBe(true)
+  })
+
   it('loads preview content from the detail endpoint when list records omit content', async () => {
     const workspace = mountView()
     workspace.knowledgeRecords.value = [{ source_id: 'finance-v2', title: '费用报销制度', source: 'policy' }]

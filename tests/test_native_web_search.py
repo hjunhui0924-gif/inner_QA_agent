@@ -87,6 +87,11 @@ class SearchStreamTests(unittest.TestCase):
 
 
 class NativeSearchTests(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        provider = patch.object(web_search.settings, "web_search_provider", "dashscope")
+        provider.start()
+        self.addCleanup(provider.stop)
+
     async def test_real_http_adapter_parses_sse_and_sets_native_options(self):
         def handle(request):
             payload = json.loads(request.content)

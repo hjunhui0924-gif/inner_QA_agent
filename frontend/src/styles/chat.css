@@ -225,45 +225,72 @@
 .message-content th {
   background: var(--canvas);
 }
+.citation-sup {
+  position: relative;
+  top: -0.45em;
+  vertical-align: baseline;
+  font-size: 0.75em;
+  line-height: 0;
+}
 .inline-citation {
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  min-width: 28px;
-  min-height: 28px;
-  margin: 0 3px;
-  padding: 2px 5px;
+  min-width: 24px;
+  min-height: 24px;
+  margin: -4px 1px;
+  padding: 0 3px;
   border: 0;
   border-radius: 5px;
-  background: var(--accent-soft);
-  color: var(--accent-strong);
-  font-size: 11px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: inherit;
   line-height: 1;
-  vertical-align: middle;
+  vertical-align: baseline;
+  transition: background var(--transition-fast), color var(--transition-fast);
 }
 .inline-citation:hover {
-  background: var(--accent);
-  color: white;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
 }
 .citation-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
   margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.reference-heading {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+.reference-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.reference-number {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
 }
 .citation-row button {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
   min-height: 44px;
-  padding: 8px 12px;
-  border: 1px solid var(--line);
-  background: var(--surface);
+  padding: 8px 4px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
   color: var(--ink-soft);
   text-align: left;
   overflow-wrap: anywhere;
   font-size: 12px;
 }
 .citation-row button:hover {
-  border-color: var(--accent);
-  color: var(--accent);
+  background: var(--surface-muted);
+  color: var(--accent-strong);
 }
 .answer-actions {
   display: flex;
@@ -551,8 +578,7 @@
   background: var(--surface);
 }
 .evidence-card.selected {
-  border-color: #9aafe9;
-  box-shadow: 0 0 0 2px var(--accent-soft);
+  background: var(--accent-soft);
 }
 .evidence-card-heading {
   display: flex;
@@ -733,10 +759,6 @@
     margin-top: 6px;
   }
   .mode-option {
-    min-height: 44px;
-  }
-  .inline-citation {
-    min-width: 44px;
     min-height: 44px;
   }
   .step-copy small {

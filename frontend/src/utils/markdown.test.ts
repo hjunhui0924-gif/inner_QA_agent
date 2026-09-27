@@ -7,7 +7,7 @@ describe('citation-aware markdown text', () => {
     const rendered = renderCitationText('依据 [C1] 和 [C999]', ['C1'])
 
     expect(rendered).toContain('data-citation-id="C1"')
-    expect(rendered).toContain('>C1</button>')
+    expect(rendered).toContain('>[1]</button></sup>')
     expect(rendered).toContain('[C999]')
     expect(rendered).not.toContain('data-citation-id="C999"')
   })
@@ -46,5 +46,16 @@ describe('citation-aware markdown text', () => {
     const rendered = renderMarkdown('依据 [c1]', ['c1'])
 
     expect(rendered).toContain('data-citation-id="C1"')
+  })
+
+  it('numbers sparse source IDs locally and reuses the number for repeated references', () => {
+    const host = document.createElement('div')
+    host.innerHTML = renderMarkdown('依据 [C3]、[C8]，再次引用 [c3]', ['C3', 'C8'])
+    const buttons = [...host.querySelectorAll('sup button')]
+    expect(buttons.map((button) => button.textContent)).toEqual(['[1]', '[2]', '[1]'])
+    expect(buttons.map((button) => button.getAttribute('data-citation-id'))).toEqual(['C3', 'C8', 'C3'])
+    expect(buttons[0]?.getAttribute('aria-label')).toBe('查看参考来源 1')
+    expect(host.textContent).not.toContain('<sup>')
+    expect(renderCitationText('[C8]', ['C8'])).toContain('>[1]</button>')
   })
 })

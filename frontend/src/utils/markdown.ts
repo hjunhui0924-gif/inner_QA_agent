@@ -33,13 +33,14 @@ export function renderCitationText(
   citationIds: Iterable<string>,
 ): string {
   const allowedCitationIds = normalizeCitationIds(citationIds)
+  const displayNumbers = new Map([...allowedCitationIds].map((id, index) => [id, index + 1]))
   return escapeHtml(text).replace(citationPattern, (marker) => {
     const citationId = marker.slice(1, -1).toUpperCase()
     if (!allowedCitationIds.has(citationId)) return marker
     return (
-      `<button type="button" class="inline-citation" `
+      `<sup class="citation-sup"><button type="button" class="inline-citation" `
       + `data-citation-id="${citationId}" `
-      + `aria-label="查看引用 ${citationId}">${citationId}</button>`
+      + `aria-label="查看参考来源 ${displayNumbers.get(citationId)}">[${displayNumbers.get(citationId)}]</button></sup>`
     )
   })
 }

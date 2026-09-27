@@ -63,6 +63,21 @@ a {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
+html[data-input-modality='pointer'] :where(button, a, select, summary, [role='button']):focus {
+  outline: none;
+}
+button:not(:disabled):active,
+summary:active {
+  filter: brightness(0.96);
+}
+select:not(:disabled) {
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+select:not(:disabled):hover,
+select:not(:disabled):active {
+  background-color: var(--surface-muted);
+  border-color: var(--ink-faint);
+}
 h1,
 h2,
 h3,

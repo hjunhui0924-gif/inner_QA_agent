@@ -94,10 +94,13 @@ const scenarios = [
             <ol>
               <li>先由<strong>直属主管审批</strong>。</li>
               <li>
-                再由<strong>财务负责人复核</strong>。<span
-                  class="sample-citation"
-                  >[C1]</span
-                >
+                再由<strong>财务负责人复核</strong>。<sup class="sample-citation"><button
+                  type="button"
+                  aria-label="查看示例参考来源 1"
+                  :aria-expanded="sourceVisible"
+                  aria-controls="sample-source"
+                  @click="sourceVisible = !sourceVisible"
+                >[1]</button></sup>
               </li>
             </ol>
           </div>

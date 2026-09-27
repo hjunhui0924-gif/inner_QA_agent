@@ -7,6 +7,7 @@ import unittest
 from langchain_core.documents import Document
 
 from backend.agent.citations import (
+    _claims_for_marker,
     sanitize_answer_citations,
     build_citations,
     format_documents_for_prompt,
@@ -16,6 +17,29 @@ from backend.agent.citations import (
 
 
 class CitationStructureTests(unittest.TestCase):
+    def test_excerpt_target_preserves_soft_wraps_and_source_boundaries(self):
+        for answer in ['Security review is required\nbefore export [C1].',
+                       'Security review is required before export\n[C1].']:
+            self.assertIn('Security review is required', _claims_for_marker(answer, 1))
+        answer = 'Security review is required [C1]. Finance approval is required [C2].'
+        self.assertNotIn('Finance', _claims_for_marker(answer, 1))
+        self.assertNotIn('Security', _claims_for_marker(answer, 2))
+        answer = '- Security review is required [C1].\n- Finance approval is required [C2].'
+        self.assertNotIn('Finance', _claims_for_marker(answer, 1))
+
+    def test_paragraph_final_citation_includes_earlier_conditions(self):
+        text = ('差旅报销需提交发票、行程单和审批记录。'
+                '单笔金额不超过5000元由直属主管审批；超过5000元由直属主管审批后再由财务负责人复核。'
+                '部门负责人报销由上一级主管审批，超过5000元仍需财务负责人复核。'
+                '出差结束后10个工作日内提交。出差住宿标准为每晚500元。')
+        answer = ('差旅报销的审批要求如下：单笔金额不超过5000元由直属主管审批；'
+                  '超过5000元由直属主管审批后再由财务负责人复核。'
+                  '部门负责人报销由上一级主管审批，超过5000元仍需财务负责人复核 [C1]。')
+        citations = build_citations([Document(page_content=text)], answer, query='差旅报销需要经过哪些审批？')
+        self.assertIn('单笔金额不超过5000元由直属主管审批', citations[0]['quote'])
+        self.assertIn('超过5000元由直属主管审批后再由财务负责人复核', citations[0]['quote'])
+        self.assertIn('部门负责人报销由上一级主管审批', citations[0]['quote'])
+
     def test_provenance_does_not_claim_semantic_entailment(self):
         docs = [Document(page_content="住宿限额500元。", metadata={"source_id": "a", "chunk_id": "a:0"})]
         answer = "住宿限额600元 [C1]。"
@@ -28,7 +52,7 @@ class CitationStructureTests(unittest.TestCase):
         docs = [Document(page_content="住宿限额500元。", metadata={"source_id": "a", "chunk_id": "a:0"})]
         answer = "住宿限额500元 [C1]。"
         citation = build_citations(docs, answer)[0]
-        for field, value in [("quote", "住宿限额600元。"), ("source_id", "other-user"), ("chunk_id", "other:0")]:
+        for field, value in [("quote", "住宿限额600元。"), ("source_id", "other-user"), ("chunk_id", "other:0"), ("evidence_id", "S_forged")]:
             with self.subTest(field=field):
                 self.assertFalse(validate_citation_structure(answer, docs, [{**citation, field: value}])[0])
 

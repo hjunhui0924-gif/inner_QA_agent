@@ -233,9 +233,9 @@ def run_mvp_browser_checks(playwright: Playwright) -> None:
         question.fill("差旅报销需要谁审批？")
         page.get_by_role("button", name="发送").click()
         expect(page.locator("article.message.assistant").last).to_contain_text("直属主管审批")
-        expect(page.get_by_role("button", name="查看 1 条引用")).to_be_visible()
+        expect(page.locator(".citation-row button").first).to_be_visible()
 
-        page.get_by_role("button", name="查看 1 条引用").click()
+        page.locator(".citation-row button").first.click()
         evidence = page.get_by_role("complementary", name="引用来源")
         expect(evidence).to_be_visible()
         expect(evidence).to_contain_text("单笔超过5000元")
@@ -269,9 +269,9 @@ def run_mvp_browser_checks(playwright: Playwright) -> None:
         expect(page.get_by_text("新差旅政策", exact=True)).to_be_visible()
 
         page.get_by_label("搜索文档").fill("新差旅政策")
-        expect(page.get_by_text("显示 1 / 2 份文档", exact=True)).to_be_visible()
+        expect(page.get_by_text("显示 1–1 份，共 1 份 （全部 2 份）", exact=True)).to_be_visible()
         page.get_by_role("button", name="清除筛选").click()
-        expect(page.get_by_text("显示 2 / 2 份文档", exact=True)).to_be_visible()
+        expect(page.get_by_text("显示 1–2 份，共 2 份", exact=True)).to_be_visible()
 
         uploaded_row = page.locator("article.document-row").filter(has_text="新差旅政策")
         uploaded_row.get_by_role("button", name="查看详情").click()

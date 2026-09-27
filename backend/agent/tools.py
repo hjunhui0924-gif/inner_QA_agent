@@ -252,7 +252,7 @@ def search_knowledge_base_result(
 
 
 def _search_web_payload(query: str) -> tuple[str, list[dict[str, object]]]:
-    """Fetch a native grounded answer with its provider source indices."""
+    """Fetch a source-backed answer with its provider source indices."""
     from backend.agent.web_search import WebSearchError, search_sync
     result = search_sync(query)
     if not result["ok"]:

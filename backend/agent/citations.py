@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import re
+import hashlib
+import json
 from collections.abc import Sequence
 from datetime import date
 from typing import Any, TypedDict
@@ -16,6 +18,7 @@ class Citation(TypedDict):
     """One verifiable link from an answer marker to a source chunk."""
 
     citation_id: str
+    evidence_id: str
     source_id: str
     document_id: str
     title: str
@@ -34,9 +37,55 @@ class Citation(TypedDict):
 
 
 _MARKER_PATTERN = re.compile(r"\[\s*C\s*(\d+)\s*\]", flags=re.I)
+_EVIDENCE_PATTERN = re.compile(r"\[\s*S_[^\]\r\n]*(?:\]|(?=\r?\n|$))", re.I)
 
 
-def format_documents_for_prompt(documents: Sequence[Document]) -> str:
+def evidence_id(document: Document) -> str:
+    """Identity of a source revision/fragment, never its retrieval position."""
+    metadata = document.metadata
+    identity = [str(metadata.get(k, '')) for k in ('source_id', 'document_id', 'version', 'chunk_id')]
+    identity.append(document.page_content)
+    digest = hashlib.sha256(json.dumps(identity, ensure_ascii=False).encode('utf-8')).hexdigest()
+    return 'S_' + digest[:24]
+
+
+def resolve_evidence_markers(answer: str, documents: Sequence[Document]) -> str:
+    """Only allow this request's evidence; old/unknown IDs fail the C0 gate."""
+    by_id: dict[str, int] = {}
+    for index, document in enumerate(documents, 1):
+        by_id.setdefault(evidence_id(document), index)
+    # A model must never use display IDs as source identity, including on retry.
+    answer = _MARKER_PATTERN.sub('[C0]', answer)
+    def resolve(match: re.Match) -> str:
+        token = match.group(0)
+        index = by_id.get(token[1:-1], 0) if re.fullmatch(r'\[S_[0-9a-f]{24}\]', token) else 0
+        return f'[C{index}]'
+    return _EVIDENCE_PATTERN.sub(resolve, answer)
+
+
+def display_to_evidence(text: str, documents: Sequence[Document]) -> str:
+    """Translate current-turn feedback/candidates back into the model namespace."""
+    text = _MARKER_PATTERN.sub(
+        lambda m: f'[{evidence_id(documents[int(m[1]) - 1])}]'
+        if 1 <= int(m[1]) <= len(documents) else '(无效引用)', text)
+    return re.sub(r'(?<![A-Za-z0-9_])C(\d+)(?![A-Za-z0-9_])',
+        lambda m: f'[{evidence_id(documents[int(m[1]) - 1])}]'
+        if 1 <= int(m[1]) <= len(documents) else '(无效引用)', text)
+
+
+def historical_citation_text(text: str, citations: list[dict], documents: Sequence[Document]) -> str:
+    """Label old IDs; only resolve snapshots whose revision is authorized now."""
+    allowed = {evidence_id(doc) for doc in documents}
+    by_id = {item.get('citation_id'): item for item in citations if isinstance(item, dict)}
+    def replace(match: re.Match) -> str:
+        label = f'C{match[1]}'
+        stable_id = by_id.get(label, {}).get('evidence_id')
+        source = f'当前来源 [{stable_id}]' if isinstance(stable_id, str) and stable_id in allowed else '仅为历史编号，当前来源待核实'
+        return f'（历史引用 {label}；{source}）'
+    return _MARKER_PATTERN.sub(replace, text)
+
+
+def format_documents_for_prompt(documents: Sequence[Document], *, stable_ids: bool = False) -> str:
     """Render evidence with stable IDs and source locations for the model."""
 
     if not documents:
@@ -52,7 +101,8 @@ def format_documents_for_prompt(documents: Sequence[Document]) -> str:
         if section:
             location.append(section)
         title = str(metadata.get("title", "Untitled document")).strip()
-        header = f"[C{index}] {title}"
+        marker = evidence_id(document) if stable_ids else f'C{index}'
+        header = f"[{marker}] {title}"
         if location:
             header += f" ({' / '.join(location)})"
         rendered.append(f"{header}\n{document.page_content.strip()}")
@@ -78,6 +128,7 @@ def build_citations(
         citations.append(
             Citation(
                 citation_id=f"C{number}",
+                evidence_id=evidence_id(document),
                 source_id=str(
                     metadata.get("source_id", metadata.get("document_id", ""))
                 ).strip(),
@@ -141,6 +192,8 @@ def validate_citation_structure(
             return False, "引用编号超出当前检索证据范围。"
         document = documents[number - 1]
         citation = by_id[marker]
+        if citation.get('evidence_id') is not None and citation['evidence_id'] != evidence_id(document):
+            return False, '引用来源与当前检索证据不一致。'
         metadata = document.metadata
         expected_source = str(metadata.get("source_id", metadata.get("document_id", ""))).strip()
         if (citation.get("source_id", "") != expected_source
@@ -539,11 +592,21 @@ def _supporting_quote(text: str, *, query: str, answer: str, max_chars: int) -> 
 
 def _claims_for_marker(answer: str, number: int) -> str:
     marker = re.compile(rf"\[\s*C\s*{number}\s*\]", flags=re.I)
-    claims = [
-        item.strip()
-        for item in re.split(r"(?<=[。！？.!?])\s*", answer)
-        if marker.search(item)
-    ]
+    claims = []
+    # Markdown soft line breaks remain inside a paragraph; list items are
+    # separate claim blocks even without a blank line between them.
+    for paragraph in re.split(r"\n\s*\n|\n(?=\s*(?:[-*+]\s+|\d+[.)、]\s*))", answer):
+        if not marker.search(paragraph):
+            continue
+        if {int(item) for item in _MARKER_PATTERN.findall(paragraph)} == {number}:
+            # A shared paragraph citation may support several sentences. Use
+            # all of them to select the excerpt, not only the final sentence.
+            # This selects evidence; the Judge still decides semantic support.
+            claims.append(paragraph.strip())
+        else:
+            # Do not borrow claims explicitly assigned to another source.
+            claims.extend(item.strip() for item in re.split(r"(?<=[。！？.!?])\s*", paragraph)
+                          if marker.search(item))
     return " ".join(claims) or answer
 
 

@@ -68,9 +68,13 @@ const evidenceContext = computed(() => {
   const message = messages.value.find(
     (item) => (item.message_id || item.id) === selection.value?.messageId,
   )
-  return message
-    ? `对应回答：${message.content.replace(/\s+/g, ' ').slice(0, 72)}`
-    : ''
+  if (!message) return ''
+  const citations = selection.value?.citationsSnapshot ?? []
+  const summary = message.content.replace(/\[C\d+\]/gi, (marker) => {
+    const index = citations.findIndex((citation) => citation.citation_id.toUpperCase() === marker.slice(1, -1).toUpperCase())
+    return index < 0 ? marker : `[${index + 1}]`
+  })
+  return `对应回答：${summary.replace(/\s+/g, ' ').slice(0, 72)}`
 })
 const composer = ref<HTMLTextAreaElement | null>(null)
 const conversation = ref<HTMLElement | null>(null)
@@ -409,9 +413,15 @@ function selectMode(mode: 'knowledge' | 'general') {
               </div>
             </div>
             <div v-if="message.citations?.length" class="citation-row">
-              <button type="button" @click="openCitations(message, $event)">
-                查看 {{ message.citations.length }} 条引用
-              </button>
+              <p class="reference-heading">参考来源</p>
+              <ol class="reference-list">
+                <li v-for="(citation, index) in message.citations" :key="citation.citation_id">
+                  <button type="button" @click="openCitations(message, $event, citation.citation_id)">
+                    <span class="reference-number">[{{ index + 1 }}]</span>
+                    <span>{{ citation.title || '未命名文档' }}<span v-if="citation.page"> · 第 {{ citation.page }} 页</span></span>
+                  </button>
+                </li>
+              </ol>
             </div>
             <FailureNotice
               v-if="

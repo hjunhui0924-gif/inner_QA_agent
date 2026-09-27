@@ -122,7 +122,7 @@ def check_answer_interactions(browser) -> None:  # type: ignore[no-untyped-def]
         assert page.evaluate("window.__copiedAnswer") == long_answer
         assert_in_viewport(page, ".composer")
         assert_no_page_overflow(page)
-        assert page.locator(".agent-progress").bounding_box()["height"] <= 50
+        expect(page.locator(".agent-progress")).to_have_count(0)
 
         # Route navigation preserves the conversation and returns to its latest answer.
         page.get_by_role("link", name="知识管理", exact=True).click()
@@ -143,7 +143,7 @@ def check_answer_interactions(browser) -> None:  # type: ignore[no-untyped-def]
         page.get_by_role("button", name="回到最新回答").click()
         expect(page.get_by_role("button", name="回到最新回答")).to_have_count(0)
 
-        page.locator("article.message.assistant").last.get_by_role("button", name="查看引用 C1").click()
+        page.locator("article.message.assistant").last.get_by_role("button", name="查看参考来源 1").click()
         evidence = page.get_by_role("complementary", name="引用来源")
         expect(evidence).to_be_visible()
         expect(evidence).to_contain_text("已核对引用出处")
@@ -156,14 +156,38 @@ def check_answer_interactions(browser) -> None:  # type: ignore[no-untyped-def]
         expect(page.get_by_role("dialog", name="引用来源")).to_have_count(0)
         assert_in_viewport(page, ".composer")
         assert_no_page_overflow(page)
+        # Processing controls belong to the active answer, not completed messages.
+        page.evaluate("""() => {
+          const original = window.fetch;
+          window.fetch = (url, options) => {
+            if (!String(url).endsWith('/chat/stream')) return original(url, options);
+            const encoder = new TextEncoder();
+            return Promise.resolve(new Response(new ReadableStream({start(controller) {
+              const emit = (event) => controller.enqueue(encoder.encode('data: ' + JSON.stringify(event) + '\\n\\n'));
+              emit({type:'status', node:'generate', content:'正在组织回答', node_status:'running'});
+              window.finishLayoutStream = () => {
+                emit({type:'result', content:'审批流程已核对。', citations:[], failure_type:'none'});
+                emit({type:'done'});
+                controller.close();
+                window.fetch = original;
+              };
+            }}), {headers: {'Content-Type':'text/event-stream'}}));
+          };
+        }""")
+        question.fill("请再核对审批流程")
+        page.get_by_role("button", name="发送", exact=True).click()
+        expect(page.get_by_role("button", name="取消请求")).to_be_visible()
         for width, height in [(568, 320), (667, 375), (1200, 400)]:
             page.set_viewport_size({"width": width, "height": height})
             page.get_by_role("button", name="查看处理过程").click()
             expect(page.get_by_role("list", name="Agent 处理步骤")).to_be_visible()
             assert_in_viewport(page, ".composer")
-            assert_in_viewport(page, ".step-list")
+            page.locator(".step-list").scroll_into_view_if_needed()
+            expect(page.locator(".step-list")).to_be_visible()
             assert page.locator(".conversation").bounding_box()["height"] >= 40
             page.get_by_role("button", name="收起处理过程").click()
+        page.evaluate("window.finishLayoutStream()")
+        expect(page.locator(".agent-progress")).to_have_count(0)
         assert not diagnostics, diagnostics
     finally:
         context.close()

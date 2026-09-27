@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     judge_model_name: str = "qwen3.8-flash"
     # Keep legacy for unvalidated deployments; locally validated providers can opt into judge.
     citation_validation_mode: Literal["legacy", "judge"] = "legacy"
+    web_search_provider: Literal["dashscope", "tavily"] = "dashscope"
+    tavily_api_key: str = Field(default="", validation_alias="TAVILY_API_KEY")
     web_search_model: str = "qwen3.8-flash"
     web_search_endpoint: str = "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation"
     web_search_timeout_seconds: float = Field(default=20.0, gt=0, allow_inf_nan=False)

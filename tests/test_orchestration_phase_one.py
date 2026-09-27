@@ -136,13 +136,15 @@ class CandidateCommitTests(unittest.IsolatedAsyncioTestCase):
                 raise AssertionError("unexpected model prompt")
 
             async def astream(self, prompt_messages: list[object]):
+                import re
+                marker = re.search(r'\[S_[0-9a-f]{24}\]', str(prompt_messages[0].content)).group(0)
                 self.generation_count += 1
                 answer = (
                     "坏候选 制度文本 [C1]"
                     if self.generation_count == 1
                     else "好候选 制度文本 [C1]"
                 )
-                yield AIMessageChunk(content=answer)
+                yield AIMessageChunk(content=answer.replace('[C1]', marker))
 
         async def search_documents(
             query: str,

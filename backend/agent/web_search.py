@@ -1,4 +1,4 @@
-"""DashScope native search: keep the provider's answer and source mapping together."""
+"""Search adapters preserve the answer and its source mapping together."""
 from __future__ import annotations
 
 import asyncio
@@ -164,6 +164,9 @@ def _failure(error: Exception, stream: SearchStream) -> dict:
 
 
 async def search_async(query: str) -> dict:
+    if settings.web_search_provider == "tavily":
+        from backend.agent.tavily_search import search_async as tavily_search
+        return await tavily_search(query)
     stream = SearchStream()
     try:
         headers, payload = _request(query)
@@ -181,6 +184,9 @@ async def search_async(query: str) -> dict:
 
 def search_sync(query: str) -> dict:
     """Synchronous public tool/contract entry; graph requests use cancellable async I/O."""
+    if settings.web_search_provider == "tavily":
+        from backend.agent.tavily_search import search_sync as tavily_search
+        return tavily_search(query)
     stream = SearchStream()
     try:
         headers, payload = _request(query)

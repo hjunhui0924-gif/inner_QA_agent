@@ -138,7 +138,7 @@ def check_touch(browser, motion):
             ),
         )
         page.get_by_role("button", name="发送", exact=True).tap()
-        trigger = page.get_by_role("button", name="查看引用 C1")
+        trigger = page.get_by_role("button", name="查看参考来源 1")
         trigger.tap()
         source = page.get_by_role("button", name="查看文档信息与下载")
         source.tap()

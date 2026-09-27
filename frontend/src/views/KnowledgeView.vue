@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, reactive, ref, toRefs, onBeforeUnmount } from 'vue'
+import { computed, nextTick, reactive, ref, toRefs, onBeforeUnmount, watch } from 'vue'
 import {
   Close,
   DocumentAdd,
@@ -74,6 +74,13 @@ const filters = reactive({
 const filteredRecords = computed(() =>
   filterKnowledgeRecords(knowledgeRecords.value, filters),
 )
+const currentPage = ref(1)
+const pageSize = 10
+const pageCount = computed(() => Math.max(1, Math.ceil(filteredRecords.value.length / pageSize)))
+const pageStart = computed(() => (currentPage.value - 1) * pageSize)
+const pagedRecords = computed(() => filteredRecords.value.slice(pageStart.value, pageStart.value + pageSize))
+watch(() => ({ ...filters }), () => { currentPage.value = 1 })
+watch(pageCount, (count) => { currentPage.value = Math.min(currentPage.value, count) })
 const departments = computed(() =>
   uniqueKnowledgeValues(knowledgeRecords.value, 'department'),
 )
@@ -379,7 +386,7 @@ function closeDetails(): void {
         </div>
         <div v-else class="document-list">
           <article
-            v-for="(record, index) in filteredRecords"
+            v-for="(record, index) in pagedRecords"
             :key="
               String(
                 record.source_id ||
@@ -435,14 +442,22 @@ function closeDetails(): void {
             </button>
           </article>
         </div>
-        <p
+        <div
           v-if="!loadingKnowledge && knowledgeRecords.length > 0"
-          class="library-result-count"
-          aria-live="polite"
+          class="library-pagination"
         >
-          显示 {{ filteredRecords.length }} /
-          {{ knowledgeRecords.length }} 份文档
-        </p>
+          <p class="library-result-count" aria-live="polite">
+            显示 {{ filteredRecords.length ? pageStart + 1 : 0 }}–{{ Math.min(pageStart + pageSize, filteredRecords.length) }} 份，共 {{ filteredRecords.length }} 份
+            <span v-if="hasFilters">（全部 {{ knowledgeRecords.length }} 份）</span>
+          </p>
+          <div class="pagination-controls">
+            <nav aria-label="文档分页">
+              <button type="button" :disabled="currentPage === 1" @click="currentPage--">上一页</button>
+              <span aria-live="polite">{{ currentPage }} / {{ pageCount }}</span>
+              <button type="button" :disabled="currentPage >= pageCount" @click="currentPage++">下一页</button>
+            </nav>
+          </div>
+        </div>
       </section>
     </div>
 

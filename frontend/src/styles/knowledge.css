@@ -3,6 +3,34 @@
   min-height: 100dvh;
   background: var(--canvas);
 }
+.library-pagination,
+.pagination-controls,
+.pagination-controls nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.library-pagination {
+  justify-content: space-between;
+  padding-top: 18px;
+}
+.library-pagination .library-result-count {
+  margin: 0;
+}
+.pagination-controls {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.pagination-controls button {
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+.pagination-controls button:not(:disabled):hover {
+  background: var(--surface-muted);
+}
 .knowledge-page .knowledge-header {
   align-items: center;
   padding: 38px 40px 30px;
