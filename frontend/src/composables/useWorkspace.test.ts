@@ -1,3 +1,4 @@
+import { nextTick, watch } from 'vue'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type { StreamEvent } from '../types/api'
@@ -330,5 +331,64 @@ describe('reconnect after previously healthy startup', () => {
     await workspace.initialize('chat')
     expect(serviceMocks.fetchHealth).toHaveBeenCalledOnce()
     expect(workspace.backendOnline.value).toBe(true)
+  })
+})
+
+
+describe('interaction recovery', () => {
+  it('reactively delivers an answer without changing the next draft', async () => {
+    const workspace = useWorkspace()
+    let deliver!: (event: StreamEvent) => void
+    let finish!: () => void
+    serviceMocks.streamChat.mockImplementationOnce((_payload, onEvent) => {
+      deliver = onEvent
+      return new Promise<void>((resolve) => { finish = resolve })
+    })
+    const job = workspace.sendMessage('原问题')
+    await nextTick()
+    const changed = vi.fn()
+    const stop = watch(() => workspace.messages.value.at(-1)?.content, changed)
+    workspace.draft.value = '下一条草稿'
+    deliver(resultEvent('正式回答'))
+    await nextTick()
+    finish()
+    await job
+    stop()
+    expect(changed).toHaveBeenCalled()
+    expect(workspace.draft.value).toBe('下一条草稿')
+  })
+
+  it('can explicitly recover from web failure without turning search back on', async () => {
+    const workspace = useWorkspace()
+    serviceMocks.streamChat.mockImplementationOnce(async (_payload, onEvent) => {
+      onEvent(resultEvent('搜索失败', 'search_error'))
+    }).mockImplementationOnce(async (_payload, onEvent) => onEvent(resultEvent('普通回答')))
+    workspace.chatMode.value = 'general'
+    workspace.webSearchEnabled.value = true
+    await workspace.sendMessage('搜索最新信息')
+    await workspace.retryMessage(workspace.messages.value.at(-1)!, { withoutWeb: true })
+    expect(serviceMocks.streamChat.mock.calls.at(-1)?.[0].web_search).toBe(false)
+  })
+})
+
+
+describe('preview isolation', () => {
+  it.each(['knowledge', 'general'] as const)('isolates provisional text in %s mode', async (mode) => {
+    const workspace = useWorkspace()
+    workspace.chatMode.value = mode
+    let deliver!: (event: StreamEvent) => void
+    serviceMocks.streamChat.mockImplementationOnce((_payload, onEvent, signal) => {
+      deliver = onEvent
+      return new Promise<void>((_resolve, reject) => signal.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')), { once: true }))
+    })
+    const job = workspace.sendMessage('draft test')
+    deliver({ type: 'preview_delta', content: 'unfinished draft', generation_id: 'g' })
+    expect(workspace.messages.value.at(-1)?.content).toBe('')
+    expect(workspace.messages.value.at(-1)?.previewContent || '').toBe(mode === 'general' ? 'unfinished draft' : '')
+    workspace.draft.value = 'next question'
+    workspace.cancelMessage()
+    await job
+    expect(workspace.messages.value.at(-1)?.answerState).toBe('cancelled')
+    expect(workspace.draft.value).toBe('next question')
   })
 })

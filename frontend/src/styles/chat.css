@@ -825,3 +825,16 @@
 
 .evidence-panel.open { animation:evidence-enter var(--transition-panel); }
 @keyframes evidence-enter { from { opacity:0; transform:translateX(12px); } to { opacity:1; transform:translateX(0); } }
+
+/* Feedback belongs to the pending answer; the composer remains usable. */
+.answer-wait { padding: 12px 0; }
+.answer-wait .progress-summary { gap: 16px; }
+.answer-wait .step-list { max-height: 180px; }
+.draft-confirm { padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.answer-actions, .failure-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+@media (max-width: 600px) {
+  .answer-wait .step-list { max-height: 120px; }
+  .failure-notice { padding: 12px; }
+  .failure-notice .eyebrow { display: none; }
+  .failure-notice .failure-guidance { margin: 6px 0; }
+}

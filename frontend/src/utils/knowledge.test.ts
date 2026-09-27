@@ -71,3 +71,13 @@ describe('knowledge workbench helpers', () => {
       .not.toContain('Traceback')
   })
 })
+
+
+describe('business effective dates', () => {
+  it('distinguishes an omitted date from an explicitly entered epoch date', () => {
+    expect(formatKnowledgeDateRange('1970-01-01', null, false)).toBe('未指定生效日期')
+    expect(formatKnowledgeDateRange('1970-01-01', null, true)).toBe('1970-01-01 起')
+    expect(formatKnowledgeDateRange('1970-01-01')).toContain('待核实')
+    expect(formatKnowledgeDateRange('1970-01-01', '2025-12-31')).toBe('1970-01-01 至 2025-12-31（历史日期待核实）')
+  })
+})

@@ -312,6 +312,11 @@ async def ensure_user_memory_db(db_path: str | Path) -> None:
             )
             """
         )
+        cursor = await db.execute("PRAGMA table_info(chat_turn_results)")
+        turn_columns = {str(row[1]) for row in await cursor.fetchall()}
+        await cursor.close()
+        if "metadata_json" not in turn_columns:
+            await db.execute("ALTER TABLE chat_turn_results ADD COLUMN metadata_json TEXT NOT NULL DEFAULT '{}'")
         cursor = await db.execute("PRAGMA table_info(chat_messages)")
         columns = {str(row[1]) for row in await cursor.fetchall()}
         await cursor.close()
@@ -579,16 +584,27 @@ async def update_chat_session_title(
         await db.commit()
 
 
+def _turn_metadata(raw: str) -> dict[str, Any]:
+    try:
+        value = json.loads(raw or "{}")
+    except (TypeError, ValueError):
+        return {}
+    keys = {"attempt_group_id", "retry_of_turn_id", "mode", "web_search",
+            "failure_type", "failure_stage", "failure_reason", "trace_id"}
+    return {key: item for key, item in value.items() if key in keys} if isinstance(value, dict) else {}
+
+
 async def load_chat_messages(user_id: str, session_id: str) -> list[dict[str, Any]]:
     """Return chat messages for one session."""
 
     async with aiosqlite.connect(settings.sqlite_db_path) as db:
         cursor = await db.execute(
             """
-            SELECT role, content, citations_json, turn_id, message_id
-            FROM chat_messages
-            WHERE user_id = ? AND session_id = ?
-            ORDER BY id ASC
+            SELECT m.role, m.content, m.citations_json, m.turn_id, m.message_id, r.metadata_json
+            FROM chat_messages m LEFT JOIN chat_turn_results r
+              ON r.user_id=m.user_id AND r.session_id=m.session_id AND r.turn_id=m.turn_id
+            WHERE m.user_id = ? AND m.session_id = ?
+            ORDER BY m.id ASC
             """,
             (user_id, session_id),
         )
@@ -596,13 +612,17 @@ async def load_chat_messages(user_id: str, session_id: str) -> list[dict[str, An
         await cursor.close()
 
     result: list[dict[str, Any]] = []
-    for role, content, citations_json, turn_id, message_id in rows:
+    for role, content, citations_json, turn_id, message_id, metadata_json in rows:
+        metadata = _turn_metadata(metadata_json)
+        if role != "assistant":
+            metadata = {key: value for key, value in metadata.items() if key in {"attempt_group_id", "retry_of_turn_id", "mode", "web_search"}}
         try:
             citations = json.loads(citations_json or "[]")
         except (json.JSONDecodeError, TypeError):
             citations = []
         result.append(
             {
+                **metadata,
                 "role": role,
                 "content": content,
                 "citations": citations if isinstance(citations, list) else [],
@@ -626,7 +646,7 @@ async def load_completed_turn(
     async with aiosqlite.connect(settings.sqlite_db_path) as db:
         cursor = await db.execute(
             """
-            SELECT request_message, answer, citations_json
+            SELECT request_message, answer, citations_json, metadata_json
             FROM chat_turn_results
             WHERE user_id = ? AND session_id = ? AND turn_id = ?
             """,
@@ -635,12 +655,13 @@ async def load_completed_turn(
         result_row = await cursor.fetchone()
         await cursor.close()
         if result_row is not None:
-            request_message, answer, citations_json = result_row
+            request_message, answer, citations_json, metadata_json = result_row
             try:
                 citations = json.loads(citations_json or "[]")
             except (json.JSONDecodeError, TypeError):
                 citations = []
             return {
+                **_turn_metadata(metadata_json),
                 "user_content": str(request_message),
                 "content": str(answer),
                 "citations": citations if isinstance(citations, list) else [],
@@ -687,6 +708,7 @@ async def persist_completed_turn(
     request_message: str,
     answer: str,
     citations: list[dict[str, Any]] | None = None,
+    *, metadata: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Persist and return the first completed result for one stable turn ID."""
 
@@ -700,9 +722,9 @@ async def persist_completed_turn(
         await db.execute(
             """
             INSERT OR IGNORE INTO chat_turn_results (
-                user_id, session_id, turn_id, request_message, answer, citations_json
+                user_id, session_id, turn_id, request_message, answer, citations_json, metadata_json
             )
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 user_id,
@@ -711,11 +733,12 @@ async def persist_completed_turn(
                 clean_message,
                 clean_answer,
                 citations_json,
+                json.dumps(metadata or {}, ensure_ascii=False),
             ),
         )
         cursor = await db.execute(
             """
-            SELECT request_message, answer, citations_json
+            SELECT request_message, answer, citations_json, metadata_json
             FROM chat_turn_results
             WHERE user_id = ? AND session_id = ? AND turn_id = ?
             """,
@@ -726,12 +749,13 @@ async def persist_completed_turn(
         await db.commit()
     if row is None:
         raise RuntimeError("Completed turn was not persisted.")
-    stored_message, stored_answer, stored_citations_json = row
+    stored_message, stored_answer, stored_citations_json, stored_metadata_json = row
     try:
         stored_citations = json.loads(stored_citations_json or "[]")
     except (json.JSONDecodeError, TypeError):
         stored_citations = []
     return {
+        **_turn_metadata(stored_metadata_json),
         "user_content": str(stored_message),
         "content": str(stored_answer),
         "citations": stored_citations if isinstance(stored_citations, list) else [],
@@ -1478,6 +1502,7 @@ def _add_knowledge_record_unlocked(
         "version": version,
         "status": status,
         "effective_from": effective_from,
+        "effective_from_provided": bool(effective_from.strip()),
         "effective_to": effective_to,
         "owner": owner,
         "access_scope": access_scope,
@@ -1609,6 +1634,7 @@ def list_knowledge_records() -> list[dict[str, Any]]:
                 "version": str(record.get("version", "v1")).strip(),
                 "status": str(record.get("status", "active")).strip(),
                 "effective_from": record.get("effective_from"),
+                "effective_from_provided": record.get("effective_from_provided"),
                 "effective_to": record.get("effective_to"),
                 "owner": str(record.get("owner", "未指定")).strip(),
                 "access_scope": str(record.get("access_scope", "")).strip(),

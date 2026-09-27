@@ -126,7 +126,7 @@ export function uploadKnowledge(
 }
 
 export async function streamChat(
-  payload: { message: string; user_id: string; session_id: string; mode?: ChatMode; web_search?: boolean; turn_id?: string },
+  payload: { message: string; user_id: string; session_id: string; mode?: ChatMode; web_search?: boolean; turn_id?: string; attempt_group_id?: string; retry_of_turn_id?: string },
   onEvent: (event: StreamEvent) => void,
   signal?: AbortSignal,
 ): Promise<void> {

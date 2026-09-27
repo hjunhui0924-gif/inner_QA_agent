@@ -9,9 +9,10 @@ const props = defineProps<{
   failureStage?: string | null
   traceId?: string | null
   retryable?: boolean
+  busy?: boolean
 }>()
 
-const emit = defineEmits<{ retry: [] }>()
+const emit = defineEmits<{ retry: []; edit: []; withoutWeb: [] }>()
 
 const technicalOpen = ref(false)
 
@@ -41,17 +42,17 @@ const failureCopies: Record<string, FailureCopy> = {
   },
   search_error: {
     eyebrow: 'WEB SEARCH', title: '联网搜索暂时不可用',
-    message: '当前无法获取网页来源。', guidance: '可以点击“重新发送”再次尝试。',
+    message: '当前无法获取网页来源。', guidance: '可以重试，或修改问题后再试。',
   },
   search_answer_error: {
     eyebrow: 'WEB SEARCH', title: '联网回答校验未通过',
-    message: '已获得网页来源，但暂未生成引用完整的回答。', guidance: '可以点击“重新发送”再次尝试。',
+    message: '已获得网页来源，但暂未生成引用完整的回答。', guidance: '可以重试，或修改问题后再试。',
   },
   generation_error: {
     eyebrow: 'SERVICE LIMIT',
     title: '回答生成服务暂时不可用',
     message: '本次回答没有通过完整的生成流程。',
-    guidance: '可以点击“重新发送”再次尝试。',
+    guidance: '可以重试，或修改问题后再试。',
   },
   abstention_error: {
     eyebrow: 'KNOWLEDGE LIMIT',
@@ -62,8 +63,8 @@ const failureCopies: Record<string, FailureCopy> = {
   request_error: {
     eyebrow: 'REQUEST INCOMPLETE',
     title: '本次回答未完成',
-    message: '未收到经过校验的最终回答，候选内容已丢弃。',
-    guidance: '可以点击“重新发送”再次尝试。',
+    message: '本次未收到完整的最终回答。',
+    guidance: '可以重试，或修改问题后再试。',
   },
 }
 
@@ -118,15 +119,20 @@ function toggleTechnical(event: MouseEvent): void {
       <h3>{{ copy.title }}</h3>
       <p>{{ copy.message }}</p>
       <p class="failure-guidance">{{ copy.guidance }}</p>
-      <div v-if="canRetry" class="failure-actions">
+      <div class="failure-actions">
         <button
+          v-if="canRetry"
           class="failure-retry"
           type="button"
+          :disabled="busy"
           @click="emit('retry')"
         >
           重新发送
         </button>
+        <button type="button" class="text-button" :disabled="busy" @click="emit('edit')">编辑问题</button>
+        <button v-if="failureType?.startsWith('search_')" type="button" class="text-button" :disabled="busy" @click="emit('withoutWeb')">关闭联网，使用通用知识回答</button>
       </div>
+      <p v-if="failureType?.startsWith('search_')" class="failure-guidance">不联网回答无法保证信息为最新。</p>
       <details v-if="traceId || failureStage" class="technical-details" :open="technicalOpen">
         <summary @click="toggleTechnical">
           {{ technicalOpen ? '收起技术详情' : '查看技术详情' }}

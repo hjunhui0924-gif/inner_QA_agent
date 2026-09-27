@@ -17,6 +17,7 @@ import EvidencePanel from '../components/EvidencePanel.vue'
 import FailureNotice from '../components/FailureNotice.vue'
 import { useWorkspace } from '../composables/useWorkspace'
 import { useEvidenceSelection } from '../composables/useEvidenceSelection'
+import { groupAttempts } from '../utils/attempts'
 import type { UiMessage } from '../types/api'
 import { renderMarkdown } from '../utils/markdown'
 import { hasOpenModal } from '../utils/overlayStack'
@@ -48,7 +49,21 @@ const {
   select: selectEvidence,
   clear: clearEvidence,
 } = useEvidenceSelection()
+const expandedAttempts = ref(new Set<string>())
+const attemptGroups = computed(() => groupAttempts(messages.value))
+const collapsedIds = computed(() => new Set(attemptGroups.value.flatMap((group) =>
+  expandedAttempts.value.has(group.id) ? [] : group.attempts.slice(0, -1).flat().map((message) => message.id),
+)))
+const attemptSummaries = computed(() => new Map(attemptGroups.value.filter((group) => group.attempts.length > 1)
+  .map((group) => [group.attempts.at(-1)![0]!.id, group])))
+function toggleAttempts(id: string) {
+  const next = new Set(expandedAttempts.value)
+  if (next.has(id)) next.delete(id)
+  else next.add(id)
+  expandedAttempts.value = next
+}
 const composing = ref(false)
+const editCandidate = ref<string | null>(null)
 const evidenceContext = computed(() => {
   const message = messages.value.find(
     (item) => (item.message_id || item.id) === selection.value?.messageId,
@@ -150,7 +165,7 @@ const modes = [
 ]
 
 watch(
-  () => [messages.value.length, messages.value.at(-1)?.content],
+  () => [messages.value.length, messages.value.at(-1)?.content, messages.value.at(-1)?.answerState, messages.value.at(-1)?.previewContent],
   async () => {
     const follow = nearBottom.value && !restoringScroll && !loadingHistory.value
     await nextTick()
@@ -172,6 +187,7 @@ watch(
   () => {
     restoringScroll = true
     nearBottom.value = false
+    editCandidate.value = null
     evidenceOpen.value = false
     clearEvidence()
     void nextTick(restoreScroll)
@@ -235,6 +251,25 @@ async function submit(event?: KeyboardEvent) {
   draft.value = ''
   nearBottom.value = true
   await sendMessage(content)
+}
+
+function editQuestion(message: UiMessage) {
+  const index = messages.value.findIndex((item) => item.id === message.id)
+  const question = messages.value[index - 1]?.content
+  if (!question || sending.value) return
+  if (draft.value.trim() && draft.value !== question) {
+    editCandidate.value = question
+    return
+  }
+  draft.value = question
+  void nextTick(() => composer.value?.focus())
+}
+
+function replaceDraft() {
+  if (editCandidate.value === null) return
+  draft.value = editCandidate.value
+  editCandidate.value = null
+  void nextTick(() => composer.value?.focus())
 }
 
 function openCitations(message: UiMessage, event: Event, citationId?: string) {
@@ -329,18 +364,24 @@ function selectMode(mode: 'knowledge' | 'general') {
           <article
             v-for="message in messages"
             :key="message.id"
+            v-show="!collapsedIds.has(message.id)"
             class="message"
             :data-message-id="message.message_id || message.id"
             tabindex="-1"
             :class="[message.role, message.state]"
           >
+            <button v-if="attemptSummaries.has(message.id)" type="button" class="text-button attempt-toggle"
+              :aria-expanded="expandedAttempts.has(attemptSummaries.get(message.id)!.id)"
+              @click="toggleAttempts(attemptSummaries.get(message.id)!.id)">
+              {{ expandedAttempts.has(attemptSummaries.get(message.id)!.id) ? '收起' : '查看' }}此前 {{ attemptSummaries.get(message.id)!.attempts.length - 1 }} 次尝试
+            </button>
             <span class="message-label"
               ><el-icon v-if="message.role === 'assistant'" aria-hidden="true"
                 ><Collection /></el-icon
               >{{ message.role === 'user' ? '你' : '知识助手' }}</span
             >
             <div
-              v-if="message.content"
+              v-if="message.content && message.answerState !== 'fallback' && message.answerState !== 'error'"
               class="message-content"
               v-html="
                 renderMarkdown(
@@ -352,23 +393,20 @@ function selectMode(mode: 'knowledge' | 'general') {
               "
               @click="handleMessageContentClick($event, message)"
             />
-            <div
-              v-else-if="message.answerState === 'validating'"
-              class="answer-placeholder"
-            >
-              正在校验回答依据…
+            <div v-if="message.previewContent && message.answerState !== 'complete' && message.answerState !== 'fallback'" class="answer-preview">
+              <small class="preview-label">{{ ['cancelled', 'error'].includes(message.answerState || '') ? '未完成草稿 · 本次回答未完成' : '生成中 · 尚未完成' }}</small>
+              <div class="message-content" v-html="renderMarkdown(message.previewContent, [])" />
             </div>
-            <div
-              v-else-if="message.answerState === 'streaming'"
-              class="answer-placeholder"
-            >
-              {{ agentSteps.length ? '正在处理你的问题…' : '正在连接服务…' }}
+            <div v-if="message.role === 'assistant' && sending && message.id === messages.at(-1)?.id" class="answer-wait">
+              <AgentProgress :steps="agentSteps" :active="true" :started-at="sendingStartedAt" />
+              <button type="button" class="text-button" @click="cancelMessage">取消请求</button>
             </div>
-            <div
-              v-else-if="message.answerState === 'cancelled'"
-              class="answer-placeholder"
-            >
+            <div v-else-if="message.answerState === 'cancelled'" class="answer-placeholder">
               本次回答已取消。
+              <div class="answer-actions">
+                <button type="button" class="secondary-button" :disabled="sending" @click="retryMessage(message)">重新生成</button>
+                <button type="button" class="text-button" :disabled="sending" @click="editQuestion(message)">编辑问题</button>
+              </div>
             </div>
             <div v-if="message.citations?.length" class="citation-row">
               <button type="button" @click="openCitations(message, $event)">
@@ -381,6 +419,7 @@ function selectMode(mode: 'knowledge' | 'general') {
                 message.answerState === 'error'
               "
               :answer-state="message.answerState"
+              :busy="sending"
               :failure-type="message.failureType"
               :failure-stage="message.failureStage"
               :trace-id="message.traceId"
@@ -394,12 +433,14 @@ function selectMode(mode: 'knowledge' | 'general') {
                 ].includes(message.failureType || '')
               "
               @retry="retryMessage(message)"
+              @edit="editQuestion(message)"
+              @without-web="retryMessage(message, { withoutWeb: true })"
             />
             <div
               v-if="
                 message.role === 'assistant' &&
                 message.content &&
-                message.state === 'complete'
+                message.answerState === 'complete'
               "
               class="answer-actions"
             >
@@ -429,11 +470,11 @@ function selectMode(mode: 'knowledge' | 'general') {
           <el-icon aria-hidden="true"><ArrowDown /></el-icon> 回到最新回答
         </button>
         <p v-if="copyError" class="field-error" role="alert">{{ copyError }}</p>
-        <AgentProgress
-          :steps="agentSteps"
-          :active="sending"
-          :started-at="sendingStartedAt"
-        />
+        <div v-if="editCandidate !== null" class="draft-confirm" role="status">
+          输入框已有草稿，是否替换为原问题？
+          <button type="button" class="text-button" @click="replaceDraft">替换草稿</button>
+          <button type="button" class="text-button" @click="editCandidate = null">保留草稿</button>
+        </div>
         <form class="composer" @submit.prevent="submit()">
           <div
             v-if="!modeLocked"
@@ -474,7 +515,7 @@ function selectMode(mode: 'knowledge' | 'general') {
                 ? '例如：差旅报销超过 5000 元需要谁审批？'
                 : '例如：帮我整理一份产品发布会清单。'
             "
-            :disabled="sending || loadingHistory"
+            :disabled="loadingHistory"
             @compositionstart="composing = true"
             @compositionend="composing = false"
             @keydown.ctrl.enter.prevent="submit($event)"
@@ -497,7 +538,7 @@ function selectMode(mode: 'knowledge' | 'general') {
                 ><el-icon aria-hidden="true"><Collection /></el-icon>
                 企业知识库</span
               >
-              <span class="composer-shortcut">Ctrl / ⌘ + Enter 发送</span>
+              <span class="composer-shortcut">{{ sending ? '可先编辑下一条问题' : 'Ctrl / ⌘ + Enter 发送' }}</span>
             </div>
             <button
               v-if="sending"
@@ -505,7 +546,7 @@ function selectMode(mode: 'knowledge' | 'general') {
               type="button"
               @click="cancelMessage"
             >
-              取消请求
+              停止回答
             </button>
             <button
               v-else

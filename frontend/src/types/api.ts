@@ -39,6 +39,10 @@ export type AgentStepStatus =
   | 'error'
 
 export interface ChatHistoryItem {
+  attempt_group_id?: string | null
+  retry_of_turn_id?: string | null
+  mode?: ChatMode
+  web_search?: boolean
   role: 'user' | 'assistant'
   content: string
   citations?: Citation[]
@@ -59,6 +63,7 @@ export interface KnowledgeRecord {
   department?: string
   version?: string
   status?: string
+  effective_from_provided?: boolean | null
   effective_from?: string | null
   effective_to?: string | null
   owner?: string
@@ -117,8 +122,13 @@ export type StreamEvent =
       node_status?: Exclude<AgentStepStatus, 'pending'>
     }
   | { type: 'token'; content: string }
+  | { type: 'preview_delta'; content: string; generation_id: string }
   | {
       type: 'result'
+      attempt_group_id?: string | null
+      retry_of_turn_id?: string | null
+      mode?: ChatMode
+      web_search?: boolean
       content: string
       citations: Citation[]
       trace_id: string
@@ -131,6 +141,7 @@ export type StreamEvent =
   | { type: 'done'; trace_id: string }
 
 export interface UiMessage extends ChatHistoryItem {
+  previewContent?: string
   id: string
   state: 'complete' | 'streaming' | 'error' | 'cancelled'
   answerState?: AnswerState

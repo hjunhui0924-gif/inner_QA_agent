@@ -128,9 +128,12 @@ export function formatFileSize(bytes: number | null | undefined): string {
 export function formatKnowledgeDateRange(
   effectiveFrom?: string | null,
   effectiveTo?: string | null,
+  provided?: boolean | null,
 ): string {
   const from = String(effectiveFrom ?? '').trim()
   const to = String(effectiveTo ?? '').trim()
+  if (provided === false) return to ? `生效日期未指定 · 截至 ${to}` : '未指定生效日期'
+  if (provided == null && from === '1970-01-01') return `${to ? `${from} 至 ${to}` : `${from} 起`}（历史日期待核实）`
   if (from && to) return `${from} 至 ${to}`
   if (from) return `${from} 起`
   if (to) return `截至 ${to}`

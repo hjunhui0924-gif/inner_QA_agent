@@ -211,6 +211,7 @@ function syncAssistantMessage(
   assistant: UiMessage,
   streamState: StreamUiState,
 ): void {
+  assistant.previewContent = streamState.previewContent
   assistant.answerState = streamState.answerState
   assistant.state = uiStateForAnswer(streamState.answerState)
   assistant.failureType = streamState.failureType
@@ -340,7 +341,7 @@ async function openSession(targetSessionId: string): Promise<boolean> {
     const history = await fetchHistory(userId, targetSessionId)
     if (requestGeneration !== historyRequestGeneration) return false
     sessionId.value = targetSessionId
-    chatMode.value = readSessionModes()[targetSessionId] ?? 'knowledge'
+    chatMode.value = history.find((message) => message.mode)?.mode ?? readSessionModes()[targetSessionId] ?? 'knowledge'
     webSearchEnabled.value = false
     messages.value = history.map((message) => ({
       ...message,
@@ -421,7 +422,7 @@ async function removeSession(targetSessionId: string): Promise<void> {
   }
 }
 
-async function sendMessage(rawMessage: string): Promise<void> {
+async function sendMessage(rawMessage: string, retryOf?: UiMessage): Promise<void> {
   const content = rawMessage.trim()
   if (
     !content ||
@@ -435,6 +436,8 @@ async function sendMessage(rawMessage: string): Promise<void> {
   loadingSessions.value = false
 
   const turnId = generateUuid()
+  const groupId = retryOf?.attempt_group_id || retryOf?.turn_id || turnId
+  const attempt = { attempt_group_id: groupId, retry_of_turn_id: retryOf?.turn_id, mode: chatMode.value, web_search: webSearchEnabled.value }
   const timing = beginTurnTiming(turnId)
   void nextTick(() =>
     afterPaint(() => {
@@ -446,6 +449,7 @@ async function sendMessage(rawMessage: string): Promise<void> {
     (item) => item.session_id === sessionId.value,
   )
   const userMessage: UiMessage = {
+    ...attempt,
     id: `${turnId}:user`,
     role: 'user',
     content,
@@ -455,7 +459,8 @@ async function sendMessage(rawMessage: string): Promise<void> {
     state: 'complete',
     answerState: 'complete',
   }
-  const assistant: UiMessage = {
+  const assistant = reactive<UiMessage>({
+    ...attempt,
     id: `${turnId}:assistant`,
     role: 'assistant',
     content: '',
@@ -468,7 +473,7 @@ async function sendMessage(rawMessage: string): Promise<void> {
     failureStage: null,
     failureReason: null,
     traceId: null,
-  }
+  })
   messages.value.push(userMessage, assistant)
   agentSteps.value = []
   activeCitations.value = []
@@ -488,6 +493,8 @@ async function sendMessage(rawMessage: string): Promise<void> {
         mode: chatMode.value,
         web_search: webSearchEnabled.value,
         turn_id: turnId,
+        attempt_group_id: groupId,
+        retry_of_turn_id: retryOf?.turn_id || undefined,
       },
       (event: StreamEvent) => {
         if (event.type === 'status' && timing.firstStatusMs === undefined)
@@ -501,6 +508,7 @@ async function sendMessage(rawMessage: string): Promise<void> {
             }),
           )
         }
+        if (event.type === 'preview_delta' && (attempt.mode !== 'general' || attempt.web_search)) return
         streamState = reduceStreamEvent(streamState, event)
         syncAssistantMessage(assistant, streamState)
         agentSteps.value = streamState.steps
@@ -556,7 +564,7 @@ function cancelMessage(): void {
   activeController?.abort()
 }
 
-async function retryMessage(message: UiMessage): Promise<void> {
+async function retryMessage(message: UiMessage, options: { withoutWeb?: boolean } = {}): Promise<void> {
   if (sending.value || message.role !== 'assistant') return
   const messageIndex = messages.value.findIndex(
     (item) => item.id === message.id,
@@ -567,6 +575,8 @@ async function retryMessage(message: UiMessage): Promise<void> {
     notify('warning', '无法重新发送', '没有找到本次回答对应的问题。')
     return
   }
+  if (message.mode) chatMode.value = message.mode
+  if (message.web_search !== undefined) webSearchEnabled.value = message.web_search
   // Persisted search failures identify a web request even after the session's
   // search toggle (or its locally remembered mode) has been reset.
   if (
@@ -575,9 +585,13 @@ async function retryMessage(message: UiMessage): Promise<void> {
     )
   ) {
     chatMode.value = 'general'
-    webSearchEnabled.value = true
+    webSearchEnabled.value = !options.withoutWeb
   }
-  await sendMessage(previousMessage.content)
+  if (options.withoutWeb) {
+    chatMode.value = 'general'
+    webSearchEnabled.value = false
+  }
+  await sendMessage(previousMessage.content, message)
 }
 
 function showCitations(citations: Citation[]): void {

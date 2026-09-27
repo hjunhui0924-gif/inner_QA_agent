@@ -81,6 +81,9 @@ class ChatRequest(BaseModel):
     web_search: bool = False
     turn_id: str | None = Field(default=None, max_length=128)
 
+    attempt_group_id: str | None = Field(default=None, max_length=128)
+    retry_of_turn_id: str | None = Field(default=None, max_length=128)
+
     @field_validator("message")
     @classmethod
     def validate_message_budget(cls, value: str) -> str:
@@ -95,7 +98,7 @@ class ChatRequest(BaseModel):
             )
         return value
 
-    @field_validator("turn_id")
+    @field_validator("turn_id", "attempt_group_id", "retry_of_turn_id")
     @classmethod
     def validate_turn_id(cls, value: str | None) -> str | None:
         if value is None:
@@ -325,6 +328,7 @@ def _public_knowledge_record(
         "version": str(record.get("version", "")).strip(),
         "status": str(record.get("status", "")).strip(),
         "effective_from": record.get("effective_from"),
+        "effective_from_provided": record.get("effective_from_provided"),
         "effective_to": record.get("effective_to"),
         "owner": str(record.get("owner", "")).strip(),
         "original_filename": str(record.get("original_filename", "")).strip(),
@@ -498,9 +502,13 @@ async def _stream_graph_unlocked_core(
                     "citations": replay_citations,
                     "trace_id": trace_id,
                     "turn_id": turn_id,
-                    "failure_type": "none",
-                    "failure_stage": None,
-                    "failure_reason": None,
+                    "failure_type": completed_turn.get("failure_type", "none"),
+                    "failure_stage": completed_turn.get("failure_stage"),
+                    "failure_reason": completed_turn.get("failure_reason"),
+                    "attempt_group_id": completed_turn.get("attempt_group_id", turn_id),
+                    "retry_of_turn_id": completed_turn.get("retry_of_turn_id"),
+                    "mode": completed_turn.get("mode", payload.mode),
+                    "web_search": completed_turn.get("web_search", payload.web_search),
                     "replayed": True,
                 }
             )
@@ -544,6 +552,19 @@ async def _stream_graph_unlocked_core(
             event_name = str(event.get("event", ""))
             node_name = _extract_node_name(event)
 
+            if (
+                event_name == "on_custom_event"
+                and event.get("name") == "general_preview_delta"
+                and node_name == "generate"
+                and payload.mode == "general" and not payload.web_search
+                and final_state.get("route") == "direct"
+            ):
+                data = event.get("data") or {}
+                if isinstance(data, dict) and isinstance(data.get("content"), str):
+                    yield _sse_event({"type": "preview_delta", "content": data["content"],
+                                      "generation_id": str(data.get("generation_id", ""))})
+                continue
+
             run_id = str(event.get("run_id", node_name))
             if node_name in NODE_STATUS_MESSAGES and event.get("name") == node_name:
                 if event_name == "on_chain_start":
@@ -584,6 +605,15 @@ async def _stream_graph_unlocked_core(
         if not isinstance(response_citations, list):
             response_citations = []
         persistence_started = time.perf_counter()
+        outcome = build_trace(trace_id=trace_id, query=payload.message, state=final_state)
+        turn_metadata = {
+            "attempt_group_id": payload.attempt_group_id or str(graph_input["turn_id"]),
+            "retry_of_turn_id": payload.retry_of_turn_id,
+            "mode": payload.mode, "web_search": payload.web_search,
+            "failure_type": outcome["failure_type"],
+            "failure_stage": outcome.get("failure_stage"),
+            "failure_reason": outcome.get("failure_reason"), "trace_id": trace_id,
+        }
         completed_turn = await persist_completed_turn(
             user_id=payload.user_id,
             session_id=payload.session_id,
@@ -591,6 +621,7 @@ async def _stream_graph_unlocked_core(
             request_message=payload.message,
             answer=final_answer,
             citations=response_citations,
+            metadata=turn_metadata,
         )
         if completed_turn.get("user_content") != payload.message:
             raise HTTPException(
@@ -631,15 +662,7 @@ async def _stream_graph_unlocked_core(
             int(final_state.get("model_call_count", 0))
             + int(final_state.get("tool_call_count", 0))
         )
-        result_trace = build_trace(
-            trace_id=trace_id,
-            query=payload.message,
-            state={
-                **final_state,
-                "trace_include_content": settings.trace_include_content,
-                "trace_retention_days": settings.trace_retention_days,
-            },
-        )
+        result_trace = {**outcome, **completed_turn}
         yield _sse_event(
             {
                 "type": "result",
@@ -651,6 +674,9 @@ async def _stream_graph_unlocked_core(
                 "failure_stage": result_trace.get("failure_stage"),
                 "failure_reason": result_trace.get("failure_reason"),
                 "budget_snapshot": budget.snapshot(),
+                "attempt_group_id": completed_turn.get("attempt_group_id"),
+                "retry_of_turn_id": completed_turn.get("retry_of_turn_id"),
+                "mode": payload.mode, "web_search": payload.web_search,
             }
         )
         yield _sse_event({"type": "done", "trace_id": trace_id})
@@ -865,7 +891,7 @@ async def upload_knowledge_file(
     department: str = Form(default="unknown"),
     version: str = Form(default="v1"),
     status: str = Form(default="active"),
-    effective_from: str = Form(default="1970-01-01"),
+    effective_from: str = Form(default=""),
     effective_to: str = Form(default=""),
     owner: str = Form(default="未指定"),
     access_scope: str = Form(default="internal"),
@@ -892,7 +918,7 @@ async def upload_knowledge_file(
     department = str(form_default(department, "unknown"))
     version = str(form_default(version, "v1"))
     status = str(form_default(status, "active"))
-    effective_from = str(form_default(effective_from, "1970-01-01"))
+    effective_from = str(form_default(effective_from, ""))
     effective_to = str(form_default(effective_to, ""))
     owner = str(form_default(owner, "未指定"))
     access_scope = str(form_default(access_scope, "internal"))

@@ -203,7 +203,7 @@ watch(
           </div>
           <div>
             <dt>生效期间</dt>
-            <dd>{{ formatKnowledgeDateRange(record.effective_from, record.effective_to) }}</dd>
+            <dd>{{ formatKnowledgeDateRange(record.effective_from, record.effective_to, record.effective_from_provided) }}</dd>
           </div>
           <div v-if="record.content_length !== undefined">
             <dt>内容字数</dt>

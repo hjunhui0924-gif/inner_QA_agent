@@ -47,6 +47,8 @@ describe('FailureNotice', () => {
     expect(host?.textContent).toContain(title)
     expect(host?.textContent).not.toContain('补充可引用的知识库资料')
     expect(Boolean(host?.querySelector('.failure-retry'))).toBe(failureType !== 'search_no_results')
+    expect(host?.textContent).toContain('编辑问题')
+    expect(host?.textContent).toContain('关闭联网，使用通用知识回答')
   })
   it('explains citation failures without exposing internal reasons', () => {
     mountNotice({

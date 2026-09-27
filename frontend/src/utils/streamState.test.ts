@@ -155,3 +155,18 @@ describe('stream state reducer', () => {
     expect(state.pendingContent).toBe('')
   })
 })
+
+
+describe('general provisional preview', () => {
+  it('keeps preview separate, replaces it on regeneration and clears it on result', () => {
+    let state = reduceStreamEvent(createStreamState(), { type: 'preview_delta', content: 'draft', generation_id: 'one' })
+    expect(state.content).toBe('')
+    expect(state.previewContent).toBe('draft')
+    state = reduceStreamEvent(state, { type: 'preview_delta', content: 'new', generation_id: 'two' })
+    expect(state.previewContent).toBe('new')
+    state = reduceStreamEvent(state, { type: 'result', content: 'final', citations: [], trace_id: 't', failure_type: 'none' })
+    state = reduceStreamEvent(state, { type: 'preview_delta', content: 'late', generation_id: 'two' })
+    expect(state.previewContent).toBe('')
+    expect(state.content).toBe('final')
+  })
+})

@@ -506,3 +506,9 @@ python scripts/benchmark_citation_gate.py --live --baseline-ref 6e4f00a --repeat
 ```
 
 固定合成候选覆盖合理改写/翻译、日期、引用错配、条件遗漏、否定、拒答及注入内容。服务或输出格式错误会将比较标记为 blocked；新模式必须全部符合这组已标注预期才通过本轮 gate，不能把小型开发集当长期质量保证。详情见 [分工调整报告](docs/citation_validation_split_report.md)。
+
+### 等待反馈、通用预览与失败恢复
+
+不联网的通用回答现在支持真正的增量预览（SSE `preview_delta`），以“生成中”展示；`result.content` 仍是唯一正式结果。知识库和联网回答继续校验后交付，取消/断网的预览不作为完整答案保存。`web_search=false` 明确禁止自动联网，不再因问题关键词重新开启。
+
+回答期间可编辑下一条草稿；取消后可重新生成或编辑；重试按同一问题折叠，关联随历史保存。知识管理页提示后台任务状态。未填写的上传生效日期与索引边界日期分开展示。行为、协议、测试与真实截图见 [交互修复报告](docs/interaction_recovery_implementation.md)。

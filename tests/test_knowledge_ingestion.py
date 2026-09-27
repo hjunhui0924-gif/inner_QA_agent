@@ -41,12 +41,17 @@ class KnowledgeIngestionTests(unittest.TestCase):
                 memory.add_knowledge_record(
                     "差旅制度", "超过5000元需财务负责人复核。", "test", "policy.md",
                     department="Finance", allowed_roles=["employee"], denied_roles=["guest"],
+                    effective_from="",
                 )
                 documents = store.similarity_search("差旅", k=1)
                 self.assertEqual(len(documents), 1)
                 self.assertEqual(documents[0].metadata["allowed_roles"], ["employee"])
                 self.assertEqual(documents[0].metadata["denied_roles"], ["guest"])
                 self.assertFalse(documents[0].metadata.get("required_scopes"))
+                from backend.api.routes import _public_knowledge_record
+                public_record = _public_knowledge_record(memory.list_knowledge_records()[0], include_content=False)
+                self.assertIs(public_record["effective_from_provided"], False)
+                self.assertEqual(public_record["effective_from"], "1970-01-01")
         finally:
             store.delete_collection()
 

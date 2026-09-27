@@ -421,6 +421,7 @@ function closeDetails(): void {
                 formatKnowledgeDateRange(
                   record.effective_from,
                   record.effective_to,
+                  record.effective_from_provided,
                 )
               }}</span>
               <span v-if="record.owner">{{ record.owner }}</span>

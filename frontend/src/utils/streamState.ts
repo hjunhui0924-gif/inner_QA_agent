@@ -9,6 +9,8 @@ export interface StreamUiState {
   answerState: AnswerState
   content: string
   pendingContent: string
+  previewContent: string
+  previewGeneration: string
   resultReceived: boolean
   citations: Citation[]
   failureType: string | null
@@ -120,6 +122,8 @@ export function createStreamState(): StreamUiState {
     answerState: 'streaming',
     content: '',
     pendingContent: '',
+    previewContent: '',
+    previewGeneration: '',
     resultReceived: false,
     citations: [],
     failureType: null,
@@ -142,6 +146,11 @@ export function reduceStreamEvent(state: StreamUiState, event: StreamEvent): Str
     return reduceStatus(state, event)
   }
 
+  if (event.type === 'preview_delta') {
+    return { ...state, answerState: 'streaming', previewGeneration: event.generation_id,
+      previewContent: ((state.previewGeneration === event.generation_id ? state.previewContent : '') + event.content).slice(0, 100000) }
+  }
+
   if (event.type === 'token') {
     return state.resultReceived
       ? state
@@ -160,6 +169,8 @@ export function reduceStreamEvent(state: StreamUiState, event: StreamEvent): Str
       answerState: failureType && failureType !== 'none' ? 'fallback' : 'complete',
       content: event.content,
       pendingContent: '',
+      previewContent: '',
+      previewGeneration: '',
       resultReceived: true,
       citations: event.citations ?? [],
       failureType,
