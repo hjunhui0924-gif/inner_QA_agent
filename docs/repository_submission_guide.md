@@ -8,7 +8,7 @@
 - Python 字节码和缓存：`__pycache__/`、`*.pyc`、`.pytest_cache/`、`.mypy_cache/`、`.ruff_cache/`。
 - 前端依赖和构建产物：`frontend/node_modules/`、`frontend/dist/`、`*.tsbuildinfo`、`.vite/`。
 - 本地运行数据：`data/memory.db`、SQLite WAL 文件、`data/chroma_db/`、`data/eval_indexes/`、`data/uploads/`、`data/traces/`。
-- 本地浏览器验收截图和报告：`work/`、`playwright-report/`、`test-results/`、`blob-report/`。
+- 本地浏览器验收截图和报告：`work/`、`playwright-report/`、`test-results/`、`blob-report/`。README 专用、已审查且仅含合成资料的界面截图存放于 `docs/assets/`，属于可提交文档资源，不包含原始运行报告。
 - 覆盖率、临时文件和本地工具缓存。
 
 这些内容要么可以重新生成，要么可能包含会话、上传文档、内部路径或密钥，不适合上传到公开仓库。

@@ -2,6 +2,8 @@
 
 一个基于 `LangGraph + DeepSeek/Qwen + FastAPI + Vue 3` 的企业内部知识问答项目，用于将企业制度、流程、合同、财务、人事等内部文档接入知识库，并通过 RAG 提供可检索、可追溯的问答能力。
 
+[界面预览](#界面预览) · [系统架构](#系统架构) · [快速启动](#快速启动本地开发) · [当前交付状态](#当前交付状态2026-09-28)
+
 ## 项目简介
 
 这个项目面向企业内部场景，核心目标是把企业内部文件沉淀为可检索知识库，并让员工通过对话方式查询制度、流程和规范。
@@ -27,6 +29,106 @@ Vue 前端的设计系统、目录和当前接入边界见 [frontend/README.md](
 [《统一 RAG 评测》](docs/unified_rag_evaluation.md)。
 GitHub 提交边界和本地运行文件清单见
 [《GitHub 提交边界》](docs/repository_submission_guide.md)。
+
+## 界面预览
+
+以下截图来自当前 Vue 页面，问答与文档列表使用确定性合成资料，仅展示界面和交互，不代表真实模型回答质量或企业业务数据。图片随仓库提供，无需访问本地 `work/` 目录。
+
+**产品首页**
+
+![企业知识助手产品首页，包含产品介绍和工作台入口](docs/assets/product-home.webp)
+
+**知识问答与引用来源**
+
+![问答工作台中的论文式引用、参考来源列表和原文面板](docs/assets/knowledge-answer.webp)
+
+**知识管理**
+
+![知识管理页的筛选、文档列表和固定每页十份的分页](docs/assets/knowledge-library.webp)
+
+## 系统架构
+
+下图为组件关系，省略了节点内部的有界重试与错误分支；默认本地开发身份不等于企业账号系统。
+
+```mermaid
+flowchart TB
+    UI["Vue 3 产品首页 / 问答 / 知识管理"] <-->|"HTTP / SSE"| API["FastAPI 接口与服务端权限校验"]
+    API <--> GRAPH["LangGraph：上下文、路由、生成、校验与有界回退"]
+    API --> INGEST["文档解析、去重与入库"]
+    GRAPH --> RETRIEVE["知识检索：ACL、向量 + 词法、RRF 与重排"]
+    GRAPH --> MODEL["DeepSeek / DashScope：生成与 Judge"]
+    GRAPH --> SEARCH["按需联网：Tavily / DashScope 适配器"]
+    GRAPH <--> MEMORY[("SQLite：会话、摘要与检查点")]
+    INGEST --> STORE[("文档 JSON / Chroma / 上传文件")]
+    RETRIEVE <--> STORE
+    API -.-> TITLE["答案交付后的后台标题任务"]
+    TITLE --> MODEL
+    TITLE --> MEMORY
+    EMBED["DashScope Embedding / Rerank"] -.-> INGEST
+    EMBED -.-> RETRIEVE
+```
+
+- 知识库回答使用稳定证据标识消除跨轮编号歧义，验证后转换为接口引用；前端再显示为上标 `[1]`。图中的引用/Judge 流程以本地 `judge` 模式说明，仓库仍保留 `legacy` 模式。
+- Tavily 路径检索网页摘要后调用文本模型生成答案；网页来源映射校验不等于独立事实审核。普通通用非联网回答可提前显示预览，`result` 始终是正式结果。
+- 文档查看、下载、检索及会话操作都执行服务端授权；模型/工具调用有预算和重试上限。标题任务不阻塞答案交付，目前为单进程最佳努力队列。
+
+具体节点见 [graph.py](backend/agent/graph.py)，接口见 [routes.py](backend/api/routes.py)，配置见 [config.py](backend/config.py)。
+
+## 快速启动（本地开发）
+
+需要 Python 3.11+、Node.js 20.19+ 或 22.12+（Vite 7 支持的版本）与各供应商有效凭据。以下使用 PowerShell，在两个终端分别运行前后端。
+
+**1. 获取源码并安装依赖**
+
+```powershell
+git clone https://github.com/hjunhui0924-gif/inner_QA_agent.git
+cd inner_QA_agent
+python -m pip install -r requirements.txt
+npm --prefix frontend ci
+```
+
+**2. 配置环境变量**
+
+首次运行复制模板；若已有 `.env`，保留并按需修改，不覆盖现有凭据：
+
+```powershell
+if (-not (Test-Path -LiteralPath .env)) {
+    Copy-Item -LiteralPath .env.example -Destination .env
+}
+```
+
+编辑根目录 `.env`，按下表选择配置。完整参数见下方“环境变量”。
+
+| 配置 | 必需设置 |
+|---|---|
+| 保留仓库默认 DashScope | 填写 `DASHSCOPE_API_KEY`；默认文本、Embedding、重排及搜索均走 DashScope，账户需有对应模型权限/额度 |
+| 使用当前本地验收组合 | 设置 `MODEL_PROVIDER=deepseek`、`MODEL_NAME=deepseek-v4-pro`、`JUDGE_MODEL_NAME=deepseek-v4-pro`、`CITATION_VALIDATION_MODE=judge`、`WEB_SEARCH_PROVIDER=tavily`；填写 DeepSeek、Tavily、DashScope 各自密钥 |
+
+DeepSeek/Tavily 组合仍由 DashScope 提供 Embedding 和重排。仅体验知识库问答可关闭联网，不需要调用 Tavily。服务不是完全离线运行，真实模型调用可能消耗额度。
+
+**3. 启动后端（终端一，项目根目录）**
+
+```powershell
+python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+首次启动会初始化本地 SQLite、Chroma 和种子资料索引，可能调用 Embedding 服务；等待日志显示 `Application startup complete`。项目自带资料为合成种子，不是真实公司制度。
+
+**4. 启动前端（终端二，项目根目录）**
+
+```powershell
+npm --prefix frontend run dev -- --host 127.0.0.1 --port 5173 --strictPort
+```
+
+| 地址 | 用途 |
+|---|---|
+| <http://127.0.0.1:5173> | 产品首页 |
+| <http://127.0.0.1:5173/chat> | 问答工作台 |
+| <http://127.0.0.1:5173/knowledge> | 知识管理 |
+| <http://127.0.0.1:8000/health> | 后端健康检查 |
+| <http://127.0.0.1:8000/docs> | FastAPI 接口文档 |
+
+Vite 将 `/api` 请求代理到 8000 端口，开发时无需另设前端 API 地址。若启动失败，先检查凭据、模型权限/额度与端口占用；修改 `.env` 后重启后端。`AUTH_MODE=development` 仅用于本地开发，不作为公网多人部署配置。
 
 ## 技术栈
 
@@ -65,7 +167,7 @@ README.md
 
 - Python 3.11+
 - Conda 环境即可，不要求额外创建虚拟环境
-- Node.js 20+ 与 npm
+- Node.js 20.19+ 或 22.12+ 与 npm（Vite 7 支持的版本）
 
 ## 安装依赖
 
@@ -220,58 +322,34 @@ Trace 和浏览器验收产物已经写入 `.gitignore`。知识库种子、评�
 已跟踪的评测报告属于项目可复现资料，默认继续保留；详细边界和移除已跟踪报告的注意事项
 见 [GitHub 提交边界](docs/repository_submission_guide.md)。
 
-## 启动方式
+## 本地验证
 
-启动后端：
+前后端启动顺序见上方“快速启动”。以下命令在项目根目录执行。
 
-```bash
-uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
+### 单元测试与构建
+
+```powershell
+python -m pytest tests -q
+npm --prefix frontend test
+npm --prefix frontend run build
 ```
+
+若未安装 pytest，先运行 `python -m pip install pytest`；浏览器测试依赖单独列在 `requirements-e2e.txt`。前端构建包含 TypeScript 类型检查。
 
 ### MVP 浏览器验收
 
-浏览器验收脚本覆盖会话新建、模式切换、流式回答、引用证据、继续追问、会话删除、
-知识库上传、筛选、文档详情和来源下载。后端解析、持久化和权限仍由 Python 测试
-直接验证。浏览器测试使用本机 Chrome 或 Edge，并通过浏览器边界注入确定性 API 响应，
-不会消耗在线模型额度。
+浏览器验收脚本覆盖会话新建、模式切换、流式回答、引用证据、继续追问、会话删除、知识库上传、筛选、文档详情和来源下载。后端解析、持久化和权限仍由 Python 测试直接验证。
 
-```bash
+先启动 5173 端口的前端，并确保已安装本机 Chrome 或 Edge：
+
+```powershell
 python -m pip install -r requirements-e2e.txt
 python tests/e2e_mvp_browser.py
 ```
 
-运行前先启动前端：
+该脚本通过浏览器边界注入确定性 API 响应，不消耗在线模型额度。更多浏览器与隔离真实模型验收步骤见 [前端说明](frontend/README.md) 和 [M6 执行清单](docs/product_experience_optimization_plan.md)。
 
-```bash
-cd frontend
-npm run dev -- --host 127.0.0.1
-```
-
-启动 Vue 前端：
-
-```bash
-cd frontend
-npm run dev
-```
-
-浏览器访问 `http://127.0.0.1:5173`。Vite 开发服务器已预留 `/api` 到
-`http://127.0.0.1:8000` 的本地代理。
-
-执行前端类型检查和生产构建：
-
-```bash
-cd frontend
-npm run typecheck
-npm run build
-```
-
-Vue 是项目唯一前端，已接入真实 SSE 问答、Agent 节点状态、双模式会话、联网搜索开关、
-模型生成的会话标题、会话历史与删除、结构化引用、知识文件上传和知识库列表。一个会话
-开始后前端隐藏模式切换器，并在浏览器中记住该会话模式。前端通过 Vite 的 `/api` 代理访问 FastAPI；直接跨域
-开发时，后端也允许 `.env` 中 `FRONTEND_ORIGINS` 配置的来源。
-
-仓库不再包含旧 Streamlit 入口及其 Python 依赖。请统一使用上述 Vue/Vite 命令启动前端；
-历史命令 `streamlit run frontend/streamlit_app.py` 已失效。
+Vue 是项目唯一前端，旧 Streamlit 入口已移除。直接跨域开发时，由后端 `.env` 中的 `FRONTEND_ORIGINS` 配置允许来源；默认 Vite 代理无需额外改动。
 
 ## 主要接口
 
