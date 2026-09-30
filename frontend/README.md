@@ -63,11 +63,11 @@ src/
 ## 本地开发
 
 ```bash
-npm install
-npm run dev
+npm ci
+npm run dev -- --host 127.0.0.1 --port 5173 --strictPort
 ```
 
-开发地址为 `http://127.0.0.1:5173`。`vite.config.ts` 已预留 `/api` 到
+以上命令在 `frontend/` 目录执行；后端启动与环境配置见 [根目录快速启动](../README.md#快速启动本地开发)。开发地址为 `http://127.0.0.1:5173`。`vite.config.ts` 已预留 `/api` 到
 `http://127.0.0.1:8000` 的代理。
 
 检查命令：
@@ -101,14 +101,7 @@ npm run build
 - Vitest 的 SSE 分片、答案交付状态、引用安全渲染、组合函数和证据面板交互测试；
 - 桌面与 390px 移动端手工浏览器联调；根目录 `tests/e2e_mvp_browser.py` 提供 MVP 浏览器验收，使用本机 Chrome/Edge 和确定性 API fixture，不把 `frontend/node_modules`、构建产物或浏览器报告提交到 GitHub。
 
-Vue 是项目唯一前端。真实联调脚本为 `python tests/e2e_live_backend.py --live`（在项目根目录执行），
-使用隔离数据和真实模型，会消耗模型配额。2026-09-12 修复后真实联调 14/14 通过，
-包括 RAG 引用、联网来源和刷新恢复；前端单测 70 项通过，生产构建通过。具体证据及
-答案质量评测的剩余问题见 [后端与前端真实接口验证](../docs/backend_frontend_verification.md)。
-
-2026-09-13 发布前修复：历史联网失败的“重新发送”会恢复通用模式与联网开关，避免重试退化成普通回答；新增两项回归后前端单测为 72 项通过，生产构建通过。
-
-旧 Streamlit 实现、入口文件和依赖已经移除，本目录只维护 Vue/Vite 前端。
+真实后端联调在项目根目录执行 `python tests/e2e_live_backend.py --live`，使用隔离数据和真实模型，会消耗模型配额。历史验收见 [后端与前端真实接口验证](../docs/backend_frontend_verification.md)；当前测试结果以本次运行输出为准。
 
 ## 布局与交互回归
 
@@ -123,23 +116,23 @@ python tests/e2e_paper_citations.py
 
 第二个脚本覆盖六种常规视口、三种低高度视口、首屏输入区与文档列表、上传抽屉焦点、答案复制、长会话滚动和引用侧栏/手机抽屉。截图保存在忽略提交的 `work/` 目录。浏览器边界注入确定性响应，不调用在线模型，也不写入实际知识库。
 
-## 2026-09-26 产品体验版本
+## 部署与性能测量
 
-统一浅色系统，答案正文 16px，知识管理使用独立布局。上传状态和表单留在工作区内存，关闭抽屉或跨页不会重复提交；刷新网页不保证恢复任务。首页与两业务路径都可直接访问，部署静态服务器须配置 SPA 回退到 index.html，实际线上服务器未由本轮部署。
+统一浅色系统，答案正文 16px，知识管理使用独立布局。上传状态和表单留在工作区内存，关闭抽屉或跨页不会重复提交；刷新网页不保证恢复任务。首页与两业务路径都可直接访问，部署静态服务器须配置 SPA 回退到 index.html。
 
 开发模式下可在浏览器控制台读取 `window.workspacePerformance.snapshot()` 或调用 `clear()` 清空；记录最多 100 轮，无问题/答案正文。双 requestAnimationFrame 是首次绘制的近似观测，不是浏览器呈现硬件时间。记录不可代替真实后端 benchmark。
 
-新增确定性验收 `python tests/e2e_product_experience.py`；本机性能脚本 `python tests/benchmark_browser_experience.py` 要求开发服务 5173 和生产 preview 4173 同时运行。真实 HTTP 基准使用 `python scripts/benchmark_chat_latency.py --help`，必须显式 `--live` 并指向隔离后端。
+确定性验收 `python tests/e2e_product_experience.py`；本机性能脚本 `python tests/benchmark_browser_experience.py` 要求开发服务 5173 和生产 preview 4173 同时运行。真实 HTTP 基准使用 `python scripts/benchmark_chat_latency.py --help`，必须显式 `--live` 并指向隔离后端。
 
-本轮验收结果、截图、性能样本与限制见 [实施报告](../docs/product_experience_implementation_report.md)。上方 2026-09-12 数字为历史记录，不能当作本轮证据。
+历史验收结果、截图、性能样本与限制见 [实施报告](../docs/product_experience_implementation_report.md)。
 
 补充验收：`python tests/e2e_experience_edge_cases.py` 覆盖真正 200% 标签页缩放、触控模拟、嵌套来源抽屉及权限/断流/取消边界；需要支持扩展的 Playwright Chromium，可通过 `CHROMIUM_EXECUTABLE` 指定其路径。模拟触控不等于真实设备验收。
 
 
-## 当前行为与验收边界（2026-09-28）
+## 交互行为与验收边界
 
 正文引用按每条回答的 citations 顺序显示 `[1]`、`[2]`；后台 `citation_id` / `evidence_id` 保留用于来源映射，不展示长 ID 或 `<sup>` 标签文本。相同引用重复出现沿用编号，面板摘要和参考来源列表一致。鼠标点击无按钮焦点外圈，键盘导航保留焦点；关闭面板返回原触发器。
 
 普通通用非联网回答允许增量预览，正式结果仍以 result 为准；知识库与联网回答校验后交付。等待阶段可编辑下一条草稿，取消或失败支持重新生成/编辑，重试按问题折叠。联网由用户显式开启，关闭时不会自动触发。
 
-最近一次前端回归为 92 项通过，类型检查及构建通过。论文式引用已在 Chrome 桌面/手机尺寸和 API fixtures 下检查，不能替代真机软键盘、Firefox/WebKit 或真实模型质量验收。当前完整状态见 [收尾报告](../docs/product_experience_final_acceptance.md)，M6 下一步见 [优化方案](../docs/product_experience_optimization_plan.md)。
+前端回归数量和构建状态以 `npm run test`、`npm run build` 的实际输出为准。论文式引用已在 Chrome 桌面/手机尺寸和 API fixtures 下检查，不能替代真机软键盘、Firefox/WebKit 或真实模型质量验收。阶段验收记录见 [收尾报告](../docs/product_experience_final_acceptance.md)，M6 下一步见 [优化方案](../docs/product_experience_optimization_plan.md)。

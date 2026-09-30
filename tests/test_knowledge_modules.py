@@ -168,6 +168,25 @@ class _PartialReranker:
 
 
 class RetrievalTests(unittest.TestCase):
+    def test_lexical_search_uses_version_metadata_for_old_version_queries(self) -> None:
+        current = Document(
+            page_content="年假与调休需由直属主管审批。",
+            metadata={"chunk_id": "leave-v2", "title": "员工请假流程", "version": "v2", "status": "active"},
+        )
+        old = Document(
+            page_content="年假与调休由直属主管审批。",
+            metadata={"chunk_id": "leave-v1", "title": "员工请假流程（旧版）", "version": "v1", "status": "deprecated"},
+        )
+        engine = RetrievalEngine(
+            _DenseFake([current, old]),
+            [current, old],
+            config=RetrievalConfig(lexical_candidate_k=2, production_strategy="lexical"),
+        )
+
+        result = engine.retrieve("旧版年假和调休由谁审批？", top_k=1, strategy="lexical")
+
+        self.assertEqual(result.documents[0].metadata["chunk_id"], "leave-v1")
+
     def test_lexical_rank_can_rescue_an_exact_identifier(self) -> None:
         irrelevant = Document(
             page_content="会议室预约需要提前十分钟确认。",

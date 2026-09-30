@@ -485,7 +485,9 @@ class RetrievalEngine:
         return list(self._documents)
 
     def _rebuild_lexical_index(self) -> None:
-        self._token_counts = [Counter(tokenize(doc.page_content)) for doc in self._documents]
+        self._token_counts = [
+            Counter(tokenize(_document_search_text(doc))) for doc in self._documents
+        ]
         self._document_lengths = [sum(counts.values()) for counts in self._token_counts]
         self._average_length = (
             sum(self._document_lengths) / len(self._document_lengths)
@@ -581,6 +583,16 @@ def tokenize(text: str) -> list[str]:
         if len(run) >= 3:
             tokens.extend(run[index : index + 3] for index in range(len(run) - 2))
     return tokens
+
+
+def _document_search_text(document: Document) -> str:
+    """Include searchable metadata so version labels can disambiguate content."""
+
+    metadata = document.metadata
+    return " ".join(
+        str(metadata.get(field, ""))
+        for field in ("title", "version", "status", "document_family")
+    ) + "\n" + document.page_content
 
 
 def _query_prefers_current(query: str) -> bool:

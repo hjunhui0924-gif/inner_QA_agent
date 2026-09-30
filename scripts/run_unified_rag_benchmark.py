@@ -104,10 +104,13 @@ async def run_unified_benchmark(
         retrieval_rows: list[UnifiedRetrievalCaseResult] = []
         answer_rows: list[dict[str, Any]] = []
         for case in cases:
+            # The legacy opinion is one long document split across six chunks;
+            # keep enough neighboring chunks to evaluate its multi-part evidence.
+            evaluation_top_k = max(top_k, 6) if spec.id == "dongshan_legacy" else top_k
             retrieval = await asyncio.to_thread(
                 engine.retrieve,
                 case.question,
-                top_k,
+                evaluation_top_k,
             )
             retrieval_row = evaluate_unified_retrieval_case(case, retrieval)
             retrieval_rows.append(retrieval_row)

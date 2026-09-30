@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import math
 import statistics
+import unicodedata
+import re
 from collections import defaultdict
 from dataclasses import asdict, dataclass
 from typing import Any, Callable, Iterable
@@ -131,7 +133,11 @@ def _evaluate_case(
     ]
     first_rank = min(source_ranks) if source_ranks else None
     combined = "\n".join(document.page_content for document in documents)
-    evidence_hits = sum(phrase in combined for phrase in case.evidence_phrases)
+    normalized_combined = normalize_evidence_text(combined)
+    evidence_hits = sum(
+        normalize_evidence_text(phrase) in normalized_combined
+        for phrase in case.evidence_phrases
+    )
     evidence_recall = evidence_hits / len(case.evidence_phrases)
     source_hit = first_rank is not None
     candidate_source_hit = bool(candidate_sources & set(case.source_ids))
@@ -262,6 +268,13 @@ def _group_results(
 def _mean(values: Iterable[float | bool | None]) -> float:
     cleaned = [float(value) for value in values if value is not None]
     return sum(cleaned) / len(cleaned) if cleaned else 0.0
+
+
+def normalize_evidence_text(value: str) -> str:
+    """Normalize layout and numeric separators before exact evidence matching."""
+
+    normalized = unicodedata.normalize("NFKC", value).casefold()
+    return re.sub(r"[\s,，]", "", normalized)
 
 
 def _percentile(values: list[float], quantile: float) -> float:

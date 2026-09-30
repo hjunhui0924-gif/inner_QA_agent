@@ -12,6 +12,7 @@ from langchain_core.documents import Document
 
 from backend.evaluation.retrieval import (
     RetrievalEvalCase,
+    normalize_evidence_text,
     run_retrieval_ablation,
     validate_cases_against_corpus,
 )
@@ -49,6 +50,12 @@ class _EvaluationEngineFake:
 
 
 class RetrievalEvaluationTests(unittest.TestCase):
+    def test_evidence_matching_normalizes_numeric_separators_and_layout(self) -> None:
+        self.assertEqual(
+            normalize_evidence_text("1,032,766,222"),
+            normalize_evidence_text("1 032 766 222"),
+        )
+
     def test_metrics_exclude_no_answer_cases_from_recall(self) -> None:
         cases = [
             RetrievalEvalCase(

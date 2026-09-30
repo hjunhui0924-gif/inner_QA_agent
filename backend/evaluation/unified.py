@@ -11,6 +11,8 @@ from __future__ import annotations
 import json
 import math
 import statistics
+import re
+import unicodedata
 from collections import Counter
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -328,17 +330,18 @@ def evaluate_unified_retrieval_case(
 
 
 def _evidence_phrase_present(phrase: str, content: str, *, legacy: bool) -> bool:
-    """Match legacy numeric variants without weakening structured gold checks."""
+    """Match layout and numeric separator variants in extracted document text."""
 
     if phrase in content:
         return True
-    if not legacy:
-        return False
-    normalize = lambda value: "".join(  # noqa: E731
-        character for character in value if character not in {" ", "\t", ",", "，"}
-    )
-    normalized_phrase = normalize(phrase)
-    return bool(normalized_phrase) and normalized_phrase in normalize(content)
+    normalized_phrase = _normalize_evidence_text(phrase)
+    normalized_content = _normalize_evidence_text(content)
+    return bool(normalized_phrase) and normalized_phrase in normalized_content
+
+
+def _normalize_evidence_text(value: str) -> str:
+    normalized = unicodedata.normalize("NFKC", value).casefold()
+    return re.sub(r"[\s,，]", "", normalized)
 
 
 def aggregate_unified_retrieval(
