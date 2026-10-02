@@ -2,7 +2,7 @@
 
 一个基于 `LangGraph + DeepSeek/Qwen + FastAPI + Vue 3` 的企业内部知识问答项目，用于将企业制度、流程、合同、财务、人事等内部文档接入知识库，并通过 RAG 提供可检索、可追溯的问答能力。
 
-[界面预览](#界面预览) · [系统架构](#系统架构) · [快速启动](#快速启动本地开发) · [测试与评测](#测试与评测)
+[当前状态与待办](docs/current_status.md) · [界面预览](#界面预览) · [系统架构](#系统架构) · [快速启动](#快速启动本地开发) · [测试与评测](#测试与评测)
 
 ## 项目简介
 
@@ -152,26 +152,148 @@ Vite 将 `/api` 请求代理到 8000 端口，开发时无需另设前端 API �
 
 ## 目录结构
 
+以下展开业务源码与常用入口；省略 Python 包标记 `__init__.py`，同目录的 `*.test.ts` 为前端单元测试。题集、报告及历史文档按用途归类。
+
 ```text
-backend/
-  agent/          # 工作流、会话、引用和搜索工具
-  api/            # HTTP / SSE 接口
-  auth/           # 服务端身份与访问控制
-  knowledge/      # 文档结构、分块、去重和 Embedding
-  retrieval/      # 检索与重排
-  evaluation/     # 检索、回答和 Judge 评测
-  observability/  # 请求预算、Trace 和指标
-  config.py
-  main.py
-frontend/         # Vue 3 + Vite + TypeScript 工作台
-scripts/          # 评测、语料准备与性能基准
-tests/           # Python 回归和浏览器验收脚本
-data/
-  knowledge_base.json
-  evals/          # 题集、统一目录和门禁阈值
-  eval_reports/   # 已保存的评测报告
-docs/             # 设计、实施与历史验收记录
+backend/                              # 后端服务与 Agent 核心
+├── main.py                           # 创建应用，初始化存储与工作流
+├── config.py                         # 读取环境配置，校验模型与预算参数
+├── api/
+│   └── routes.py                     # 问答 SSE、会话和知识文件接口
+├── auth/
+│   └── access.py                     # 解析可信身份，校验文档访问权限
+├── agent/
+│   ├── graph.py                      # 组装 LangGraph 节点与执行路径
+│   ├── state.py                      # 定义节点共享状态和回答字段
+│   ├── nodes.py                      # 实现路由、检索、生成与答案校验
+│   ├── edges.py                      # 决定分支、重试与终止条件
+│   ├── conversation.py               # 估算上下文用量，规划历史摘要与裁剪
+│   ├── checkpoint.py                 # 过滤候选草稿，保存可恢复状态
+│   ├── sessions.py                   # 统一会话 ID、操作锁与完整删除
+│   ├── memory.py                     # 管理会话存储、文档解析与知识入库
+│   ├── citations.py                  # 生成稳定证据标识，校验引用与出处
+│   ├── tools.py                      # 封装时间、知识检索及联网工具结果
+│   ├── web_search.py                 # 适配 DashScope 搜索，校验网页来源映射
+│   ├── tavily_search.py               # Tavily 检索后生成带来源的回答
+│   └── title_tasks.py                 # 异步生成会话标题，不阻塞答案交付
+├── knowledge/
+│   ├── schema.py                     # 规范文档元数据、版本与权限字段
+│   ├── chunking.py                   # 按段落切块，控制长度与重叠
+│   ├── deduplication.py              # 通过指纹和相似度识别重复文档
+│   └── embeddings.py                 # 适配向量模型，区分模型对应的索引
+├── retrieval/
+│   ├── engine.py                     # 权限过滤、向量/词法召回与 RRF 融合
+│   └── reranker.py                   # 适配远程重排，处理超时与失败
+├── evaluation/
+│   ├── schema.py                     # 定义题目格式，校验题集和语料
+│   ├── unified.py                    # 汇总多套题集，统一指标与门禁配置
+│   ├── retrieval.py                  # 计算检索指标，归类失败与策略差异
+│   ├── answers.py                    # 评估答案事实、引用出处及拒答表现
+│   ├── judge.py                      # 调用模型进行可选的语义评分
+│   └── runtime.py                    # 提取生成结果，供答案评测使用
+└── observability/
+    ├── budget.py                     # 限制调用次数/耗时，累计 token 与估算成本
+    ├── metrics.py                    # 汇总节点调用次数与耗时
+    ├── tracing.py                    # 写入脱敏 Trace，支持日志轮转与保留
+    └── safe_errors.py                # 将内部异常映射为可公开的诊断信息
+
+frontend/                             # Vue 3 + TypeScript 前端
+├── index.html                        # 页面挂载入口
+├── package.json                      # 前端依赖及开发、测试、构建命令
+├── package-lock.json                 # 锁定依赖版本，支持可复现安装
+├── vite.config.ts                    # 配置 Vue、API 代理与 Vitest
+├── tsconfig.json                     # TypeScript 项目配置入口
+├── tsconfig.app.json                 # 页面源码类型检查配置
+├── tsconfig.node.json                # 构建工具类型检查配置
+└── src/
+    ├── main.ts                       # 注册路由与 UI 组件，挂载应用
+    ├── App.vue                       # 应用根组件，承载路由页面
+    ├── router.ts                     # 定义首页、问答和知识管理路由
+    ├── env.d.ts                      # 声明 Vite 环境类型
+    ├── layouts/
+    │   ├── LandingLayout.vue         # 产品首页布局
+    │   ├── ChatLayout.vue            # 问答侧栏、移动导航与消息提示
+    │   └── ManagementLayout.vue      # 知识管理布局与返回入口
+    ├── views/
+    │   ├── HomeView.vue              # 产品介绍与工作台入口
+    │   ├── ChatView.vue              # 问答展示、输入发送及引用联动
+    │   └── KnowledgeView.vue         # 文档筛选、分页、上传与详情入口
+    ├── components/
+    │   ├── AppSidebar.vue            # 会话搜索、切换、新建与删除
+    │   ├── AgentProgress.vue         # 展示当前处理阶段与耗时
+    │   ├── EvidencePanel.vue         # 展示引用摘录，定位所选证据卡片
+    │   ├── DocumentDetailDrawer.vue  # 查看当前文档信息、文本预览与下载
+    │   ├── FailureNotice.vue         # 区分失败与回退，提供恢复操作
+    │   ├── WorkspaceDrawer.vue       # 通用抽屉，管理键盘焦点与关闭
+    │   └── ToastStack.vue            # 集中展示操作成功和失败提示
+    ├── composables/
+    │   ├── useWorkspace.ts           # 管理会话、草稿、发送、取消与上传状态
+    │   └── useEvidenceSelection.ts   # 绑定回答与引用快照，记录焦点入口
+    ├── services/
+    │   └── api.ts                    # 封装 HTTP 请求、SSE 解析与文件传输
+    ├── types/
+    │   └── api.ts                    # 定义接口、流事件和前端消息类型
+    ├── utils/
+    │   ├── streamState.ts            # 将流事件转换为预览、正式或失败状态
+    │   ├── markdown.ts               # 渲染 Markdown，清洗 HTML 并生成引用按钮
+    │   ├── attempts.ts               # 合并同一问题的重试记录
+    │   ├── sessions.ts               # 搜索会话，选择删除后的接续会话
+    │   ├── knowledge.ts              # 文档筛选、排序及元数据展示转换
+    │   ├── overlayStack.ts           # 协调嵌套弹层、Esc 与模态状态
+    │   ├── clipboard.ts              # 复制文本，兼容剪贴板降级路径
+    │   └── performance.ts            # 记录本地交互耗时，不保存问答正文
+    └── styles/
+        ├── tokens.css                # 定义全局颜色、间距、字号和动效变量
+        ├── base.css                  # 基础样式、通用控件与样式入口
+        ├── home.css                  # 首页及入口卡片样式
+        ├── chat.css                  # 消息、输入框、引用和处理进度样式
+        ├── knowledge.css             # 文档列表、筛选和上传界面样式
+        └── overlays.css              # 抽屉、弹层与提示样式
+
+scripts/                              # 语料准备、质量评测与性能测量
+├── download_eval_corpus.py            # 下载并整理官方评测语料
+├── expand_enterprise_knowledge.py     # 扩充和规范企业合成种子资料
+├── run_unified_rag_benchmark.py       # 统一运行多题集检索及答案评测
+├── run_enterprise_rag_benchmark.py    # 执行企业离线检索回归门禁
+├── run_retrieval_benchmark.py         # 对比官方法规语料的检索策略
+├── run_retrieval_ablation.py          # 对指定统一题集进行检索策略消融
+├── run_answer_benchmark.py            # 评测检索后单次生成的答案质量
+├── run_rag_eval.py                    # 执行单份上传文档的基础 RAG 评测
+├── benchmark_citation_gate.py         # 对比引用校验策略的通过与拒绝表现
+├── benchmark_chat_latency.py          # 测量 HTTP/SSE 问答各阶段延迟
+├── run_isolated_chat_latency.py       # 使用隔离语料测量完整 Agent 延迟
+└── run_knowledge_quality_audit.py      # 使用隔离真实 Agent 审核合成问答案例
+
+tests/                                # Python 回归与浏览器验收
+├── test_*.py                         # 后端逻辑、接口、权限和存储回归
+├── e2e_*.py                          # 页面交互与联调（模拟/真实链路见脚本）
+├── benchmark_browser_experience.py   # 测量浏览器交互与渲染体验
+└── fixtures/                         # 测试文档、固定案例与输入样本
+
+data/                                 # 知识语料、题集与运行数据
+├── knowledge_base.json               # 可复现的企业知识种子资料
+├── evals/                            # 评测题集、统一清单与门禁阈值
+├── eval_reports/                     # 已保存的质量评测报告
+├── memory.db                         # 运行生成：会话、偏好及图检查点
+├── chroma_db/                        # 运行生成：知识向量索引
+├── uploads/                          # 运行生成：上传的原始文档
+└── traces/                           # 启用 Trace 后生成的调用记录
+
+docs/                                 # 开发说明、设计方案与验收证据
+├── current_status.md                 # 当前有效状态、限制与待办入口
+├── dsh_frontend_development_plan.md   # DSH 参考前端改造步骤与验收门禁
+├── unified_rag_evaluation.md          # 统一评测流程、指标口径与门禁
+├── repository_submission_guide.md    # Git 提交范围与本地文件管理约定
+└── assets/                           # README 使用的界面截图
+
+.env.example                          # 环境变量示例，不含真实凭据
+.gitignore                            # 排除凭据、运行数据与构建缓存
+requirements.txt                      # 后端运行依赖
+requirements-e2e.txt                  # 浏览器验收依赖
+LICENSE                               # 项目使用许可
 ```
+
+运行生成的数据默认路径可由配置覆盖，通常不提交 Git；`docs/` 另有阶段设计与历史验收记录，以 [当前状态](docs/current_status.md) 为有效入口。上下文圆环、引用原文精确定位和 PDF 原页预览等规划功能见开发方案，不作为当前源码能力列出。
 
 ## 测试与评测
 
@@ -266,7 +388,7 @@ python scripts/run_enterprise_rag_benchmark.py --split regression --top-k 5
 - 已有服务端 ACL，覆盖检索、来源查看与下载、会话操作和知识管理。多用户部署仍需接入可信身份、迁移历史文档 ACL 并验收权限；请求中的 `user_id` 不作为身份凭据。
 - 当前知识管理未提供文档编辑、删除及版本回滚；PDF 表格解析仍可改进。
 - 标题生成使用单进程后台队列，不是持久化任务系统。跨进程协调和规模化部署需另行设计。
-- 真机、浏览器兼容性、最终版本性能对照、账单级成本和多版本知识质量仍有待验收，详见 [体验优化计划](docs/product_experience_optimization_plan.md)。网页来源校验不等于独立事实审核。
+- 2026-10-02 已续验四种浏览器及合成多版本真实问答；真机软键盘、同配置前后性能收益、账单成本和独立真实业务质量仍待验收。详见 [当前状态](docs/current_status.md) 与 [M6 记录](docs/m6_acceptance_2026-10-02.md)。网页来源校验不等于独立事实审核。
 
 ## 进一步阅读
 
