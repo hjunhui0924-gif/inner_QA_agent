@@ -16,7 +16,6 @@ import type {
   KnowledgeRecord,
   SessionSummary,
   StreamEvent,
-  ToastMessage,
   UiMessage,
   UploadResponse,
   ChatMode,
@@ -28,9 +27,12 @@ import {
   beginTurnTiming,
   afterPaint,
   recordRefresh,
+  recordFirstToken,
+  recordStreamUpdate,
 } from '../utils/performance'
 import { readableKnowledgeUploadError } from '../utils/knowledge'
 import { nextSessionAfterDelete } from '../utils/sessions'
+import { createNotificationState } from '../state/notificationState'
 import {
   createStreamState,
   reduceStreamEvent,
@@ -136,7 +138,6 @@ const uploadTask = reactive({
   source: '',
 })
 const sessionTitlePending = ref(false)
-const toasts = ref<ToastMessage[]>([])
 let activeController: AbortController | null = null
 let historyRequestGeneration = 0
 const sessionModeStorageKey = 'enterprise-assistant-session-modes'
@@ -170,19 +171,11 @@ function createId(prefix: string): string {
   return `${prefix}-${generateUuid()}`
 }
 
-function notify(
-  tone: ToastMessage['tone'],
-  title: string,
-  detail?: string,
-): void {
-  const toast: ToastMessage = { id: createId('toast'), tone, title, detail }
-  toasts.value.push(toast)
-  window.setTimeout(() => dismissToast(toast.id), 4200)
-}
-
-function dismissToast(id: string): void {
-  toasts.value = toasts.value.filter((toast) => toast.id !== id)
-}
+const {
+  toasts,
+  notify,
+  dismissToast,
+} = createNotificationState(() => createId('toast'))
 
 function readableError(error: unknown): string {
   if (error instanceof DOMException && error.name === 'AbortError')
@@ -551,14 +544,16 @@ async function sendMessage(rawMessage: string, retryOf?: UiMessage): Promise<voi
       },
       (event: StreamEvent) => {
         if (requestFinished || controller.signal.aborted || streamState.resultReceived) return
+        recordStreamUpdate(timing)
         if (event.type === 'status' && timing.firstStatusMs === undefined)
           timing.firstStatusMs = performance.now() - timing.started
+        if (event.type === 'preview_delta' || event.type === 'token') recordFirstToken(timing)
         if (event.type === 'result') {
           timing.resultMs = performance.now() - timing.started
           void nextTick(() =>
             afterPaint(() => {
               if (chatVisible.value)
-                timing.visibleMs = performance.now() - timing.started
+                timing.visibleMs = timing.firstVisibleAnswerMs = performance.now() - timing.started
             }),
           )
         }

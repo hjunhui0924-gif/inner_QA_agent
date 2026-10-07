@@ -7,27 +7,26 @@ import {
   ArrowDown,
   Search,
   Document,
-  CopyDocument,
-  Check,
   Right,
 } from '@element-plus/icons-vue'
 
-import AgentProgress from '../components/AgentProgress.vue'
+import MessageItem from '../components/MessageItem.vue'
 import EvidencePanel from '../components/EvidencePanel.vue'
 import ConversationNavigator from '../components/ConversationNavigator.vue'
 import type { ConversationNavItem } from '../components/ConversationNavigator.vue'
-import FailureNotice from '../components/FailureNotice.vue'
 import ContextMeter from '../components/ContextMeter.vue'
 import FeedbackDialog from '../components/FeedbackDialog.vue'
 import { useWorkspace } from '../composables/useWorkspace'
 import { useEvidenceSelection } from '../composables/useEvidenceSelection'
+import { useConversationScroll } from '../composables/useConversationScroll'
 import { groupAttempts } from '../utils/attempts'
-import type { UiMessage } from '../types/api'
-import { renderMarkdown } from '../utils/markdown'
+import type { AgentStep, UiMessage } from '../types/api'
 import { hasOpenModal } from '../utils/overlayStack'
 import { copyText } from '../utils/clipboard'
 import { ApiError, submitFeedback } from '../services/api'
 import type { FeedbackCategory } from '../types/api'
+import type { ActionState } from '../types/ui'
+import { BREAKPOINTS } from '../utils/breakpoints'
 
 const {
   messages,
@@ -63,6 +62,7 @@ const attemptGroups = computed(() => groupAttempts(messages.value))
 const collapsedIds = computed(() => new Set(attemptGroups.value.flatMap((group) =>
   expandedAttempts.value.has(group.id) ? [] : group.attempts.slice(0, -1).flat().map((message) => message.id),
 )))
+const visibleMessages = computed(() => messages.value.filter((message) => !collapsedIds.value.has(message.id)))
 const attemptSummaries = computed(() => new Map(attemptGroups.value.filter((group) => group.attempts.length > 1)
   .map((group) => [group.attempts.at(-1)![0]!.id, group])))
 const navigatorItems = computed<ConversationNavItem[]>(() => attemptGroups.value.map((group) => {
@@ -75,8 +75,6 @@ const navigatorItems = computed<ConversationNavItem[]>(() => attemptGroups.value
     attemptCount: group.attempts.length,
   }
 }))
-const activeNavigationId = ref<string | null>(null)
-const navigationPaused = ref(false)
 const navigationIdByMessage = computed(() => new Map(attemptGroups.value.flatMap((group) =>
   group.attempts.flatMap((attempt) => {
     const user = attempt[0]!
@@ -89,7 +87,10 @@ function toggleAttempts(id: string) {
   if (next.has(id)) next.delete(id)
   else next.add(id)
   expandedAttempts.value = next
-  void nextTick(updateActiveNavigation)
+  void nextTick(() => {
+    refreshMessageNodes()
+    updateActiveNavigation()
+  })
 }
 const composing = ref(false)
 const editCandidate = ref<string | null>(null)
@@ -108,16 +109,8 @@ const evidenceContext = computed(() => {
 const composer = ref<HTMLTextAreaElement | null>(null)
 const conversation = ref<HTMLElement | null>(null)
 const messageList = ref<HTMLElement | null>(null)
-const nearBottom = ref(true)
-let readingAnchor: { node: HTMLElement; offset: number } | null = null
-let layoutObserver: ResizeObserver | null = null
-let layoutFrame = 0
-let manualScrollIntent = false
-let lastScrollTop = 0
-let touchY: number | null = null
-let restoringScroll = true
-let restoreFrame = 0
-const copiedMessage = ref<string | null>(null)
+const copyStates = ref<Record<string, ActionState>>({})
+const emptyAgentSteps: AgentStep[] = []
 const copyError = ref('')
 const feedbackMessage = ref<UiMessage | null>(null)
 const feedbackTrigger = ref<HTMLElement | null>(null)
@@ -126,33 +119,51 @@ const feedbackNote = ref('')
 const feedbackSubmitting = ref(false)
 const feedbackError = ref('')
 const feedbackAttempt = ref<{ key: string; id: string } | null>(null)
-let copyTimer: ReturnType<typeof setTimeout> | undefined
+const copyTimers = new Map<string, ReturnType<typeof setTimeout>>()
+let copyGeneration = 0
+
+const {
+  nearBottom,
+  navigationPaused,
+  activeNavigationId,
+  trackScroll,
+  scrollToLatest,
+  wheelIntent,
+  scrollKeyIntent,
+  touchScrollIntent,
+  beginTouchScroll,
+  pointerScrollIntent,
+  navigateToQuestion,
+  updateActiveNavigation,
+  refreshMessageNodes,
+} = useConversationScroll({
+  conversation,
+  messageList,
+  messages,
+  currentView,
+  loadingHistory,
+  sessionId,
+  navigationItems: navigatorItems,
+  navigationIdByMessage,
+})
 
 function updateEvidenceViewport(): void {
-  evidenceModal.value = !window.matchMedia('(min-width: 1280px)').matches
+  evidenceModal.value = window.innerWidth < BREAKPOINTS.evidenceInline
 }
 
 onMounted(() => {
   updateEvidenceViewport()
   window.addEventListener('resize', updateEvidenceViewport)
   window.addEventListener('resize', resizeComposer)
-  void nextTick(restoreScroll)
   void nextTick(resizeComposer)
-  layoutObserver = new ResizeObserver(scheduleLayout)
-  if (conversation.value) layoutObserver.observe(conversation.value)
-  if (messageList.value) layoutObserver.observe(messageList.value)
 })
 
 onBeforeUnmount(() => {
+  copyGeneration += 1
   window.removeEventListener('resize', updateEvidenceViewport)
   window.removeEventListener('resize', resizeComposer)
-  clearTimeout(copyTimer)
-  cancelAnimationFrame(restoreFrame)
-  cancelAnimationFrame(layoutFrame)
-  layoutObserver?.disconnect()
-  if (!loadingHistory.value && !restoringScroll)
-    currentView.value.scrollTop =
-      conversation.value?.scrollTop ?? currentView.value.scrollTop
+  copyTimers.forEach((timer) => clearTimeout(timer))
+  copyTimers.clear()
   clearEvidence()
 })
 
@@ -220,200 +231,48 @@ const modes = [
 ]
 
 watch(
-  () => [messages.value.length, messages.value.at(-1)?.content, messages.value.at(-1)?.answerState, messages.value.at(-1)?.previewContent],
-  async () => {
-    await nextTick()
-    scheduleLayout()
-  },
-)
-watch(messageList, (element, previous) => {
-  if (previous) layoutObserver?.unobserve(previous)
-  if (element) layoutObserver?.observe(element)
-})
-
-function rememberReadingAnchor(): void {
-  const container = conversation.value
-  if (!container || (nearBottom.value && !navigationPaused.value)) { readingAnchor = null; return }
-  const top = container.getBoundingClientRect().top
-  const candidates = [...container.querySelectorAll<HTMLElement>('.message.user, .message-content > *, .answer-preview .message-content > *')]
-  const node = candidates.find((node) => node.getBoundingClientRect().top >= top && node.getBoundingClientRect().top < top + container.clientHeight)
-    || candidates.find((node) => node.getBoundingClientRect().bottom > top)
-  readingAnchor = node ? { node, offset: node.getBoundingClientRect().top - top } : null
-}
-
-function scheduleLayout(): void {
-  cancelAnimationFrame(layoutFrame)
-  layoutFrame = requestAnimationFrame(() => {
-    const container = conversation.value
-    if (!container || restoringScroll || loadingHistory.value) return
-    // Geometry can create a bottom gap before ResizeObserver runs. Following
-    // depends on user intent, not a gap measured during that reflow.
-    if (!navigationPaused.value) scrollToLatest()
-    else if (readingAnchor?.node.isConnected && container.contains(readingAnchor.node)) {
-      const offset = readingAnchor.node.getBoundingClientRect().top - container.getBoundingClientRect().top
-      if (Math.abs(offset - readingAnchor.offset) > 0.5) container.scrollTop += offset - readingAnchor.offset
-      currentView.value.scrollTop = container.scrollTop
-      lastScrollTop = container.scrollTop
-      updateActiveNavigation()
-    }
-  })
-}
-
-function pauseFollowing(): void {
-  navigationPaused.value = true
-  rememberReadingAnchor()
-}
-function wheelIntent(event: WheelEvent): void {
-  manualScrollIntent = true
-  if (event.deltaY < 0) pauseFollowing()
-}
-function scrollKeyIntent(event: KeyboardEvent): void {
-  if (event.target instanceof HTMLElement && event.target.closest('input, textarea, select')) return
-  // A native End animation keeps its old bottom target when streaming grows
-  // the content. Use the same immediate resume action as the latest button.
-  if (event.key === 'End') {
-    event.preventDefault()
-    scrollToLatest()
-    return
-  }
-  if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(event.key)) manualScrollIntent = true
-  if (['ArrowUp', 'PageUp', 'Home'].includes(event.key) || (event.key === ' ' && event.shiftKey)) pauseFollowing()
-}
-function touchScrollIntent(event: TouchEvent): void {
-  const next = event.touches[0]?.clientY
-  if (next != null && touchY != null && next > touchY) pauseFollowing()
-  touchY = next ?? null
-  manualScrollIntent = true
-}
-function beginTouchScroll(event: TouchEvent): void { touchY = event.touches[0]?.clientY ?? null }
-function pointerScrollIntent(event: PointerEvent): void {
-  if (event.target === conversation.value) { manualScrollIntent = true; pauseFollowing() }
-}
-
-watch(
-  loadingHistory,
-  (loading) => {
-    if (loading) restoringScroll = true
-    else void nextTick(restoreScroll)
-  },
-  { flush: 'sync' },
-)
-
-watch(
   sessionId,
   () => {
-    restoringScroll = true
-    nearBottom.value = false
-    navigationPaused.value = false
-    readingAnchor = null
-    manualScrollIntent = false
-    lastScrollTop = 0
-    activeNavigationId.value = null
+    copyGeneration += 1
     expandedAttempts.value = new Set()
     editCandidate.value = null
     feedbackMessage.value = null
     feedbackAttempt.value = null
     feedbackError.value = ''
+    copyStates.value = {}
+    copyTimers.forEach((timer) => clearTimeout(timer))
+    copyTimers.clear()
     evidenceOpen.value = false
     clearEvidence()
-    void nextTick(restoreScroll)
   },
   { flush: 'sync' },
 )
 
-function restoreScroll() {
-  const element = conversation.value
-  if (element) {
-    element.scrollTop = currentView.value.scrollTop
-    nearBottom.value =
-      element.scrollHeight - element.scrollTop - element.clientHeight < 80
-    navigationPaused.value = element.scrollHeight - element.scrollTop - element.clientHeight >= 3
-    lastScrollTop = element.scrollTop
-  }
-  cancelAnimationFrame(restoreFrame)
-  restoreFrame = requestAnimationFrame(() => {
-    restoringScroll = false
-    rememberReadingAnchor()
-    updateActiveNavigation()
-  })
-}
-
-function trackScroll(): void {
-  if (restoringScroll || loadingHistory.value) return
-  const element = conversation.value
-  if (element) {
-    const gap = element.scrollHeight - element.scrollTop - element.clientHeight
-    if (element.scrollTop < lastScrollTop - 0.5 && gap >= 3) navigationPaused.value = true
-    nearBottom.value =
-      gap < 80
-    if (manualScrollIntent && gap < 3) navigationPaused.value = false
-    lastScrollTop = element.scrollTop
-    currentView.value.scrollTop = element.scrollTop
-    rememberReadingAnchor()
-    updateActiveNavigation()
-  }
-}
-
-function updateActiveNavigation(): void {
-  const element = conversation.value
-  if (!element || !navigatorItems.value.length) {
-    activeNavigationId.value = null
-    return
-  }
-  const candidates = [...element.querySelectorAll<HTMLElement>('.message.user')]
-    .filter((item) => item.offsetParent !== null)
-  const threshold = element.getBoundingClientRect().top + 96
-  const current = candidates
-    .filter((item) => item.getBoundingClientRect().top <= threshold)
-    .at(-1) || candidates[0]
-  activeNavigationId.value = navigationIdByMessage.value.get(current?.dataset.messageId || '') || null
-}
-
-async function navigateToQuestion(id: string): Promise<void> {
-  const item = navigatorItems.value.find((item) => item.id === id)
-  if (!item) return
-  const requestedSession = sessionId.value
-  manualScrollIntent = false
-  navigationPaused.value = true
-  nearBottom.value = false
-  await nextTick()
-  const target = [...(conversation.value?.querySelectorAll<HTMLElement>('.message.user') || [])]
-    .find((target) => target.dataset.messageId === item.messageId)
-  if (!target || !conversation.value || sessionId.value !== requestedSession) return
-  const container = conversation.value
-  const top = container.scrollTop + target.getBoundingClientRect().top - container.getBoundingClientRect().top - 24
-  const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
-  target.focus({ preventScroll: true })
-  container.scrollTo({ top: Math.max(0, top), behavior })
-  currentView.value.scrollTop = container.scrollTop
-  activeNavigationId.value = id
-}
-
-function scrollToLatest(): void {
-  navigationPaused.value = false
-  manualScrollIntent = false
-  readingAnchor = null
-  const element = conversation.value
-  if (element)
-    element.scrollTop = messages.value.length ? element.scrollHeight : 0
-  nearBottom.value = true
-  if (element) currentView.value.scrollTop = element.scrollTop
-  if (element) lastScrollTop = element.scrollTop
-  updateActiveNavigation()
-}
-
 async function copyAnswer(id: string, content: string): Promise<void> {
   copyError.value = ''
+  const generation = copyGeneration
+  copyStates.value = { ...copyStates.value, [id]: 'loading' }
   try {
     await copyText(content)
-    copiedMessage.value = id
-    clearTimeout(copyTimer)
-    copyTimer = setTimeout(() => {
-      copiedMessage.value = null
-    }, 1800)
+    if (generation !== copyGeneration) return
+    copyStates.value = { ...copyStates.value, [id]: 'success' }
+    const previousTimer = copyTimers.get(id)
+    if (previousTimer) clearTimeout(previousTimer)
+    copyTimers.set(id, setTimeout(() => {
+      const next = { ...copyStates.value }
+      delete next[id]
+      copyStates.value = next
+      copyTimers.delete(id)
+    }, 1800))
   } catch {
+    if (generation !== copyGeneration) return
+    copyStates.value = { ...copyStates.value, [id]: 'error' }
     copyError.value = '复制失败，请选择回答文字后复制。'
   }
+}
+
+function retryWithoutWeb(message: UiMessage): void {
+  void retryMessage(message, { withoutWeb: true })
 }
 
 function openFeedback(message: UiMessage, event: Event): void {
@@ -546,14 +405,6 @@ function selectMode(mode: 'knowledge' | 'general') {
   chatMode.value = mode
 }
 
-function processSteps(message: UiMessage) {
-  return (message.processSummary?.steps ?? []).map((step) => ({
-    node: step.node,
-    content: '',
-    status: step.status,
-    durationMs: step.duration_ms,
-  }))
-}
 </script>
 
 <template>
@@ -587,6 +438,7 @@ function processSteps(message: UiMessage) {
         ref="conversation"
         class="conversation"
         aria-label="对话内容"
+        :aria-busy="loadingHistory || sending"
         tabindex="0"
         @scroll="trackScroll"
         @wheel.passive="wheelIntent"
@@ -619,116 +471,27 @@ function processSteps(message: UiMessage) {
         </div>
 
         <div v-else ref="messageList" class="message-list">
-          <article
-            v-for="message in messages"
+          <MessageItem
+            v-for="message in visibleMessages"
             :key="message.id"
-            v-show="!collapsedIds.has(message.id)"
-            class="message"
-            :data-message-id="message.message_id || message.id"
-            tabindex="-1"
-            :class="[message.role, message.state]"
-          >
-            <button v-if="attemptSummaries.has(message.id)" type="button" class="text-button attempt-toggle"
-              :aria-expanded="expandedAttempts.has(attemptSummaries.get(message.id)!.id)"
-              @click="toggleAttempts(attemptSummaries.get(message.id)!.id)">
-              {{ expandedAttempts.has(attemptSummaries.get(message.id)!.id) ? '收起' : '查看' }}此前 {{ attemptSummaries.get(message.id)!.attempts.length - 1 }} 次尝试
-            </button>
-            <span class="message-label"
-              ><el-icon v-if="message.role === 'assistant'" aria-hidden="true"
-                ><Collection /></el-icon
-              >{{ message.role === 'user' ? '你' : '知识助手' }}</span
-            >
-            <div
-              v-if="message.content && message.answerState !== 'fallback' && message.answerState !== 'error'"
-              class="message-content"
-              v-html="
-                renderMarkdown(
-                  message.content,
-                  (message.citations ?? []).map(
-                    (citation) => citation.citation_id,
-                  ),
-                )
-              "
-              @click="handleMessageContentClick($event, message)"
-            />
-            <div v-if="message.previewContent && message.answerState !== 'complete' && message.answerState !== 'fallback'" class="answer-preview">
-              <small class="preview-label">{{ ['cancelled', 'error'].includes(message.answerState || '') ? '未完成草稿 · 本次回答未完成' : '生成中 · 尚未完成' }}</small>
-              <div class="message-content" v-html="renderMarkdown(message.previewContent, [])" />
-            </div>
-            <div v-if="message.role === 'assistant' && sending && message.id === messages.at(-1)?.id" class="answer-wait">
-              <AgentProgress :steps="agentSteps" :active="true" :started-at="sendingStartedAt" />
-              <button type="button" class="text-button" @click="cancelMessage">取消请求</button>
-            </div>
-            <AgentProgress
-              v-else-if="message.role === 'assistant' && message.processSummary?.steps?.length"
-              :steps="processSteps(message)"
-              :active="false"
-              :final-status="message.processSummary.status"
-              :elapsed-ms="message.processSummary.elapsed_ms"
-            />
-            <div v-if="message.answerState === 'cancelled'" class="answer-placeholder">
-              本次回答已取消。
-              <div class="answer-actions">
-                <button type="button" class="secondary-button" :disabled="sending" @click="retryMessage(message)">重新生成</button>
-                <button type="button" class="text-button" :disabled="sending" @click="editQuestion(message)">编辑问题</button>
-              </div>
-            </div>
-            <div v-if="message.citations?.length" class="citation-row">
-              <p class="reference-heading">参考来源</p>
-              <ol class="reference-list">
-                <li v-for="(citation, index) in message.citations" :key="citation.citation_id">
-                  <button type="button" @click="openCitations(message, $event, citation.citation_id)">
-                    <span class="reference-number">[{{ index + 1 }}]</span>
-                    <span>{{ citation.title || '未命名文档' }}<span v-if="citation.page"> · 第 {{ citation.page }} 页</span></span>
-                  </button>
-                </li>
-              </ol>
-            </div>
-            <FailureNotice
-              v-if="
-                message.answerState === 'fallback' ||
-                message.answerState === 'error'
-              "
-              :answer-state="message.answerState"
-              :busy="sending"
-              :failure-type="message.failureType"
-              :failure-stage="message.failureStage"
-              :trace-id="message.traceId"
-              :retryable="
-                message.answerState === 'error' ||
-                [
-                  'generation_error',
-                  'citation_error',
-                  'search_error',
-                  'search_answer_error',
-                ].includes(message.failureType || '')
-              "
-              @retry="retryMessage(message)"
-              @edit="editQuestion(message)"
-              @without-web="retryMessage(message, { withoutWeb: true })"
-            />
-            <div
-              v-if="
-                message.role === 'assistant' &&
-                message.content &&
-                message.answerState === 'complete'
-              "
-              class="answer-actions"
-            >
-              <button
-                type="button"
-                class="text-button"
-                @click="copyAnswer(message.id, message.content)"
-              >
-                <el-icon aria-hidden="true"
-                  ><Check v-if="copiedMessage === message.id" /><CopyDocument
-                    v-else
-                /></el-icon>
-                {{ copiedMessage === message.id ? '已复制回答' : '复制回答' }}
-              </button>
-              <button type="button" class="text-button" @click="openFeedback(message, $event)">反馈回答</button>
-            </div>
-          </article>
+            :message="message"
+            :attempt-summary="attemptSummaries.get(message.id)"
+            :expanded="Boolean(attemptSummaries.get(message.id) && expandedAttempts.has(attemptSummaries.get(message.id)!.id))"
+            :sending="message.id === messages.at(-1)?.id ? sending : false"
+            :active="message.id === messages.at(-1)?.id"
+            :agent-steps="message.id === messages.at(-1)?.id ? agentSteps : emptyAgentSteps"
+            :sending-started-at="sendingStartedAt"
+            :copy-state="copyStates[message.id] || 'idle'"
+            @toggle-attempts="toggleAttempts"
+            @content-click="handleMessageContentClick"
+            @citation="openCitations"
+            @cancel="cancelMessage"
+            @retry="retryMessage"
+            @edit="editQuestion"
+            @without-web="retryWithoutWeb"
+            @copy="(item) => copyAnswer(item.id, item.content)"
+            @feedback="openFeedback"
+          />
         </div>
       </div>
 

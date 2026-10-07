@@ -57,7 +57,8 @@ a {
   transition:
     color var(--transition-fast),
     background var(--transition-fast),
-    border-color var(--transition-fast);
+    border-color var(--transition-fast),
+    transform var(--transition-fast);
 }
 :where(button, a, input, textarea, select, summary, [tabindex]):focus-visible {
   outline: 2px solid var(--accent);
@@ -69,6 +70,9 @@ html[data-input-modality='pointer'] :where(button, a, select, summary, [role='bu
 button:not(:disabled):active,
 summary:active {
   filter: brightness(0.96);
+}
+button:not(:disabled):active {
+  transform: translateY(1px);
 }
 select:not(:disabled) {
   transition: background var(--transition-fast), border-color var(--transition-fast);

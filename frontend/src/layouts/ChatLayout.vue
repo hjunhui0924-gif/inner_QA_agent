@@ -5,6 +5,7 @@ import { useRoute } from 'vue-router'
 import AppSidebar from '../components/AppSidebar.vue'
 import { useWorkspace } from '../composables/useWorkspace'
 import { hasOpenModal } from '../utils/overlayStack'
+import { isMobileViewport } from '../utils/breakpoints'
 
 const route = useRoute()
 const sidebarOpen = ref(false)
@@ -19,7 +20,7 @@ const mainIsolated = computed(
 )
 
 function updateViewport(): void {
-  mobileViewport.value = window.innerWidth <= 760
+  mobileViewport.value = isMobileViewport()
 }
 
 onMounted(() => {
@@ -40,7 +41,7 @@ function openSidebar(): void {
 
 function closeSidebar(): void {
   sidebarOpen.value = false
-  if (window.innerWidth <= 760) {
+  if (isMobileViewport()) {
     void nextTick(() => mobileMenuButton.value?.focus())
   }
 }

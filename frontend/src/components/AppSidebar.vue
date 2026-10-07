@@ -6,6 +6,7 @@ import { useWorkspace } from '../composables/useWorkspace'
 import type { SessionSummary } from '../types/api'
 import { filterSessions } from '../utils/sessions'
 import { registerOverlay } from '../utils/overlayStack'
+import { isMobileViewport } from '../utils/breakpoints'
 
 const props = defineProps<{ open: boolean; blocked?: boolean }>()
 
@@ -162,7 +163,7 @@ function trapDeleteDialogFocus(event: KeyboardEvent): void {
 }
 
 function updateMobileViewport(): void {
-  mobileViewport.value = window.innerWidth <= 760
+  mobileViewport.value = isMobileViewport()
   sidebarOverlay?.setOpen(props.open)
 }
 
