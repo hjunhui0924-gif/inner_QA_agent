@@ -204,9 +204,10 @@ def check_failures(browser, width, motion):
                                 "content": "重试已完成",
                                 "citations": [],
                                 "failure_type": "none",
+                                "trace_id": "retry-trace",
                             }
                         )
-                        + sse({"type": "done"}),
+                        + sse({"type": "done", "trace_id": "retry-trace"}),
                     )
                 elif isinstance(scenario, int):
                     route.fulfill(
@@ -223,6 +224,7 @@ def check_failures(browser, width, motion):
                                 "content": "已提交的权威答案",
                                 "citations": [],
                                 "failure_type": "none",
+                                "trace_id": "result-only-trace",
                             }
                         )
                     route.fulfill(content_type="text/event-stream", body=body)

@@ -122,7 +122,8 @@ def check_answer_interactions(browser) -> None:  # type: ignore[no-untyped-def]
         assert page.evaluate("window.__copiedAnswer") == long_answer
         assert_in_viewport(page, ".composer")
         assert_no_page_overflow(page)
-        expect(page.locator(".agent-progress")).to_have_count(0)
+        expect(page.locator(".agent-progress.active")).to_have_count(0)
+        expect(page.locator(".message.assistant").first.get_by_role("button", name="查看处理过程")).to_be_visible()
 
         # Route navigation preserves the conversation and returns to its latest answer.
         page.get_by_role("link", name="知识管理", exact=True).click()
@@ -156,7 +157,7 @@ def check_answer_interactions(browser) -> None:  # type: ignore[no-untyped-def]
         expect(page.get_by_role("dialog", name="引用来源")).to_have_count(0)
         assert_in_viewport(page, ".composer")
         assert_no_page_overflow(page)
-        # Processing controls belong to the active answer, not completed messages.
+        # Live progress belongs to the active answer; completed summaries remain expandable.
         page.evaluate("""() => {
           const original = window.fetch;
           window.fetch = (url, options) => {
@@ -166,8 +167,8 @@ def check_answer_interactions(browser) -> None:  # type: ignore[no-untyped-def]
               const emit = (event) => controller.enqueue(encoder.encode('data: ' + JSON.stringify(event) + '\\n\\n'));
               emit({type:'status', node:'generate', content:'正在组织回答', node_status:'running'});
               window.finishLayoutStream = () => {
-                emit({type:'result', content:'审批流程已核对。', citations:[], failure_type:'none'});
-                emit({type:'done'});
+                emit({type:'result', content:'审批流程已核对。', citations:[], failure_type:'none', trace_id:'layout-trace'});
+                emit({type:'done', trace_id:'layout-trace'});
                 controller.close();
                 window.fetch = original;
               };
@@ -179,15 +180,16 @@ def check_answer_interactions(browser) -> None:  # type: ignore[no-untyped-def]
         expect(page.get_by_role("button", name="取消请求")).to_be_visible()
         for width, height in [(568, 320), (667, 375), (1200, 400)]:
             page.set_viewport_size({"width": width, "height": height})
-            page.get_by_role("button", name="查看处理过程").click()
-            expect(page.get_by_role("list", name="Agent 处理步骤")).to_be_visible()
+            active_progress = page.locator('.answer-wait .agent-progress')
+            active_progress.get_by_role("button", name="查看处理过程").click()
+            expect(active_progress.get_by_role("list", name="Agent 处理步骤")).to_be_visible()
             assert_in_viewport(page, ".composer")
-            page.locator(".step-list").scroll_into_view_if_needed()
-            expect(page.locator(".step-list")).to_be_visible()
+            active_progress.locator(".step-list").scroll_into_view_if_needed()
+            expect(active_progress.locator(".step-list")).to_be_visible()
             assert page.locator(".conversation").bounding_box()["height"] >= 40
-            page.get_by_role("button", name="收起处理过程").click()
+            active_progress.get_by_role("button", name="收起处理过程").click()
         page.evaluate("window.finishLayoutStream()")
-        expect(page.locator(".agent-progress")).to_have_count(0)
+        expect(page.locator(".agent-progress.active")).to_have_count(0)
         assert not diagnostics, diagnostics
     finally:
         context.close()

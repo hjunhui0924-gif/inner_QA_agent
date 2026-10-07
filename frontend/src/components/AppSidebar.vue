@@ -251,7 +251,12 @@ onBeforeUnmount(() => {
         />
       </label>
 
-      <div v-if="loadingSessions" class="session-empty">正在读取会话…</div>
+      <div v-if="loadingSessions" class="session-skeleton-list" role="status" aria-label="正在读取会话">
+        <span v-for="index in 5" :key="index" class="session-skeleton-row" aria-hidden="true">
+          <span class="skeleton-block skeleton-block-short" />
+          <span class="skeleton-block" />
+        </span>
+      </div>
       <div v-else-if="sessionsError" class="session-error" role="alert">
         <span>{{ sessionsError }}</span>
         <button type="button" :disabled="loadingSessions" @click="loadSessions">

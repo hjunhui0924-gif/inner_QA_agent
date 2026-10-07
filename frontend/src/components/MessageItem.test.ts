@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import MessageItem from './MessageItem.vue'
 import type { UiMessage } from '../types/api'
+import type { ActionState } from '../types/ui'
 
 let app: ReturnType<typeof createApp> | null = null
 let host: HTMLDivElement | null = null
@@ -20,7 +21,7 @@ function message(overrides: Partial<UiMessage> = {}): UiMessage {
 }
 
 function mountItem(initial: UiMessage) {
-  const state = reactive({ item: initial, sending: false, copyState: 'idle' as const })
+  const state = reactive({ item: initial, sending: false, copyState: 'idle' as ActionState, retryState: 'idle' as ActionState })
   host = document.createElement('div')
   document.body.appendChild(host)
   const Root = defineComponent({
@@ -33,6 +34,7 @@ function mountItem(initial: UiMessage) {
         agentSteps: [],
         sendingStartedAt: 0,
         copyState: state.copyState,
+        retryState: state.retryState,
       })
     },
   })
@@ -88,5 +90,17 @@ describe('MessageItem', () => {
     app?.unmount()
     vi.advanceTimersByTime(100)
     expect(preview()).toBe('')
+  })
+
+  it('shows retry progress and a recovery action in place', async () => {
+    const state = mountItem(message({ content: '', state: 'cancelled', answerState: 'cancelled' }))
+    state.retryState = 'loading'
+    await nextTick()
+    const retry = host?.querySelector<HTMLButtonElement>('.answer-placeholder .secondary-button')
+    expect(retry?.disabled).toBe(true)
+    expect(retry?.textContent).toContain('重新生成中')
+    state.retryState = 'error'
+    await nextTick()
+    expect(retry?.textContent).toContain('重试')
   })
 })

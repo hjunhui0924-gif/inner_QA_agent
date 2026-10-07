@@ -159,6 +159,16 @@ export function useConversationScroll(options: ScrollOptions) {
   }
 
   function trackScroll(): void {
+    const element = options.conversation.value
+    if (!restoringScroll && !options.loadingHistory.value && element) {
+      const gap = element.scrollHeight - element.scrollTop - element.clientHeight
+      // Capture an upward move before a pending layout frame can follow the tail.
+      // A growing scrollHeight with an unchanged top is layout, not reader intent.
+      if (element.scrollTop < lastScrollTop - 0.5 && gap >= 3) {
+        navigationPaused.value = true
+        cancelAnimationFrame(layoutFrame)
+      }
+    }
     if (scrollTracking) return
     scrollTracking = true
     scrollFrame = requestAnimationFrame(flushScroll)

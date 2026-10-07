@@ -356,10 +356,22 @@ function closeDetails(): void {
         </div>
         <div
           v-if="loadingKnowledge && !knowledgeRecords.length"
-          class="library-empty compact"
+          class="library-skeleton-list"
+          role="status"
+          aria-label="正在读取知识库"
         >
-          <span class="loading-ring" />
-          <h3>正在读取知识库</h3>
+          <article v-for="index in 6" :key="index" class="document-row document-skeleton-row" aria-hidden="true">
+            <span class="document-index"><span class="skeleton-block skeleton-icon" /></span>
+            <div class="document-main">
+              <span class="skeleton-block skeleton-title" />
+              <span class="skeleton-block skeleton-meta" />
+              <span class="skeleton-block skeleton-tags" />
+            </div>
+            <div class="document-meta">
+              <span class="skeleton-block skeleton-meta" />
+              <span class="skeleton-block skeleton-meta" />
+            </div>
+          </article>
         </div>
         <div
           v-else-if="knowledgeRecords.length === 0 && !knowledgeError"

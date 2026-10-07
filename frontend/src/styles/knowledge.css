@@ -251,6 +251,29 @@
 .library-empty.compact {
   min-height: 220px;
 }
+.library-skeleton-list {
+  display: grid;
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--line);
+}
+.document-skeleton-row {
+  min-height: 112px;
+  background: var(--surface);
+  pointer-events: none;
+}
+.document-skeleton-row .document-main,
+.document-skeleton-row .document-meta {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+}
+.skeleton-icon { width: 26px; height: 26px; border-radius: 8px; }
+.skeleton-title { width: min(260px, 80%); height: 14px; }
+.skeleton-meta { width: 100px; height: 10px; }
+.skeleton-tags { width: 150px; height: 18px; }
 .library-empty h3 {
   margin: 0;
   font-size: 17px;

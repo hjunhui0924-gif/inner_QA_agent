@@ -24,6 +24,7 @@ const props = defineProps<{
   agentSteps: AgentStep[]
   sendingStartedAt: number
   copyState: ActionState
+  retryState: ActionState
 }>()
 
 const emit = defineEmits<{
@@ -134,7 +135,9 @@ const previewLabel = computed(() =>
     <div v-if="message.answerState === 'cancelled'" class="answer-placeholder">
       本次回答已取消。
       <div class="answer-actions">
-        <button type="button" class="secondary-button" :disabled="sending" @click="emit('retry', message)">重新生成</button>
+        <button type="button" class="secondary-button" :disabled="sending || retryState === 'loading'" @click="emit('retry', message)">
+          {{ retryState === 'loading' ? '重新生成中…' : retryState === 'success' ? '已重新生成' : retryState === 'error' ? '重新生成失败，重试' : '重新生成' }}
+        </button>
         <button type="button" class="text-button" :disabled="sending" @click="emit('edit', message)">编辑问题</button>
       </div>
     </div>
@@ -152,7 +155,7 @@ const previewLabel = computed(() =>
     <FailureNotice
       v-if="message.answerState === 'fallback' || message.answerState === 'error'"
       :answer-state="message.answerState"
-      :busy="sending"
+      :busy="sending || retryState === 'loading'"
       :failure-type="message.failureType"
       :failure-stage="message.failureStage"
       :trace-id="message.traceId"

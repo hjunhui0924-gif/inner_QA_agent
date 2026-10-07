@@ -110,6 +110,7 @@ const composer = ref<HTMLTextAreaElement | null>(null)
 const conversation = ref<HTMLElement | null>(null)
 const messageList = ref<HTMLElement | null>(null)
 const copyStates = ref<Record<string, ActionState>>({})
+const retryStates = ref<Record<string, ActionState>>({})
 const emptyAgentSteps: AgentStep[] = []
 const copyError = ref('')
 const feedbackMessage = ref<UiMessage | null>(null)
@@ -120,6 +121,7 @@ const feedbackSubmitting = ref(false)
 const feedbackError = ref('')
 const feedbackAttempt = ref<{ key: string; id: string } | null>(null)
 const copyTimers = new Map<string, ReturnType<typeof setTimeout>>()
+const retryTimers = new Map<string, ReturnType<typeof setTimeout>>()
 let copyGeneration = 0
 
 const {
@@ -164,6 +166,8 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', resizeComposer)
   copyTimers.forEach((timer) => clearTimeout(timer))
   copyTimers.clear()
+  retryTimers.forEach((timer) => clearTimeout(timer))
+  retryTimers.clear()
   clearEvidence()
 })
 
@@ -240,8 +244,11 @@ watch(
     feedbackAttempt.value = null
     feedbackError.value = ''
     copyStates.value = {}
+    retryStates.value = {}
     copyTimers.forEach((timer) => clearTimeout(timer))
     copyTimers.clear()
+    retryTimers.forEach((timer) => clearTimeout(timer))
+    retryTimers.clear()
     evidenceOpen.value = false
     clearEvidence()
   },
@@ -271,8 +278,29 @@ async function copyAnswer(id: string, content: string): Promise<void> {
   }
 }
 
+async function handleRetry(message: UiMessage, options: { withoutWeb?: boolean } = {}): Promise<void> {
+  if (retryStates.value[message.id] === 'loading') return
+  retryStates.value = { ...retryStates.value, [message.id]: 'loading' }
+  try {
+    await retryMessage(message, options)
+    const latest = messages.value.at(-1)
+    const state: ActionState = latest && latest !== message && latest.answerState === 'complete' ? 'success' : 'error'
+    retryStates.value = { ...retryStates.value, [message.id]: state }
+    const timer = retryTimers.get(message.id)
+    if (timer) clearTimeout(timer)
+    retryTimers.set(message.id, setTimeout(() => {
+      const next = { ...retryStates.value }
+      delete next[message.id]
+      retryStates.value = next
+      retryTimers.delete(message.id)
+    }, 1800))
+  } catch {
+    retryStates.value = { ...retryStates.value, [message.id]: 'error' }
+  }
+}
+
 function retryWithoutWeb(message: UiMessage): void {
-  void retryMessage(message, { withoutWeb: true })
+  void handleRetry(message, { withoutWeb: true })
 }
 
 function openFeedback(message: UiMessage, event: Event): void {
@@ -482,11 +510,12 @@ function selectMode(mode: 'knowledge' | 'general') {
             :agent-steps="message.id === messages.at(-1)?.id ? agentSteps : emptyAgentSteps"
             :sending-started-at="sendingStartedAt"
             :copy-state="copyStates[message.id] || 'idle'"
+            :retry-state="retryStates[message.id] || 'idle'"
             @toggle-attempts="toggleAttempts"
             @content-click="handleMessageContentClick"
             @citation="openCitations"
             @cancel="cancelMessage"
-            @retry="retryMessage"
+            @retry="handleRetry"
             @edit="editQuestion"
             @without-web="retryWithoutWeb"
             @copy="(item) => copyAnswer(item.id, item.content)"
