@@ -158,6 +158,22 @@ describe('stream state reducer', () => {
 
 
 describe('general provisional preview', () => {
+  it('ignores deltas from a superseded generation', () => {
+    let state = reduceStreamEvent(createStreamState(), { type: 'preview_delta', content: 'old', generation_id: 'one' })
+    state = reduceStreamEvent(state, { type: 'preview_delta', content: 'new', generation_id: 'two' })
+    state = reduceStreamEvent(state, { type: 'preview_delta', content: 'late old', generation_id: 'one' })
+    expect(state.previewContent).toBe('new')
+    state = reduceStreamEvent(state, { type: 'preview_delta', content: ' continued', generation_id: 'two' })
+    expect(state.previewContent).toBe('new continued')
+  })
+
+  it('keeps formal result metadata stable across duplicate done events', () => {
+    let state = reduceStreamEvent(createStreamState(), { type: 'result', content: 'final', citations: [], trace_id: 'formal-trace', failure_type: 'none' })
+    state = reduceStreamEvent(state, { type: 'done', trace_id: 'different-late-trace' })
+    state = reduceStreamEvent(state, { type: 'done', trace_id: 'another-late-trace' })
+    expect(state.traceId).toBe('formal-trace')
+    expect(state.answerState).toBe('complete')
+  })
   it('keeps preview separate, replaces it on regeneration and clears it on result', () => {
     let state = reduceStreamEvent(createStreamState(), { type: 'preview_delta', content: 'draft', generation_id: 'one' })
     expect(state.content).toBe('')

@@ -56,7 +56,7 @@ python scripts/run_enterprise_rag_benchmark.py --top-k 5
 
 本轮扩充后的离线回归结果：50 条文档、414 道题，回归门禁通过。门禁使用 regression split：Source Hit@5 为 94.74%，Evidence Recall@5 为 94.74%，无答案证据代理准确率为 100%，检索失败数为 2。分层结果见 `data/eval_reports/enterprise_rag_benchmark.json`；完整报告也曾写入被忽略的 `work/knowledge-expansion-enterprise-benchmark.json`。
 
-`data/eval_reports/enterprise_rag_benchmark.json` 已更新为本轮 50 条文档、414 道题的离线确定性报告。统一 456 题在线报告需要重新付费调用向量和重排服务；本轮长时间尝试未完成，因此保留仓库原有的在线报告，不把离线 smoke 结果伪装成在线质量结论。要刷新统一在线报告，执行 `python scripts/run_unified_rag_benchmark.py --mode retrieval`，完成后应检查 `offline=false`、`case_count=456` 和各数据集门禁。
+2026-09-30 已完成统一 456 题在线检索评测，`data/eval_reports/unified_rag_benchmark.json` 中 `offline=false`、`case_count=456`、阻断门禁通过。367 道可回答题的 Source Hit@4 和 Evidence Recall@4 均为 100%；89 道无答案题不计入这两个召回指标。这里使用在线 embedding/rerank，不包含生成、Judge 或完整 Agent 答案质量评测。上面的 414 题 hashing 结果是 2026-09-18 扩充阶段的离线历史记录，两者不能混算。详见 [统一评测](unified_rag_evaluation.md) 与 [当前状态](current_status.md)。
 
 ## 使用边界
 

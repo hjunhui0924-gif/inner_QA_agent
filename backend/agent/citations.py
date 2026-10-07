@@ -135,6 +135,7 @@ def build_citations(
                 document_id=str(metadata.get("document_id", "")).strip(),
                 title=str(metadata.get("title", "Untitled document")).strip(),
                 source=str(metadata.get("source", "unknown")).strip() or "unknown",
+                source_content_checksum=str(metadata.get("content_checksum", "")).strip() or None,
                 source_type=str(metadata.get("source_type", "")).strip(),
                 version=str(metadata.get("version", "")).strip(),
                 status=str(metadata.get("status", "")).strip(),
@@ -398,7 +399,13 @@ def sanitize_answer_citations(
     for line in answer.splitlines(keepends=True):
         newline = "\n" if line.endswith("\n") else ""
         body = line[:-1] if newline else line
-        fragments = re.findall(r"[^。！？.!?]+[。！？.!?]?", body)
+        # Models may place the marker immediately after sentence punctuation.
+        # Keep it with that sentence; treating it as an empty separate fragment
+        # silently erased valid source identity before the Judge saw it.
+        fragments = re.findall(
+            r"[^。！？.!?]+[。！？.!?]?(?:[ \t]*\[\s*C\s*\d+\s*\])*",
+            body, flags=re.I,
+        )
         if not fragments:
             rendered_lines.append(line)
             continue
@@ -563,23 +570,48 @@ def _supporting_quote(text: str, *, query: str, answer: str, max_chars: int) -> 
         for item in re.split(r"(?<=[。！？.!?；;])\s*", clean)
         if item.strip()
     ]
+    claim_tokens = [
+        set(tokenize(_remove_normative_fillers(claim.replace("**", ""))))
+        for claim in _answer_claims(_MARKER_PATTERN.sub("", answer))
+        if not _is_structural_claim(claim) and not _is_short_conclusion_claim(claim)
+    ]
+    claim_tokens = [tokens for tokens in claim_tokens if tokens]
+    multiple_claims = len(claim_tokens) > 1
     candidates: list[str] = []
     for start in range(len(sentences)):
         for end in range(start + 1, min(len(sentences), start + 8) + 1):
             window = " ".join(sentences[start:end])
             if len(window) <= max_chars:
                 candidates.append(window)
+        if multiple_claims:
+            # Distant conditions may be separated by more than eight sentences.
+            # Add one bounded continuous window per start, preserving provenance.
+            wide: list[str] = []
+            length = 0
+            for sentence in sentences[start:]:
+                next_length = length + len(sentence) + bool(wide)
+                if next_length > max_chars:
+                    break
+                wide.append(sentence)
+                length = next_length
+            if wide:
+                candidates.append(" ".join(wide))
     target_tokens = set(tokenize(f"{query} {answer}"))
     target_numbers = set(re.findall(r"\d+(?:\.\d+)?", f"{query} {answer}"))
 
-    def relevance(item: str) -> tuple[float, int]:
+    def relevance(item: str) -> tuple[float, float, float, int]:
         candidate_tokens = set(tokenize(item))
         overlap = len(target_tokens & candidate_tokens)
         density = overlap / max(len(candidate_tokens) ** 0.5, 1.0)
         coverage = overlap / max(len(target_tokens), 1)
         candidate_numbers = set(re.findall(r"\d+(?:\.\d+)?", item))
         numeric_bonus = 100.0 * len(target_numbers & candidate_numbers)
-        return numeric_bonus + (3.0 * coverage) + density, -len(item)
+        # A dense excerpt of the first claim must not omit another cited claim.
+        # This only ranks source text; semantic validation remains separate.
+        claim_coverage = [len(tokens & candidate_tokens) / len(tokens) for tokens in claim_tokens] if multiple_claims else []
+        minimum = min(claim_coverage) if claim_coverage else 0.0
+        average = sum(claim_coverage) / len(claim_coverage) if claim_coverage else 0.0
+        return minimum, average, numeric_bonus + (3.0 * coverage) + density, -len(item)
 
     best = max(
         candidates or [clean],

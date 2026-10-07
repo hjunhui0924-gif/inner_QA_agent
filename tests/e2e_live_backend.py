@@ -151,7 +151,13 @@ def run_live() -> int:
                 report.setdefault("answers", []).append(detail)
                 assert any(event.get("type") == "done" for event in events), "missing done"
                 expect(page.get_by_role("button", name="发送", exact=True)).to_be_visible()
-                expect(page.locator("article.message.assistant").last.locator(".message-content")).not_to_be_empty()
+                last_answer = page.locator("article.message.assistant").last
+                if result.get("failure_type") in {None, "none"}:
+                    expect(last_answer.locator(".message-content")).not_to_be_empty()
+                else:
+                    # Safe refusals are rendered as a dedicated status card.
+                    # Requiring Markdown here incorrectly fails working UI.
+                    expect(last_answer.locator(".failure-notice")).to_be_visible()
                 if expected:
                     assert result.get("failure_type") == "none", f"Answer fell back: {detail}"
                     assert all(text in result["content"] for text in expected), f"Expected {expected}; got {result['content']}"

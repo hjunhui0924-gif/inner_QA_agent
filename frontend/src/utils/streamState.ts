@@ -11,6 +11,7 @@ export interface StreamUiState {
   pendingContent: string
   previewContent: string
   previewGeneration: string
+  supersededPreviewGenerations: string[]
   resultReceived: boolean
   citations: Citation[]
   failureType: string | null
@@ -124,6 +125,7 @@ export function createStreamState(): StreamUiState {
     pendingContent: '',
     previewContent: '',
     previewGeneration: '',
+    supersededPreviewGenerations: [],
     resultReceived: false,
     citations: [],
     failureType: null,
@@ -135,7 +137,7 @@ export function createStreamState(): StreamUiState {
 }
 
 export function reduceStreamEvent(state: StreamUiState, event: StreamEvent): StreamUiState {
-  if (state.resultReceived && event.type !== 'done') {
+  if (state.resultReceived) {
     return state
   }
   if (state.answerState === 'error' && event.type !== 'result' && event.type !== 'done') {
@@ -147,7 +149,11 @@ export function reduceStreamEvent(state: StreamUiState, event: StreamEvent): Str
   }
 
   if (event.type === 'preview_delta') {
+    if (state.supersededPreviewGenerations.includes(event.generation_id)) return state
+    const superseded = state.previewGeneration && state.previewGeneration !== event.generation_id
+      ? [...state.supersededPreviewGenerations, state.previewGeneration] : state.supersededPreviewGenerations
     return { ...state, answerState: 'streaming', previewGeneration: event.generation_id,
+      supersededPreviewGenerations: superseded,
       previewContent: ((state.previewGeneration === event.generation_id ? state.previewContent : '') + event.content).slice(0, 100000) }
   }
 
@@ -171,6 +177,7 @@ export function reduceStreamEvent(state: StreamUiState, event: StreamEvent): Str
       pendingContent: '',
       previewContent: '',
       previewGeneration: '',
+      supersededPreviewGenerations: [],
       resultReceived: true,
       citations: event.citations ?? [],
       failureType,

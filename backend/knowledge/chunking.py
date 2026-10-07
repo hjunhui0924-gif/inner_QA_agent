@@ -37,7 +37,9 @@ def split_text(text: str, *, chunk_size: int = 800, overlap: int = 120) -> list[
             current = _hard_split(current, chunk_size, overlap)[-1]
     if current.strip():
         chunks.append(current.strip())
-    return _remove_adjacent_duplicates(chunks)
+    return _repair_leading_continuations(
+        _remove_adjacent_duplicates(chunks), chunk_size=chunk_size, overlap=overlap
+    )
 
 
 def _segments(text: str, chunk_size: int) -> list[str]:
@@ -66,6 +68,49 @@ def _hard_split(text: str, chunk_size: int, overlap: int) -> list[str]:
             break
         start = end - overlap
     return [chunk for chunk in chunks if chunk]
+
+
+def _repair_leading_continuations(
+    chunks: list[str], *, chunk_size: int, overlap: int
+) -> list[str]:
+    """Copy a bounded clause prefix when a chunk starts mid-sentence.
+
+    This runs after the historic splitter, so ordinary retrieval chunk
+    boundaries remain stable. It only repairs a continuation that follows an
+    unterminated previous chunk, which is common when PDF line wraps split a
+    condition such as ``财政\n局发布``.
+    """
+
+    if overlap <= 0:
+        return chunks
+    max_context = min(overlap + 32, chunk_size - 1)
+    heading = re.compile(r"^(?:第[一二三四五六七八九十百千万\d]+条|[-—–]?\s*\d+\s*[-—–]|\d+[.)、])")
+    for index in range(1, len(chunks)):
+        previous = chunks[index - 1]
+        current = chunks[index].lstrip()
+        if not previous or not current or heading.match(current):
+            continue
+        # The next chunk's opening text should already occur near the end of
+        # the previous chunk. This detects a PDF overlap that starts at a
+        # wrapped continuation (``财政`` / ``政局``) without changing ordinary
+        # paragraph or table boundaries.
+        if not re.match(r"^[\u4e00-\u9fff]\s+[\u4e00-\u9fff]", current):
+            continue
+        prefix = current[: min(24, len(current))]
+        occurrence = previous.rfind(prefix)
+        if occurrence < 0 or len(previous) - occurrence > max_context:
+            continue
+        boundaries = [match.end() for match in re.finditer(r"[。！？!?；;.]\s*|\n{2,}", previous)
+                      if match.end() <= occurrence]
+        if not boundaries:
+            continue
+        start = boundaries[-1]
+        context = previous[start:].strip()
+        if len(context) < 20 or context in current:
+            continue
+        combined = f"{context}\n{current}"
+        chunks[index] = combined[:chunk_size].rstrip()
+    return chunks
 
 
 def _remove_adjacent_duplicates(chunks: list[str]) -> list[str]:

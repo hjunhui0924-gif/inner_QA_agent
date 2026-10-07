@@ -1,8 +1,11 @@
 import { createApp, defineComponent, h, nextTick, reactive } from 'vue'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+const api = vi.hoisted(() => ({ fetchKnowledgeRecord: vi.fn(), fetchSourcePreview: vi.fn(), downloadKnowledge: vi.fn() }))
+vi.mock('../services/api', () => api)
+
 import EvidencePanel from './EvidencePanel.vue'
-import type { Citation } from '../types/api'
+import type { Citation, SourcePreviewResponse } from '../types/api'
 
 const citations: Citation[] = [
   {
@@ -32,6 +35,9 @@ function mountPanel(records: Citation[] = citations) {
   const state = reactive({
     open: false,
     selectedCitationId: null as string | null,
+    sessionId: 'session-a',
+    turnId: 'turn-a',
+    citations: records,
   })
   const events: string[] = []
   host = document.createElement('div')
@@ -42,7 +48,9 @@ function mountPanel(records: Citation[] = citations) {
       return () => h(EvidencePanel, {
         open: state.open,
         modal: true,
-        citations: records,
+        citations: state.citations,
+        sessionId: state.sessionId,
+        turnId: state.turnId,
         selectedCitationId: state.selectedCitationId,
         onClose: () => events.push('close'),
       })
@@ -61,9 +69,82 @@ afterEach(() => {
   host = null
   vi.useRealTimers()
   vi.restoreAllMocks()
+  Object.values(api).forEach((mock) => mock.mockReset())
 })
 
+const targetCitation = { citation_id: 'C1', source_id: 'source-a', title: '来源', quote: '经理审批。' }
+function previewFor(sourceId: string): SourcePreviewResponse {
+  return { source_id: sourceId, title: '来源', version: 'v2', content_checksum: 'checksum', format: 'text', render_mode: 'extracted_text',
+    revision_match: 'changed', original_available: false, previous_cursor: null, next_cursor: 'next',
+    blocks: [{ id: 'block', text: '经理审批。', page: null, section: '审批' }],
+    location: { status: 'exact', block_id: 'block', page: null, section: '审批', start: 0, end: 5, match_count: 1 } }
+}
+function sourceButton() {
+  return [...(host?.querySelectorAll<HTMLButtonElement>('.evidence-card button') || [])]
+    .find((button) => button.textContent?.includes('查看文档信息与下载'))
+}
+
 describe('EvidencePanel', () => {
+  it('keeps C1 tied to its own answer and discards an older request after changing sessions', async () => {
+    let resolveOld!: (value: object) => void
+    api.fetchKnowledgeRecord.mockImplementationOnce(() => new Promise((resolve) => { resolveOld = resolve }))
+    api.fetchKnowledgeRecord.mockResolvedValue({ source_id: 'source-b', title: '当前来源', original_filename: 'policy.md' })
+    api.fetchSourcePreview.mockResolvedValue(previewFor('source-b'))
+    const { state } = mountPanel([targetCitation])
+    state.open = true
+    await nextTick()
+    sourceButton()?.click()
+    await nextTick()
+    const oldSignal = api.fetchKnowledgeRecord.mock.calls[0]?.[1] as AbortSignal
+    state.sessionId = 'session-b'
+    state.turnId = 'turn-b'
+    state.citations = [{ ...targetCitation, source_id: 'source-b' }]
+    await nextTick()
+    expect(oldSignal.aborted).toBe(true)
+    sourceButton()?.click()
+    await vi.waitFor(() => expect(host?.querySelector('.document-detail-drawer')?.textContent).toContain('当前来源'))
+    resolveOld({ source_id: 'source-a', title: '错误的旧来源', content: 'old private text' })
+    await nextTick()
+    await nextTick()
+    expect(host?.textContent).not.toContain('错误的旧来源')
+    expect(api.fetchSourcePreview).toHaveBeenCalledOnce()
+    expect(api.fetchSourcePreview.mock.calls[0]?.slice(0, 2)).toEqual(['source-b', { sessionId: 'session-b', turnId: 'turn-b', citationId: 'C1' }])
+  })
+
+  it('clears cached source text when access is revoked while paging', async () => {
+    api.fetchKnowledgeRecord.mockResolvedValue({ source_id: 'source-a', title: 'private-source', original_filename: 'policy.md' })
+    api.fetchSourcePreview.mockResolvedValueOnce(previewFor('source-a')).mockRejectedValueOnce({ status: 403 })
+    const { state } = mountPanel([targetCitation])
+    state.open = true
+    await nextTick()
+    sourceButton()?.click()
+    await vi.waitFor(() => expect(host?.querySelector('.source-preview-body')).not.toBeNull())
+    expect(host?.textContent).toContain('引用时的版本不同')
+    expect(host?.querySelector<HTMLButtonElement>('.detail-actions button')?.disabled).toBe(true)
+    const next = [...(host?.querySelectorAll<HTMLButtonElement>('button') || [])].find((button) => button.textContent === '下一窗口')
+    next?.click()
+    await vi.waitFor(() => expect(host?.querySelector('.document-detail-drawer [role="alert"]')?.textContent).toContain('不可访问'))
+    expect(host?.querySelector('.source-preview-body')).toBeNull()
+    expect(host?.querySelector('.document-detail-drawer')?.textContent).not.toContain('private-source')
+  })
+
+  it('aborts a closed preview and ignores its late result', async () => {
+    api.fetchKnowledgeRecord.mockResolvedValue({ source_id: 'source-a', title: '来源', original_filename: 'policy.md' })
+    let resolveOld!: (value: SourcePreviewResponse) => void
+    api.fetchSourcePreview.mockImplementation(() => new Promise((resolve) => { resolveOld = resolve }))
+    const { state } = mountPanel([targetCitation])
+    state.open = true
+    await nextTick()
+    sourceButton()?.click()
+    await vi.waitFor(() => expect(api.fetchSourcePreview).toHaveBeenCalledOnce())
+    const signal = api.fetchSourcePreview.mock.calls[0]?.[2] as AbortSignal
+    host?.querySelector<HTMLButtonElement>('[aria-label="关闭文档详情"]')?.click()
+    await nextTick()
+    expect(signal.aborted).toBe(true)
+    resolveOld(previewFor('source-a'))
+    await nextTick()
+    expect(host?.querySelector('.source-preview-body')).toBeNull()
+  })
   it('shows a safe web source without presenting generated text as a quote', () => {
     mountPanel([{ citation_id: 'C3', title: 'Python', url: 'https://www.python.org/', source: 'web', quote: '', verification_status: 'web_source' }])
     const link = host?.querySelector<HTMLAnchorElement>('a')

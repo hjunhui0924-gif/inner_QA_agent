@@ -1,5 +1,11 @@
 # 引用校验与在线 Judge 分工调整
 
+## 2026-10-02 无引用输出加固
+
+真实多版本审核发现：单个 `hallucination_pass=true` 可能错误接受无引用事实。现在无引用候选还必须由 Judge 明确返回布尔 `is_abstention=true`；通过后只提交服务端固定拒答文本，不原样交付候选。拒答变体仍由语义判断，普通带引用回答不新增词语重合度门槛。引用清洗也保留句号后的合法标记。测试及真实结果见 [M6 验收记录](m6_acceptance_2026-10-02.md)。
+
+以下均为历史阶段记录，其中“无引用候选交给 Judge”的旧设计已由上述约束补强；当前状态见 [项目当前状态](current_status.md)。
+
 ## 2026-09-27 DeepSeek 恢复验证
 
 本地 `.env` 已切换 `MODEL_PROVIDER=deepseek`，生成、Judge、后台标题使用 `deepseek-v4-pro`，官方地址为 `https://api.deepseek.com`，关闭 thinking。修正了原本拼错的 DeepSeek 地址；密钥未写入代码或报告。`deepseek-flash` 的可用性预检重复返回含异常标记的 JSON 字段，因此未采用。成功调用不代表免费额度，本次没有查询 DeepSeek 账户余额。
@@ -43,7 +49,7 @@ Embedding、reranker、原生联网搜索继续使用各自的 DashScope 配置�
 
 最终执行 `python -m pytest tests -q`：**231 passed，2 skipped**（既有 python_multipart 弃用警告）；`git diff --check` 通过。基准 CLI 的 `--help` 已验证，未通过的真实调用没有计入测试成功数。
 
-## 真实对照阻塞
+## 历史真实对照阻塞（2026-09-27 已恢复）
 
 模型服务实际返回 HTTP 403，错误码 AllocationQuota.FreeTierOnly。首次对照记录位于 work/citation-gate-comparison/results.json，属于服务拒绝记录，不是 0 错误放行或 0 幻觉的质量证明；status.json 已标记 blocked。没有修改供应商计费设置，也未擅自切换模型绕过限制。
 

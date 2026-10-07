@@ -6,6 +6,8 @@ const props = defineProps<{
   steps: AgentStep[]
   active: boolean
   startedAt?: number
+  finalStatus?: 'complete' | 'fallback' | 'error' | 'cancelled'
+  elapsedMs?: number | null
 }>()
 
 const expanded = ref(false)
@@ -64,6 +66,7 @@ const statusLabels: Record<string, string> = {
   complete: '已完成',
   skipped: '已跳过',
   error: '失败',
+  cancelled: '已停止',
 }
 
 function stepLabel(step: AgentStep): string {
@@ -101,6 +104,9 @@ const currentStepStatus = computed(() =>
 const currentStepLabel = computed(() =>
   currentStep.value ? stepLabel(currentStep.value) : '正在连接服务…',
 )
+const finalStatusLabel = computed(() => ({
+  complete: '已完成', fallback: '已安全回退', error: '未完成', cancelled: '已停止',
+}[props.finalStatus || 'complete']))
 
 function toggleExpanded(): void {
   expanded.value = !expanded.value
@@ -131,7 +137,8 @@ watch(
           aria-hidden="true"
         />
         <span class="progress-current-copy">
-          <strong>{{ active ? currentStepLabel : '本次处理已结束' }}</strong>
+            <strong>{{ active ? currentStepLabel : finalStatusLabel }}</strong>
+            <small v-if="!active && props.elapsedMs != null">耗时 {{ Math.round(props.elapsedMs) }} ms</small>
           <small v-if="active && elapsed >= 8"
             >已等待 {{ elapsed }} 秒 ·
             {{
@@ -176,6 +183,7 @@ watch(
           <span class="step-status-label">{{
             statusLabels[stepStatus(step)] || '处理中'
           }}</span>
+          <span v-if="step.durationMs != null" class="step-duration">{{ Math.round(step.durationMs) }} ms</span>
         </span>
       </div>
     </div>

@@ -1,11 +1,12 @@
 """Reproducible local UI timing; home production preview, chat API fixtures."""
 
-import json, platform, time
+import json, os, platform, time
 from pathlib import Path
 from playwright.sync_api import sync_playwright, expect
 from e2e_mvp_browser import install_api_fixtures, sse, ROOT
 
-OUT = ROOT / "work/product-experience/performance"
+OUT = Path(os.environ.get("BROWSER_BENCHMARK_OUTPUT", str(ROOT / "work/product-experience/performance")))
+PREVIEW_URL = os.environ.get("BROWSER_PREVIEW_URL", "http://127.0.0.1:4173")
 OUT.mkdir(parents=True, exist_ok=True)
 INIT = """window.localMetrics={lcp:0,cls:0,longTasks:[]};new PerformanceObserver(l=>{for(const e of l.getEntries())window.localMetrics.lcp=e.startTime}).observe({type:'largest-contentful-paint',buffered:true});new PerformanceObserver(l=>{for(const e of l.getEntries())if(!e.hadRecentInput)window.localMetrics.cls+=e.value}).observe({type:'layout-shift',buffered:true});new PerformanceObserver(l=>{for(const e of l.getEntries())window.localMetrics.longTasks.push({start:e.startTime,duration:e.duration})}).observe({type:'longtask',buffered:true});"""
 with sync_playwright() as p:
@@ -28,7 +29,7 @@ with sync_playwright() as p:
         cdp = context.new_cdp_session(page)
         cdp.send("Network.enable")
         cdp.send("Network.setCacheDisabled", {"cacheDisabled": True})
-        page.goto("http://127.0.0.1:4173", wait_until="networkidle")
+        page.goto(PREVIEW_URL, wait_until="networkidle")
         page.wait_for_timeout(500)
         report["home"].append(page.evaluate("window.localMetrics"))
         context.close()
@@ -86,7 +87,8 @@ with sync_playwright() as p:
     )
     page.unroute("**/api/chat/sessions/**")
     for path in ["/chat", "/knowledge"]:
-        page.goto("http://127.0.0.1:4173" + path)
+        install_api_fixtures(page)
+        page.goto(PREVIEW_URL + path)
         page.reload()
         expect(page.locator("#main-content")).to_be_visible()
     context.close()

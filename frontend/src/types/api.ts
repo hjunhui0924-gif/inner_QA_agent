@@ -5,6 +5,7 @@ export interface Citation {
   document_id?: string
   title: string
   source?: string
+  source_content_checksum?: string | null
   url?: string
   filename?: string
   page?: number | null
@@ -24,6 +25,21 @@ export interface SessionSummary {
 
 export type ChatMode = 'knowledge' | 'general'
 
+export interface ContextUsage {
+  scope: 'conversation_history'
+  estimation_method: 'mixed_text_v1'
+  estimated: true
+  status: 'available' | 'unavailable'
+  used_tokens: number | null
+  summary_tokens: number | null
+  budget_tokens: number
+  summary_trigger_tokens: number
+  sampled_at: string
+  checkpoint_id: string | null
+}
+
+export type FeedbackCategory = 'incorrect_answer' | 'citation_mismatch' | 'outdated_policy' | 'not_helpful' | 'other'
+
 export type AnswerState =
   | 'streaming'
   | 'validating'
@@ -38,6 +54,19 @@ export type AgentStepStatus =
   | 'complete'
   | 'skipped'
   | 'error'
+  | 'cancelled'
+
+export interface TurnProcessStep {
+  node: string
+  status: AgentStepStatus | 'cancelled'
+  duration_ms: number | null
+}
+
+export interface TurnProcessSummary {
+  status: 'complete' | 'fallback' | 'error' | 'cancelled'
+  elapsed_ms: number | null
+  steps: TurnProcessStep[]
+}
 
 export interface ChatHistoryItem {
   attempt_group_id?: string | null
@@ -53,6 +82,7 @@ export interface ChatHistoryItem {
   failure_stage?: string | null
   failure_reason?: string | null
   trace_id?: string | null
+  process_summary?: TurnProcessSummary | null
 }
 
 export interface KnowledgeRecord {
@@ -85,6 +115,36 @@ export interface KnowledgeRecord {
   deduplicated?: boolean
   dedup_type?: 'exact' | 'near' | 'similar' | 'none' | string
   similarity?: number | null
+}
+
+export interface SourcePreviewBlock {
+  id: string
+  text: string
+  page: number | null
+  section: string | null
+}
+
+export interface SourcePreviewResponse {
+  source_id: string
+  title: string
+  version: string | null
+  content_checksum: string
+  format: 'text' | 'pdf' | 'docx' | 'other'
+  render_mode: 'extracted_text'
+  revision_match: 'same' | 'changed' | 'unknown'
+  location: {
+    status: 'exact' | 'normalized' | 'ambiguous' | 'not_found' | 'unavailable'
+    block_id: string | null
+    page: number | null
+    section: string | null
+    start: number | null
+    end: number | null
+    match_count: number
+  }
+  blocks: SourcePreviewBlock[]
+  previous_cursor: string | null
+  next_cursor: string | null
+  original_available: boolean
 }
 
 export interface KnowledgeUploadMetadata {
@@ -138,6 +198,8 @@ export type StreamEvent =
       failure_stage?: string | null
       failure_reason?: string | null
       budget_snapshot?: Record<string, unknown> | null
+      context_usage?: ContextUsage
+      process_summary?: TurnProcessSummary | null
   }
   | { type: 'done'; trace_id: string }
 
@@ -150,6 +212,7 @@ export interface UiMessage extends ChatHistoryItem {
   failureStage?: string | null
   failureReason?: string | null
   traceId?: string | null
+  processSummary?: TurnProcessSummary | null
 }
 
 export interface AgentStep {
@@ -158,6 +221,7 @@ export interface AgentStep {
   status?: AgentStepStatus
   startedAt?: number
   endedAt?: number
+  durationMs?: number | null
 }
 
 export interface ToastMessage {

@@ -50,6 +50,7 @@ app.add_middleware(
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Pdf-Preview-Max-Bytes", "X-Pdf-Preview-Max-Pages"],
 )
 app.include_router(router)
 

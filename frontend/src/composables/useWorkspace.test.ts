@@ -48,6 +48,63 @@ afterEach(() => {
 })
 
 describe('useWorkspace answer delivery', () => {
+  it.each(['disconnect', 'abort'])( 'keeps a committed result after %s', async (ending) => {
+    serviceMocks.streamChat.mockImplementationOnce(async (_payload, onEvent) => {
+      onEvent(resultEvent('正式回答'))
+      throw ending === 'abort' ? new DOMException('aborted', 'AbortError') : new Error('network down')
+    })
+    const workspace = useWorkspace()
+    await workspace.sendMessage('已交付的请求')
+    expect(workspace.messages.value.at(-1)?.answerState).toBe('complete')
+    expect(workspace.messages.value.at(-1)?.content).toBe('正式回答')
+    expect(workspace.backendOnline.value).toBe(true)
+    expect(workspace.sending.value).toBe(false)
+    expect(serviceMocks.streamChat).toHaveBeenCalledOnce()
+  })
+
+  it('ignores a late callback from a cancelled request during its retry', async () => {
+    const workspace = useWorkspace()
+    let deliverOld!: (event: StreamEvent) => void
+    serviceMocks.streamChat.mockImplementationOnce((_payload, onEvent, signal) => {
+      deliverOld = onEvent
+      onEvent({ type: 'status', node: 'retrieve', content: 'searching' })
+      return new Promise<void>((_resolve, reject) => signal.addEventListener('abort', () => reject(new DOMException('cancelled', 'AbortError')), { once: true }))
+    })
+    const original = workspace.sendMessage('审批问题')
+    workspace.cancelMessage()
+    await original
+    const cancelled = workspace.messages.value.at(-1)!
+    serviceMocks.streamChat.mockImplementationOnce(async (_payload, onEvent) => {
+      onEvent({ type: 'status', node: 'generate', content: 'generating' })
+      deliverOld(resultEvent('错误的旧结果'))
+      expect(cancelled.answerState).toBe('cancelled')
+      expect(workspace.agentSteps.value.at(-1)?.node).toBe('generate')
+      onEvent(resultEvent('新的正式答案'))
+    })
+    await workspace.retryMessage(cancelled)
+    expect(cancelled.content).toBe('')
+    expect(workspace.messages.value.at(-1)?.content).toBe('新的正式答案')
+    const [first, second] = serviceMocks.streamChat.mock.calls
+    expect(second?.[0].turn_id).not.toBe(first?.[0].turn_id)
+    expect(second?.[0].attempt_group_id).toBe(first?.[0].attempt_group_id)
+    expect(second?.[0].retry_of_turn_id).toBe(first?.[0].turn_id)
+  })
+
+  it('ignores callbacks after completion including their context usage side effects', async () => {
+    const workspace = useWorkspace()
+    let deliver!: (event: StreamEvent) => void
+    serviceMocks.streamChat.mockImplementationOnce(async (_payload, onEvent) => {
+      deliver = onEvent
+      onEvent(resultEvent('正式回答'))
+    })
+    await workspace.sendMessage('问题')
+    deliver({ ...resultEvent('迟到的错误回答'), context_usage: {
+      scope: 'conversation_history', estimation_method: 'mixed_text_v1', estimated: true, status: 'available',
+      used_tokens: 999999, summary_tokens: 0, budget_tokens: 400, summary_trigger_tokens: 300, sampled_at: 'late', checkpoint_id: null,
+    } })
+    expect(workspace.messages.value.at(-1)?.content).toBe('正式回答')
+    expect(workspace.contextUsage.value?.used_tokens).not.toBe(999999)
+  })
   it.each(['search_error', 'search_answer_error'])(
     'retries a reopened %s turn with web search enabled',
     async (failureType) => {

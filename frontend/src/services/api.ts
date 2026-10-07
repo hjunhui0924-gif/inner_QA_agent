@@ -7,7 +7,11 @@ import type {
   UploadResponse,
   ChatMode,
   KnowledgeUploadMetadata,
+  ContextUsage,
+  SourcePreviewResponse,
+  FeedbackCategory,
 } from '../types/api'
+import { assertStreamEvent } from '../utils/streamEvent'
 
 const configuredBase = import.meta.env.VITE_API_BASE_URL?.trim()
 const API_BASE = (configuredBase || '/api').replace(/\/$/, '')
@@ -78,6 +82,16 @@ export async function fetchHistory(
   return Array.isArray(payload.items) ? payload.items : []
 }
 
+export async function fetchContextUsage(
+  userId: string,
+  sessionId: string,
+): Promise<ContextUsage> {
+  const payload = await requestJson<{ session_id: string; context_usage: ContextUsage }>(
+    `/chat/context/${encodeURIComponent(userId)}/${encodeURIComponent(sessionId)}`,
+  )
+  return payload.context_usage
+}
+
 export function deleteSession(userId: string, sessionId: string): Promise<{ message: string }> {
   return requestJson<{ message: string }>(
     `/chat/session/${encodeURIComponent(userId)}/${encodeURIComponent(sessionId)}`,
@@ -100,11 +114,85 @@ export async function downloadKnowledge(sourceId: string): Promise<Blob> {
   return response.blob()
 }
 
-export async function fetchKnowledgeRecord(sourceId: string): Promise<KnowledgeRecord> {
+export async function fetchPdfSource(sourceId: string, signal: AbortSignal): Promise<{ bytes: Uint8Array; maxPages: number }> {
+  const response = await fetch(
+    `${API_BASE}/knowledge/records/${encodeURIComponent(sourceId)}/download?preview=true`,
+    { signal },
+  )
+  if (!response.ok) throw new ApiError(await errorMessage(response), response.status)
+  const positiveHeader = (name: string, fallback: number) => {
+    const value = Number(response.headers.get(name))
+    return Number.isSafeInteger(value) && value > 0 ? value : fallback
+  }
+  const maxBytes = positiveHeader('X-Pdf-Preview-Max-Bytes', 20 * 1024 * 1024)
+  const maxPages = positiveHeader('X-Pdf-Preview-Max-Pages', 500)
+  const tooLarge = () => new ApiError('PDF 文件超过预览上限，可下载原文件查看。', 413)
+  if (Number(response.headers.get('Content-Length')) > maxBytes) {
+    await response.body?.cancel()
+    throw tooLarge()
+  }
+  if (!response.body) throw new ApiError('PDF 文件内容不可用。', 502)
+  const reader = response.body.getReader()
+  const chunks: Uint8Array[] = []
+  let length = 0
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      length += value.byteLength
+      if (length > maxBytes) {
+        await reader.cancel()
+        throw tooLarge()
+      }
+      chunks.push(value)
+    }
+  } finally {
+    reader.releaseLock()
+  }
+  const bytes = new Uint8Array(length)
+  let offset = 0
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength }
+  return { bytes, maxPages }
+}
+
+export async function fetchKnowledgeRecord(sourceId: string, signal?: AbortSignal): Promise<KnowledgeRecord> {
   const payload = await requestJson<{ record: KnowledgeRecord }>(
     `/knowledge/records/${encodeURIComponent(sourceId)}`,
+    signal ? { signal } : undefined,
   )
   return payload.record
+}
+
+export function fetchSourcePreview(
+  sourceId: string,
+  target?: { sessionId?: string; turnId?: string; citationId?: string; cursor?: string },
+  signal?: AbortSignal,
+): Promise<SourcePreviewResponse> {
+  const params = new URLSearchParams()
+  if (target?.sessionId) params.set('session_id', target.sessionId)
+  if (target?.turnId) params.set('turn_id', target.turnId)
+  if (target?.citationId) params.set('citation_id', target.citationId)
+  if (target?.cursor) params.set('cursor', target.cursor)
+  const suffix = params.toString() ? `?${params.toString()}` : ''
+  return requestJson<SourcePreviewResponse>(
+    `/knowledge/records/${encodeURIComponent(sourceId)}/preview${suffix}`,
+    { signal },
+  )
+}
+
+export function submitFeedback(payload: {
+  feedback_id: string
+  session_id: string
+  turn_id: string
+  message_id: string
+  category: FeedbackCategory
+  note: string
+}): Promise<{ feedback_id: string; status: string }> {
+  return requestJson<{ feedback_id: string; status: string }>('/chat/feedback', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
 }
 
 export function uploadKnowledge(
@@ -147,6 +235,10 @@ export async function streamChat(
   const decoder = new TextDecoder()
   let buffer = ''
   let receivedResult = false
+  let ended = false
+  let readerClosed = false
+  const cancelReader = () => { void reader.cancel().catch(() => undefined) }
+  signal?.addEventListener('abort', cancelReader, { once: true })
 
   const consumeBlock = (block: string) => {
     const data = block
@@ -155,25 +247,46 @@ export async function streamChat(
       .map((line) => line.slice(5).trimStart())
       .join('\n')
     if (!data) return
-    try {
-      const event = JSON.parse(data) as StreamEvent
-      if (event.type === 'result') receivedResult = true
-      onEvent(event)
-    } catch {
+    let event: unknown
+    try { event = JSON.parse(data) } catch {
+      if (receivedResult) return
       throw new Error('无法解析后端返回的 SSE 事件。')
     }
+    // Only done remains relevant after the first authoritative result. Ignore
+    // provisional or duplicate results before they can trigger side effects.
+    if (receivedResult && (!event || typeof event !== 'object' || !('type' in event) || event.type !== 'done')) return
+    if (!receivedResult) signal?.throwIfAborted()
+    assertStreamEvent(event)
+    onEvent(event)
+    if (event.type === 'result') receivedResult = true
+    if (event.type === 'done') ended = true
   }
 
-  while (true) {
-    const { done, value } = await reader.read()
-    buffer += decoder.decode(value, { stream: !done })
-    const blocks = buffer.split(/\r?\n\r?\n/)
-    buffer = blocks.pop() ?? ''
-    blocks.forEach(consumeBlock)
-    if (done) break
-  }
-  if (buffer.trim()) consumeBlock(buffer)
-  if (!receivedResult) {
-    throw new Error('后端流式响应未返回经过校验的最终结果。')
+  try {
+    signal?.throwIfAborted()
+    while (!ended) {
+      let chunk: ReadableStreamReadResult<Uint8Array>
+      try { chunk = await reader.read() } catch (error) {
+        if (receivedResult) break
+        throw error
+      }
+      if (!receivedResult) signal?.throwIfAborted()
+      const { done, value } = chunk
+      readerClosed = done
+      buffer += decoder.decode(value, { stream: !done })
+      const blocks = buffer.split(/\r?\n\r?\n/)
+      buffer = blocks.pop() ?? ''
+      for (const block of blocks) {
+        consumeBlock(block)
+        if (ended) break
+      }
+      if (done) break
+    }
+    // SSE frames dispatch on a blank line; an unterminated tail is incomplete.
+    if (!receivedResult) throw new Error('后端流式响应未返回经过校验的最终结果。')
+  } finally {
+    signal?.removeEventListener('abort', cancelReader)
+    if (!readerClosed) cancelReader()
+    reader.releaseLock()
   }
 }

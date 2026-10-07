@@ -40,6 +40,29 @@ def estimate_conversation_tokens(
     )
 
 
+def build_context_usage(
+    messages: list[BaseMessage],
+    conversation_summary: str = "",
+    *,
+    budget_tokens: int,
+    summary_trigger_tokens: int,
+) -> dict[str, object]:
+    """Build the stable usage portion of the conversation context contract."""
+
+    if budget_tokens <= 0 or summary_trigger_tokens <= 0:
+        raise ValueError("Conversation limits must be positive.")
+    return {
+        "scope": "conversation_history",
+        "estimation_method": "mixed_text_v1",
+        "estimated": True,
+        "status": "available",
+        "used_tokens": estimate_conversation_tokens(messages, conversation_summary),
+        "summary_tokens": estimate_text_tokens(conversation_summary),
+        "budget_tokens": budget_tokens,
+        "summary_trigger_tokens": summary_trigger_tokens,
+    }
+
+
 def plan_conversation_window(
     messages: list[BaseMessage],
     *,

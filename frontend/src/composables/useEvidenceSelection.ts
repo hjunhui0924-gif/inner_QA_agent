@@ -4,6 +4,7 @@ import type { UiMessage, Citation } from '../types/api'
 export interface EvidenceSelection {
   sessionId: string
   messageId: string
+  turnId: string | null
   citationId: string | null
   citationsSnapshot: Citation[]
   triggerElement: HTMLElement | null
@@ -21,6 +22,7 @@ export function useEvidenceSelection() {
     selection.value = {
       sessionId,
       messageId: message.message_id || message.id,
+      turnId: message.turn_id || null,
       citationId:
         citations.find(
           (c) => c.citation_id.toUpperCase() === citationId?.toUpperCase(),

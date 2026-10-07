@@ -232,7 +232,7 @@ def check_upload_and_large_list(browser):
 
 
 def check_history_scroll(browser):
-    context = browser.new_context(viewport={"width": 1440, "height": 900})
+    context = browser.new_context(viewport={"width": 1440, "height": 900}, reduced_motion="reduce")
     page = context.new_page()
     install_api_fixtures(page)
     page.route(
@@ -241,7 +241,7 @@ def check_history_scroll(browser):
             json={
                 "items": [
                     {"session_id": sid, "title": sid, "last_message": ""}
-                    for sid in ["long-session", "short-session"]
+                    for sid in ["long-session", "many-session", "short-session"]
                 ]
             }
         ),
@@ -249,16 +249,25 @@ def check_history_scroll(browser):
 
     def history(route):
         long = route.request.url.endswith("long-session")
+        many = route.request.url.endswith("many-session")
+        long_items = [
+            {"role": "user", "content": "第一个长会话问题", "message_id": "user-1", "turn_id": "turn-1"},
+            {"role": "assistant", "content": ("长答案段落\n\n" * 50), "message_id": "answer-1", "turn_id": "turn-1", "citations": []},
+            {"role": "user", "content": "第二个长会话问题", "message_id": "user-2", "turn_id": "turn-2"},
+            {"role": "assistant", "content": ("长答案段落\n\n" * 100), "message_id": "answer-2", "turn_id": "turn-2", "citations": []},
+        ]
+        many_items = []
+        for index in range(100):
+            turn = f"many-turn-{index}"
+            many_items.extend([
+                {"role": "user", "content": f"第 {index + 1} 个问题", "message_id": f"many-user-{index}", "turn_id": turn},
+                {"role": "assistant", "content": f"第 {index + 1} 个回答", "message_id": f"many-answer-{index}", "turn_id": turn, "citations": []},
+            ])
         route.fulfill(
             json={
-                "items": [
-                    {"role": "user", "content": "问题", "message_id": "user"},
-                    {
-                        "role": "assistant",
-                        "content": ("长答案段落\n\n" * 100 if long else "短回答"),
-                        "message_id": "answer",
-                        "citations": [],
-                    },
+                "items": long_items if long else many_items if many else [
+                    {"role": "user", "content": "短问题", "message_id": "short-user", "turn_id": "short-turn"},
+                    {"role": "assistant", "content": "短回答", "message_id": "short-answer", "turn_id": "short-turn", "citations": []},
                 ]
             }
         )
@@ -266,17 +275,26 @@ def check_history_scroll(browser):
     page.route("**/api/chat/history/**", history)
     page.goto(BASE_URL + "/chat")
     page.get_by_role("button", name="long-session", exact=True).click()
-    expect(page.locator(".message.assistant")).to_be_visible()
+    expect(page.locator(".message.assistant").last).to_be_visible()
+    page.get_by_role("button", name="问题目录").click()
+    expect(page.get_by_role("button", name="第二个长会话问题")).to_be_visible()
+    page.get_by_role("button", name="第一个长会话问题").click()
+    expect(page.locator('[data-message-id="user-1"]')).to_be_visible()
     page.locator(".conversation").evaluate(
         "el=>{el.scrollTop=600;el.dispatchEvent(new Event('scroll'))}"
     )
     page.locator("#question").fill("长会话草稿")
     page.get_by_role("button", name="short-session", exact=True).click()
-    expect(page.locator(".message.assistant")).to_contain_text("短回答")
+    expect(page.locator(".message.assistant").last).to_contain_text("短回答")
     page.get_by_role("button", name="long-session", exact=True).click()
     expect(page.locator("#question")).to_have_value("长会话草稿")
     page.wait_for_timeout(100)
     assert abs(page.locator(".conversation").evaluate("el=>el.scrollTop") - 600) < 2
+    page.get_by_role("button", name="many-session", exact=True).click()
+    page.get_by_role("button", name="问题目录").click()
+    expect(page.locator(".conversation-navigator-item")).to_have_count(100)
+    page.get_by_role("button", name="第 100 个问题").click()
+    expect(page.locator('[data-message-id="many-user-99"]')).to_be_visible()
     context.close()
 
 

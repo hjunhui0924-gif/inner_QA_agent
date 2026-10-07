@@ -100,6 +100,8 @@ class Settings(BaseSettings):
     max_upload_bytes: int = 20 * 1024 * 1024
     max_extracted_chars: int = 5_000_000
     max_document_pages: int = 500
+    pdf_preview_max_bytes: int = 20 * 1024 * 1024
+    pdf_preview_max_pages: int = 500
     max_archive_uncompressed_bytes: int = 100 * 1024 * 1024
     backend_url: str = "http://localhost:8000"
     frontend_origins: str = "http://127.0.0.1:5173,http://localhost:5173"
@@ -176,6 +178,8 @@ class Settings(BaseSettings):
         "max_upload_bytes",
         "max_extracted_chars",
         "max_document_pages",
+        "pdf_preview_max_bytes",
+        "pdf_preview_max_pages",
         "max_archive_uncompressed_bytes",
         "trace_max_bytes",
         "trace_backup_count",

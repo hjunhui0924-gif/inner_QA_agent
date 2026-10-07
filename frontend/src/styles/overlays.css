@@ -317,6 +317,27 @@
   line-height: 1.75;
   overflow-wrap: anywhere;
 }
+.source-preview-body { display: grid; gap: 10px; }
+.source-preview-body > p { margin: 0; color: var(--ink-soft); font-size: 12px; }
+.source-preview-block { margin: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-muted); }
+.source-preview-block header { display: flex; gap: 8px; color: var(--ink-faint); font-size: 11px; }
+.source-preview-block p { margin: 6px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; }
+.source-preview-block mark { padding: 0 2px; border-radius: 3px; background: var(--accent-soft); color: inherit; }
+.source-preview-navigation { display: flex; justify-content: space-between; gap: 8px; }
+.feedback-dialog-shell { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 20px; }
+.feedback-dialog-scrim { position: absolute; inset: 0; background: rgb(15 23 42 / 28%); }
+.feedback-dialog { position: relative; width: min(420px, 100%); max-height: calc(100dvh - 40px); overflow-y: auto; overscroll-behavior: contain; display: grid; gap: 10px; padding: 22px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow-raised); }
+.feedback-categories { display: grid; gap: 10px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.feedback-dialog h2, .feedback-dialog p { margin: 0; }
+.feedback-dialog > p { color: var(--ink-faint); font-size: 12px; }
+.feedback-option { display: flex; align-items: center; gap: 8px; min-height: 32px; color: var(--ink-soft); font-size: 13px; }
+.feedback-dialog textarea { min-height: 90px; resize: vertical; padding: 9px; border: 1px solid var(--line); border-radius: 8px; background: var(--canvas); color: var(--ink); }
+.feedback-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+.pdf-source-preview { margin-top: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-muted); overflow: hidden; }
+.pdf-preview-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px; border-bottom: 1px solid var(--line); }
+.pdf-preview-toolbar span { margin-inline: auto; color: var(--ink-faint); font-size: 12px; }
+.pdf-page-scroll { max-height: 60vh; overflow: auto; padding: 12px; text-align: center; }
+.pdf-page-scroll canvas { display: block; background: white; box-shadow: var(--shadow-low); }
 
 .detail-integrity dl {
   display: grid;

@@ -2,7 +2,7 @@
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import { downloadKnowledge } from '../services/api'
-import type { KnowledgeRecord } from '../types/api'
+import type { KnowledgeRecord, SourcePreviewResponse } from '../types/api'
 import {
   departmentLabel,
   sourceLabel,
@@ -11,21 +11,49 @@ import {
   knowledgeStatusTone,
 } from '../utils/knowledge'
 import { registerOverlay } from '../utils/overlayStack'
+import PdfSourcePreview from './PdfSourcePreview.vue'
 
 const props = defineProps<{
   open: boolean
   record: KnowledgeRecord | null
   loading?: boolean
   error?: string
+  preview?: SourcePreviewResponse | null
+  previewLoading?: boolean
+  previewError?: string
+  citationPage?: number | null
+  citationQuote?: string
 }>()
 
-const emit = defineEmits<{ close: []; retry: [] }>()
+const emit = defineEmits<{ close: []; retry: []; previewPage: [cursor: string]; previewReturn: [] }>()
 const drawer = ref<HTMLElement | null>(null)
 const closeButton = ref<HTMLButtonElement | null>(null)
 const downloading = ref(false)
+const pdfOpen = ref(false)
 const downloadError = ref('')
+function previewParts(block: { id: string; text: string }): Array<{ text: string; marked: boolean }> {
+  const location = props.preview?.location
+  if (!location || location.block_id !== block.id || location.start === null || location.end === null)
+    return [{ text: block.text, marked: false }]
+  const points = Array.from(block.text)
+  const start = Math.max(0, Math.min(points.length, location.start))
+  const end = Math.max(start, Math.min(points.length, location.end))
+  return [
+    { text: points.slice(0, start).join(''), marked: false },
+    { text: points.slice(start, end).join(''), marked: true },
+    { text: points.slice(end).join(''), marked: false },
+  ].filter((part) => part.text)
+}
 let downloadGeneration = 0
-watch(() => [props.open, props.record?.source_id], () => { ++downloadGeneration; downloading.value = false; downloadError.value = '' })
+watch(() => [props.open, props.record?.source_id], () => { ++downloadGeneration; downloading.value = false; downloadError.value = ''; pdfOpen.value = false })
+watch(() => props.preview, async (preview) => {
+  if (!props.open || !preview?.location.block_id || pdfOpen.value) return
+  await nextTick()
+  if (!props.open || props.preview !== preview) return
+  const target = [...(drawer.value?.querySelectorAll<HTMLElement>('.source-preview-block') || [])]
+    .find((block) => block.dataset.blockId === preview.location.block_id)
+  target?.scrollIntoView?.({ block: 'nearest', behavior: 'instant' })
+})
 let overlay: ReturnType<typeof registerOverlay> | null = null
 
 function closeOnEscape(event: KeyboardEvent): void {
@@ -164,13 +192,24 @@ watch(
           <button
             class="secondary-button"
             type="button"
-            :disabled="!record.source_id || downloading"
+            :disabled="!record.source_id || !record.original_filename || preview?.original_available === false || downloading"
             @click="downloadRecord"
           >
             {{ downloading ? '准备下载…' : '下载原文件' }}
           </button>
           <p v-if="downloadError" class="field-error" role="alert">{{ downloadError }}</p>
+          <p v-if="preview?.original_available === false" class="field-error">原文件不存在或不可访问，可查看抽取文本。</p>
         </div>
+        <button
+          v-if="record.original_filename?.toLowerCase().endsWith('.pdf')"
+          class="secondary-button"
+          type="button"
+          :disabled="preview?.original_available === false"
+          @click="pdfOpen = !pdfOpen"
+        >
+          {{ pdfOpen ? '收起 PDF 原页' : '打开 PDF 原页' }}
+        </button>
+        <PdfSourcePreview v-if="open && pdfOpen && record.source_id" :source-id="record.source_id" :open="open && pdfOpen" :initial-page="citationPage ?? preview?.location.page" :initial-quote="citationQuote" />
 
         <dl class="detail-fields">
           <div>
@@ -216,10 +255,36 @@ watch(
             <h3 id="preview-title">内容预览</h3>
             <span>原文内容</span>
           </div>
-          <p v-if="loading" role="status">正在加载文档内容…</p>
+          <p v-if="previewLoading" role="status">正在定位引用原文…</p>
+          <p v-else-if="loading" role="status">正在加载文档内容…</p>
           <div v-else-if="error" role="alert">
             <p class="field-error">{{ error }}</p>
             <button class="secondary-button" type="button" @click="emit('retry')">重新加载</button>
+          </div>
+          <div v-else-if="preview" class="source-preview-body">
+            <p v-if="preview.revision_match === 'changed'" role="status">当前文档与该回答引用时的版本不同，请核对更新后的原文。</p>
+            <p v-else-if="preview.revision_match === 'unknown'">该引用未记录版本校验信息，无法确认是否与当前文档一致。</p>
+            <p v-if="previewError" class="field-error" role="alert">{{ previewError }}</p>
+            <p v-if="preview.location.status === 'exact'">已定位到引用原文。</p>
+            <p v-else-if="preview.location.status === 'normalized'">已按空白归一化定位，可能与当前排版略有差异。</p>
+            <p v-else-if="preview.location.status === 'ambiguous'">找到多处相似内容，请手动核对。</p>
+            <p v-else-if="preview.location.status === 'not_found'">当前文档未找到该引用摘录。</p>
+            <p v-else>当前仅提供文档内容预览。</p>
+            <button v-if="preview.location.status !== 'unavailable'" type="button" class="text-button" :disabled="previewLoading" @click="emit('previewReturn')">回到引用位置</button>
+            <article v-for="block in preview.blocks" :key="block.id" :data-block-id="block.id" class="source-preview-block">
+              <header>
+                <span v-if="block.page">第 {{ block.page }} 页</span>
+                <span v-if="block.section">{{ block.section }}</span>
+              </header>
+              <p><template v-for="part in previewParts(block)" :key="`${block.id}-${part.text}-${part.marked}`"><mark v-if="part.marked">{{ part.text }}</mark><template v-else>{{ part.text }}</template></template></p>
+            </article>
+            <nav v-if="preview.previous_cursor || preview.next_cursor" class="source-preview-navigation" aria-label="原文窗口导航">
+              <button v-if="preview.previous_cursor" type="button" class="text-button" @click="emit('previewPage', preview.previous_cursor)">上一窗口</button>
+              <button v-if="preview.next_cursor" type="button" class="text-button" @click="emit('previewPage', preview.next_cursor)">下一窗口</button>
+            </nav>
+          </div>
+          <div v-else-if="previewError" role="alert">
+            <p class="field-error">{{ previewError }}</p>
           </div>
           <p v-else>{{ record.content || record.preview || '暂无预览，可下载原文件查看。' }}</p>
         </section>
@@ -245,6 +310,13 @@ watch(
         </section>
 
         <p class="detail-drawer-note">仅可下载你有权访问的资料。</p>
+      </div>
+      <div v-else class="detail-drawer-body">
+        <p v-if="loading" role="status">正在加载文档内容…</p>
+        <div v-else-if="error" role="alert">
+          <p class="field-error">{{ error }}</p>
+          <button type="button" class="secondary-button" @click="emit('retry')">重新加载</button>
+        </div>
       </div>
     </aside>
   </div>

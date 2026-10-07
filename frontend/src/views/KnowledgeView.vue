@@ -41,6 +41,11 @@ const {
 } = useWorkspace()
 
 const uploadOpen = ref(false)
+const uploadTrigger = ref<HTMLElement | null>(null)
+function openUpload(event: MouseEvent): void {
+  uploadTrigger.value = event.currentTarget as HTMLElement
+  uploadOpen.value = true
+}
 const {
   title,
   source,
@@ -251,7 +256,7 @@ function closeDetails(): void {
       <button
         class="primary-button open-upload"
         type="button"
-        @click="uploadOpen = true"
+        @click="openUpload"
       >
         <el-icon aria-hidden="true"><Plus /></el-icon> 添加文档
       </button>
@@ -368,7 +373,7 @@ function closeDetails(): void {
           <button
             class="secondary-button"
             type="button"
-            @click="uploadOpen = true"
+            @click="openUpload"
           >
             添加第一份文档
           </button>
@@ -463,6 +468,7 @@ function closeDetails(): void {
 
     <WorkspaceDrawer
       :open="uploadOpen"
+      :return-focus-to="uploadTrigger"
       title="添加文档"
       @close="uploadOpen = false"
     >

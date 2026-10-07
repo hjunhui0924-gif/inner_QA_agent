@@ -10,10 +10,11 @@ from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import Literal
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 from starlette.background import BackgroundTasks
 from pydantic import BaseModel, Field, field_validator
+from typing import Literal
 
 from backend.agent.memory import (
     add_knowledge_record,
@@ -29,7 +30,18 @@ from backend.agent.memory import (
     persist_completed_turn,
     save_uploaded_file,
 )
-from backend.agent.conversation import estimate_text_tokens
+from backend.agent.feedback import find_feedback, insert_feedback
+from backend.agent.conversation import build_context_usage, estimate_text_tokens
+from backend.agent.source_preview import (
+    build_preview_blocks,
+    build_window,
+    decode_cursor,
+    encode_cursor,
+    locate_quote,
+    page_window,
+    previous_window_offset,
+)
+from backend.knowledge.schema import content_checksum
 from backend.agent.sessions import (
     create_turn_state,
     delete_session_completely,
@@ -107,6 +119,23 @@ class ChatRequest(BaseModel):
         if not normalized or any(ord(char) < 32 for char in normalized):
             raise ValueError("turn_id must be a non-empty printable identifier.")
         return normalized
+
+
+class FeedbackRequest(BaseModel):
+    feedback_id: str = Field(min_length=1, max_length=128)
+    session_id: str = Field(min_length=1, max_length=128)
+    turn_id: str = Field(min_length=1, max_length=128)
+    message_id: str = Field(min_length=1, max_length=160)
+    category: Literal["incorrect_answer", "citation_mismatch", "outdated_policy", "not_helpful", "other"]
+    note: str = Field(default="", max_length=2000)
+
+    @field_validator("feedback_id", "session_id", "turn_id", "message_id")
+    @classmethod
+    def validate_identifiers(cls, value: str) -> str:
+        value = value.strip()
+        if not value or any(ord(char) < 32 for char in value):
+            raise ValueError("Identifier must be printable.")
+        return value
 
 
 def _request_turn_id(request: Request, payload: ChatRequest) -> str | None:
@@ -199,6 +228,75 @@ def _sse_event(payload: dict[str, object]) -> str:
     """Format a payload as one SSE data event."""
 
     return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
+
+
+def _unavailable_context_usage() -> dict[str, object]:
+    return {
+        "scope": "conversation_history",
+        "estimation_method": "mixed_text_v1",
+        "estimated": True,
+        "status": "unavailable",
+        "used_tokens": None,
+        "summary_tokens": None,
+        "budget_tokens": settings.conversation_token_budget,
+        "summary_trigger_tokens": settings.conversation_summary_trigger_tokens,
+    }
+
+
+async def _read_context_usage_unlocked(request: Request, user_id: str, session_id: str) -> dict[str, object]:
+    """Read the latest committed checkpoint without running the graph."""
+
+    graph = getattr(request.app.state, "graph", None)
+    if graph is None or not hasattr(graph, "aget_state"):
+        raise RuntimeError("graph_unavailable")
+    snapshot = await asyncio.wait_for(
+        graph.aget_state({"configurable": {"thread_id": thread_id_for(user_id, session_id)}}),
+        timeout=2.0,
+    )
+    values = getattr(snapshot, "values", None)
+    if not isinstance(values, dict):
+        values = {}
+    messages = values.get("messages")
+    if not isinstance(messages, list):
+        messages = []
+    summary = values.get("conversation_summary", "")
+    if not isinstance(summary, str):
+        summary = str(summary or "")
+    usage = build_context_usage(
+        messages,
+        summary,
+        budget_tokens=settings.conversation_token_budget,
+        summary_trigger_tokens=settings.conversation_summary_trigger_tokens,
+    )
+    config = getattr(snapshot, "config", None)
+    configurable = config.get("configurable", {}) if isinstance(config, dict) else {}
+    usage["checkpoint_id"] = configurable.get("checkpoint_id") if isinstance(configurable, dict) else None
+    usage["sampled_at"] = None
+    return usage
+
+
+def _finalize_context_usage(usage: dict[str, object]) -> dict[str, object]:
+    from datetime import datetime, timezone
+
+    result = dict(usage)
+    result["sampled_at"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    return result
+
+
+async def _context_usage_for_request(
+    request: Request,
+    user_id: str,
+    session_id: str,
+    *,
+    locked: bool = False,
+) -> dict[str, object]:
+    try:
+        if locked:
+            return await _read_context_usage_unlocked(request, user_id, session_id)
+        async with session_operation(thread_id_for(user_id, session_id)):
+            return await _read_context_usage_unlocked(request, user_id, session_id)
+    except Exception:
+        return _unavailable_context_usage()
 
 
 def _extract_node_name(event: dict[str, object]) -> str:
@@ -509,6 +607,12 @@ async def _stream_graph_unlocked_core(
                     "retry_of_turn_id": completed_turn.get("retry_of_turn_id"),
                     "mode": completed_turn.get("mode", payload.mode),
                     "web_search": completed_turn.get("web_search", payload.web_search),
+                    "context_usage": _finalize_context_usage(
+                        await _context_usage_for_request(
+                            request, payload.user_id, payload.session_id, locked=True
+                        )
+                    ),
+                    "process_summary": completed_turn.get("process_summary"),
                     "replayed": True,
                 }
             )
@@ -606,6 +710,24 @@ async def _stream_graph_unlocked_core(
             response_citations = []
         persistence_started = time.perf_counter()
         outcome = build_trace(trace_id=trace_id, query=payload.message, state=final_state)
+        process_status = "fallback" if outcome.get("failure_type") not in {None, "none", ""} else "complete"
+        timing_by_stage = {
+            str(item.get("stage")): item.get("elapsed_ms")
+            for item in stage_timings
+            if isinstance(item, dict) and isinstance(item.get("stage"), str)
+        }
+        process_summary = {
+            "status": process_status,
+            "elapsed_ms": (time.perf_counter() - request_started_at) * 1000,
+            "steps": [
+                {
+                    "node": node,
+                    "status": "complete",
+                    "duration_ms": timing_by_stage.get(node),
+                }
+                for node in observed_status_events
+            ],
+        }
         turn_metadata = {
             "attempt_group_id": payload.attempt_group_id or str(graph_input["turn_id"]),
             "retry_of_turn_id": payload.retry_of_turn_id,
@@ -613,6 +735,7 @@ async def _stream_graph_unlocked_core(
             "failure_type": outcome["failure_type"],
             "failure_stage": outcome.get("failure_stage"),
             "failure_reason": outcome.get("failure_reason"), "trace_id": trace_id,
+            "process_summary": process_summary,
         }
         completed_turn = await persist_completed_turn(
             user_id=payload.user_id,
@@ -663,6 +786,12 @@ async def _stream_graph_unlocked_core(
             + int(final_state.get("tool_call_count", 0))
         )
         result_trace = {**outcome, **completed_turn}
+        try:
+            context_usage = await _context_usage_for_request(
+                request, payload.user_id, payload.session_id, locked=True
+            )
+        except Exception:
+            context_usage = _unavailable_context_usage()
         yield _sse_event(
             {
                 "type": "result",
@@ -677,6 +806,8 @@ async def _stream_graph_unlocked_core(
                 "attempt_group_id": completed_turn.get("attempt_group_id"),
                 "retry_of_turn_id": completed_turn.get("retry_of_turn_id"),
                 "mode": payload.mode, "web_search": payload.web_search,
+                "context_usage": _finalize_context_usage(context_usage),
+                "process_summary": completed_turn.get("process_summary"),
             }
         )
         yield _sse_event({"type": "done", "trace_id": trace_id})
@@ -821,6 +952,45 @@ async def chat_history(request: Request, user_id: str, session_id: str) -> dict[
     return {"items": await load_chat_messages(user_id, session_id)}
 
 
+@router.get("/chat/context/{user_id}/{session_id}", dependencies=[Depends(require_access_context)])
+async def chat_context(request: Request, user_id: str, session_id: str) -> dict[str, object]:
+    """Return the latest checkpoint based conversation usage estimate."""
+
+    access_context = _request_access_context(request)
+    if _is_real_http_request(request):
+        _assert_user_path(user_id, access_context)
+    usage = await _context_usage_for_request(request, user_id, session_id)
+    return {"session_id": session_id, "context_usage": _finalize_context_usage(usage)}
+
+
+@router.post("/chat/feedback", dependencies=[Depends(require_access_context)])
+async def chat_feedback(request: Request, payload: FeedbackRequest) -> dict[str, str]:
+    """Record idempotent feedback for an already committed assistant answer."""
+
+    access_context = _request_access_context(request)
+    thread_id = thread_id_for(access_context.user_id, payload.session_id)
+    async with session_operation(thread_id):
+        completed = await load_completed_turn(
+            access_context.user_id, payload.session_id, payload.turn_id
+        )
+        if completed is None or completed.get("message_id") != payload.message_id:
+            raise HTTPException(status_code=404, detail="回答不存在或不可反馈。")
+        existing = await find_feedback(access_context.user_id, payload.feedback_id)
+        values = {
+            "session_id": payload.session_id,
+            "turn_id": payload.turn_id,
+            "message_id": payload.message_id,
+            "category": payload.category,
+            "note": payload.note.strip(),
+        }
+        if existing is not None:
+            if existing != values:
+                raise HTTPException(status_code=409, detail="feedback_id 已用于其他反馈。")
+            return {"feedback_id": payload.feedback_id, "status": "recorded"}
+        await insert_feedback(access_context.user_id, payload.feedback_id, values)
+    return {"feedback_id": payload.feedback_id, "status": "recorded"}
+
+
 @router.delete("/chat/session/{user_id}/{session_id}", dependencies=[Depends(require_access_context)])
 async def delete_session(
     request: Request,
@@ -862,25 +1032,114 @@ async def knowledge_record(request: Request, source_id: str) -> dict[str, object
 
 
 @router.get(
-    "/knowledge/records/{source_id}/download",
+    "/knowledge/records/{source_id}/preview",
     dependencies=[Depends(require_access_context)],
 )
-async def download_knowledge_record(request: Request, source_id: str) -> FileResponse:
-    """Download an uploaded source only after the same ACL evaluation."""
+async def knowledge_record_preview(
+    request: Request,
+    source_id: str,
+    session_id: str | None = Query(default=None),
+    turn_id: str | None = Query(default=None),
+    citation_id: str | None = Query(default=None),
+    cursor: str | None = Query(default=None),
+) -> dict[str, object]:
+    """Return a bounded extracted-text window and optional verified citation location."""
 
-    _, record = _authorized_knowledge_record(request, source_id)
+    if any(value is not None for value in (session_id, turn_id, citation_id)) and not all(
+        value for value in (session_id, turn_id, citation_id)
+    ):
+        raise HTTPException(status_code=422, detail="定位参数必须同时提供。")
+    access_context, record = _authorized_knowledge_record(request, source_id)
+    del access_context
+    content = str(record.get("content", ""))
+    blocks = build_preview_blocks(content, record.get("segments"))
+    location = {"status": "unavailable", "block_id": None, "page": None, "section": None,
+                "start": None, "end": None, "match_count": 0}
+    target_block_id = None
+    if session_id and turn_id and citation_id:
+        completed = await load_completed_turn(
+            _request_access_context(request).user_id, session_id, turn_id
+        )
+        citations = completed.get("citations", []) if completed else []
+        citation = next(
+            (item for item in citations if isinstance(item, dict) and str(item.get("citation_id", "")).upper() == citation_id.upper()),
+            None,
+        )
+        if citation is None or str(citation.get("source_id", "")).strip() != source_id:
+            raise HTTPException(status_code=404, detail="引用来源不存在或不可访问。")
+        location = locate_quote(blocks, str(citation.get("quote", "")))
+        target_block_id = location.get("block_id")
+    checksum = str(record.get("content_checksum", "")).strip() or content_checksum(content)
+    citation_checksum = None
+    if session_id and turn_id and citation_id:
+        citation_checksum = str(citation.get("source_content_checksum", "")).strip() or None
+    revision_match = (
+        "unknown" if not citation_checksum else "same" if citation_checksum == checksum else "changed"
+    )
+    cursor_key = settings.auth_proxy_secret or settings.sqlite_db_path
+    try:
+        offset = decode_cursor(cursor, source_id, checksum, key=cursor_key) if cursor else None
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail="来源预览位置已失效，请重新打开。") from error
+    if offset is not None:
+        window = page_window(blocks, offset)
+    elif target_block_id:
+        window = build_window(blocks, target_block_id)
+    else:
+        window = page_window(blocks, 0)
+    start = next((index for index, block in enumerate(blocks) if block.get("id") == window[0].get("id")), 0) if window else 0
+    end = start + len(window)
+    return {
+        "source_id": source_id,
+        "title": str(record.get("title", "")).strip(),
+        "version": str(record.get("version", "")).strip() or None,
+        "content_checksum": checksum,
+        "format": "pdf" if str(record.get("original_filename", "")).lower().endswith(".pdf") else "docx" if str(record.get("original_filename", "")).lower().endswith(".docx") else "text",
+        "render_mode": "extracted_text",
+        "revision_match": revision_match,
+        "location": location,
+        "blocks": window,
+        "previous_cursor": encode_cursor(source_id, checksum, previous_window_offset(blocks, start), key=cursor_key) if start > 0 else None,
+        "next_cursor": encode_cursor(source_id, checksum, end, key=cursor_key) if end < len(blocks) else None,
+        "original_available": _knowledge_original_path(record) is not None,
+    }
+
+
+def _knowledge_original_path(record: dict) -> Path | None:
     filename = Path(str(record.get("original_filename", "")).replace("\\", "/")).name
     if not filename or filename in {".", ".."}:
-        raise HTTPException(status_code=404, detail="Knowledge source not found.")
+        return None
     upload_root = Path(settings.upload_dir).resolve()
     target = (upload_root / filename).resolve()
     try:
         target.relative_to(upload_root)
-    except ValueError as exc:
-        raise HTTPException(status_code=404, detail="Knowledge source not found.") from exc
-    if not target.is_file():
+    except ValueError:
+        return None
+    return target if target.is_file() else None
+
+
+@router.get(
+    "/knowledge/records/{source_id}/download",
+    dependencies=[Depends(require_access_context)],
+)
+async def download_knowledge_record(request: Request, source_id: str, preview: bool = False) -> FileResponse:
+    """Download an uploaded source only after the same ACL evaluation."""
+
+    _, record = _authorized_knowledge_record(request, source_id)
+    target = _knowledge_original_path(record)
+    if target is None:
         raise HTTPException(status_code=404, detail="Knowledge source not found.")
-    return FileResponse(path=target, filename=filename)
+    headers = None
+    if preview:
+        if target.suffix.lower() != ".pdf":
+            raise HTTPException(status_code=415, detail="该来源不支持 PDF 原页预览。")
+        if target.stat().st_size > settings.pdf_preview_max_bytes:
+            raise HTTPException(status_code=413, detail="PDF 文件超过预览上限，可下载原文件查看。")
+        headers = {
+            "X-Pdf-Preview-Max-Bytes": str(settings.pdf_preview_max_bytes),
+            "X-Pdf-Preview-Max-Pages": str(settings.pdf_preview_max_pages),
+        }
+    return FileResponse(path=target, filename=target.name, headers=headers)
 
 
 @router.post("/knowledge/upload")

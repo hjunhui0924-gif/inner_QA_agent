@@ -41,7 +41,8 @@ def install_api_fixtures(page: Page) -> None:
         "effective_from": "2026-01-01",
         "owner": "财务部",
         "access_scope": "internal",
-        "original_filename": "finance-v2.md",
+        "original_filename": "finance-v2.pdf",
+        "content": "差旅报销需要直属主管审批。\n\n单笔超过5000元还需财务负责人复核。",
         "preview": "单笔超过5000元还需财务负责人复核。",
         "content_checksum": "checksum-finance",
     }
@@ -96,6 +97,13 @@ def install_api_fixtures(page: Page) -> None:
                 body=json.dumps({"items": sessions}, ensure_ascii=False),
             )
             return
+        if method == "GET" and path.startswith("/chat/context/"):
+            route.fulfill(status=200, content_type="application/json", body=json.dumps({"context_usage": {
+                "scope": "conversation_history", "estimation_method": "mixed_text_v1", "estimated": True,
+                "status": "available", "used_tokens": 120, "summary_tokens": 0, "budget_tokens": 400,
+                "summary_trigger_tokens": 300, "sampled_at": "2026-10-06T00:00:00Z", "checkpoint_id": None,
+            }}))
+            return
         if method == "DELETE" and path.startswith("/chat/session/user_001/"):
             state["session_deleted"] = True
             route.fulfill(
@@ -112,10 +120,31 @@ def install_api_fixtures(page: Page) -> None:
             )
             return
         if method == "GET" and path.endswith("/download"):
+            if "preview=true" in request.url:
+                from browser_pdf_fixtures import make_pdf
+                route.fulfill(status=200, content_type="application/pdf", body=make_pdf())
+                return
             route.fulfill(
                 status=200,
                 headers={"Content-Type": "text/markdown"},
                 body="# 新差旅政策\n差旅申请需要直属主管审批。",
+            )
+            return
+        if method == "GET" and path.startswith("/knowledge/records/") and path.endswith("/preview"):
+            route.fulfill(
+                status=200,
+                content_type="application/json",
+                body=json.dumps({
+                    "source_id": "finance-v2",
+                    "content_checksum": "checksum-finance",
+                    "blocks": [
+                        {"id": "block-0-0", "text": "差旅报销需要直属主管审批。", "page": 1, "section": "审批规则"},
+                        {"id": "block-1-0", "text": "单笔超过5000元还需财务负责人复核。", "page": 2, "section": "审批规则"},
+                    ],
+                    "location": {"status": "exact", "block_id": "block-1-0", "page": 2, "section": "审批规则", "start": 0, "end": 19, "match_count": 1},
+                    "previous_cursor": "prev-cursor",
+                    "next_cursor": "next-cursor",
+                }, ensure_ascii=False),
             )
             return
         if method == "GET" and path.startswith("/knowledge/records/"):
@@ -156,6 +185,8 @@ def install_api_fixtures(page: Page) -> None:
                                     "chunk_id": "finance-v2:0",
                                     "quote": "差旅报销需要直属主管审批。单笔超过5000元还需财务负责人复核。",
                                     "verification_status": "grounded",
+                                    "source_id": "finance-v2",
+                                    "source_content_checksum": "checksum-finance",
                                 }
                             ],
                             "trace_id": f"browser-trace-{call_number}",
@@ -239,6 +270,22 @@ def run_mvp_browser_checks(playwright: Playwright) -> None:
         evidence = page.get_by_role("complementary", name="引用来源")
         expect(evidence).to_be_visible()
         expect(evidence).to_contain_text("单笔超过5000元")
+        evidence.get_by_role("button", name="查看文档信息与下载").click()
+        detail = page.get_by_role("dialog", name="文档详情")
+        expect(detail).to_be_visible()
+        expect(detail).to_contain_text("已定位到引用原文")
+        expect(detail.locator("mark")).to_contain_text("单笔超过5000元")
+        expect(detail.get_by_role("button", name="上一窗口")).to_be_visible()
+        expect(detail.get_by_role("button", name="下一窗口")).to_be_visible()
+        detail.get_by_role("button", name="下一窗口").click()
+        expect(detail.locator(".detail-preview")).to_contain_text("单笔超过5000元")
+        detail.get_by_role("button", name="打开 PDF 原页").click()
+        pdf_region = detail.get_by_role("region", name="PDF 原页预览")
+        expect(pdf_region).to_be_visible()
+        expect(pdf_region.get_by_role("button", name="放大")).to_be_visible()
+        expect(pdf_region.get_by_role("button", name="缩小")).to_be_visible()
+        page.keyboard.press("Escape")
+        expect(detail).not_to_be_visible()
         page.get_by_role("button", name="关闭引用证据").click()
 
         question.fill("超过5000元呢？")

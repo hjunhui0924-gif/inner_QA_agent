@@ -285,6 +285,21 @@ async def ensure_user_memory_db(db_path: str | Path) -> None:
         )
         await db.execute(
             """
+            CREATE TABLE IF NOT EXISTS answer_feedback (
+                user_id TEXT NOT NULL,
+                feedback_id TEXT NOT NULL,
+                session_id TEXT NOT NULL,
+                turn_id TEXT NOT NULL,
+                message_id TEXT NOT NULL,
+                category TEXT NOT NULL,
+                note TEXT NOT NULL DEFAULT '',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, feedback_id)
+            )
+            """
+        )
+        await db.execute(
+            """
             CREATE TABLE IF NOT EXISTS chat_messages (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id TEXT NOT NULL,
@@ -591,7 +606,27 @@ def _turn_metadata(raw: str) -> dict[str, Any]:
         return {}
     keys = {"attempt_group_id", "retry_of_turn_id", "mode", "web_search",
             "failure_type", "failure_stage", "failure_reason", "trace_id"}
-    return {key: item for key, item in value.items() if key in keys} if isinstance(value, dict) else {}
+    result = {key: item for key, item in value.items() if key in keys} if isinstance(value, dict) else {}
+    process = value.get("process_summary") if isinstance(value, dict) else None
+    if isinstance(process, dict):
+        status = process.get("status")
+        elapsed = process.get("elapsed_ms")
+        steps = process.get("steps")
+        valid_statuses = {"complete", "fallback", "error", "cancelled"}
+        valid_step_statuses = {"pending", "running", "complete", "skipped", "error", "cancelled"}
+        if status in valid_statuses and (elapsed is None or isinstance(elapsed, (int, float))) and isinstance(steps, list):
+            safe_steps = []
+            for step in steps[:32]:
+                if not isinstance(step, dict) or not isinstance(step.get("node"), str):
+                    continue
+                if step.get("status") not in valid_step_statuses:
+                    continue
+                duration = step.get("duration_ms")
+                if duration is not None and not isinstance(duration, (int, float)):
+                    duration = None
+                safe_steps.append({"node": step["node"], "status": step["status"], "duration_ms": duration})
+            result["process_summary"] = {"status": status, "elapsed_ms": elapsed, "steps": safe_steps}
+    return result
 
 
 async def load_chat_messages(user_id: str, session_id: str) -> list[dict[str, Any]]:
@@ -768,6 +803,10 @@ async def delete_chat_session(user_id: str, session_id: str) -> None:
     """Delete one session and all of its messages."""
 
     async with aiosqlite.connect(settings.sqlite_db_path) as db:
+        await db.execute(
+            "DELETE FROM answer_feedback WHERE user_id = ? AND session_id = ?",
+            (user_id, session_id),
+        )
         await db.execute(
             """
             DELETE FROM chat_turn_results

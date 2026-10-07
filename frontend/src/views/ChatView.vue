@@ -14,7 +14,11 @@ import {
 
 import AgentProgress from '../components/AgentProgress.vue'
 import EvidencePanel from '../components/EvidencePanel.vue'
+import ConversationNavigator from '../components/ConversationNavigator.vue'
+import type { ConversationNavItem } from '../components/ConversationNavigator.vue'
 import FailureNotice from '../components/FailureNotice.vue'
+import ContextMeter from '../components/ContextMeter.vue'
+import FeedbackDialog from '../components/FeedbackDialog.vue'
 import { useWorkspace } from '../composables/useWorkspace'
 import { useEvidenceSelection } from '../composables/useEvidenceSelection'
 import { groupAttempts } from '../utils/attempts'
@@ -22,6 +26,8 @@ import type { UiMessage } from '../types/api'
 import { renderMarkdown } from '../utils/markdown'
 import { hasOpenModal } from '../utils/overlayStack'
 import { copyText } from '../utils/clipboard'
+import { ApiError, submitFeedback } from '../services/api'
+import type { FeedbackCategory } from '../types/api'
 
 const {
   messages,
@@ -39,6 +45,9 @@ const {
   webSearchEnabled,
   cancelMessage,
   retryMessage,
+  contextUsage,
+  contextUsageLoading,
+  contextUsageStale,
 
   sessionId,
 } = useWorkspace()
@@ -56,11 +65,31 @@ const collapsedIds = computed(() => new Set(attemptGroups.value.flatMap((group) 
 )))
 const attemptSummaries = computed(() => new Map(attemptGroups.value.filter((group) => group.attempts.length > 1)
   .map((group) => [group.attempts.at(-1)![0]!.id, group])))
+const navigatorItems = computed<ConversationNavItem[]>(() => attemptGroups.value.map((group) => {
+  const current = group.attempts.at(-1)?.[0]
+  const messageId = current?.message_id || current?.id || group.id
+  return {
+    id: group.id,
+    messageId,
+    label: (current?.content || '未命名问题').replace(/\s+/g, ' ').trim(),
+    attemptCount: group.attempts.length,
+  }
+}))
+const activeNavigationId = ref<string | null>(null)
+const navigationPaused = ref(false)
+const navigationIdByMessage = computed(() => new Map(attemptGroups.value.flatMap((group) =>
+  group.attempts.flatMap((attempt) => {
+    const user = attempt[0]!
+    return [[user.message_id || user.id, group.id] as const]
+  }),
+)))
 function toggleAttempts(id: string) {
+  navigationPaused.value = true
   const next = new Set(expandedAttempts.value)
   if (next.has(id)) next.delete(id)
   else next.add(id)
   expandedAttempts.value = next
+  void nextTick(updateActiveNavigation)
 }
 const composing = ref(false)
 const editCandidate = ref<string | null>(null)
@@ -78,11 +107,25 @@ const evidenceContext = computed(() => {
 })
 const composer = ref<HTMLTextAreaElement | null>(null)
 const conversation = ref<HTMLElement | null>(null)
+const messageList = ref<HTMLElement | null>(null)
 const nearBottom = ref(true)
+let readingAnchor: { node: HTMLElement; offset: number } | null = null
+let layoutObserver: ResizeObserver | null = null
+let layoutFrame = 0
+let manualScrollIntent = false
+let lastScrollTop = 0
+let touchY: number | null = null
 let restoringScroll = true
 let restoreFrame = 0
 const copiedMessage = ref<string | null>(null)
 const copyError = ref('')
+const feedbackMessage = ref<UiMessage | null>(null)
+const feedbackTrigger = ref<HTMLElement | null>(null)
+const feedbackCategory = ref<FeedbackCategory>('not_helpful')
+const feedbackNote = ref('')
+const feedbackSubmitting = ref(false)
+const feedbackError = ref('')
+const feedbackAttempt = ref<{ key: string; id: string } | null>(null)
 let copyTimer: ReturnType<typeof setTimeout> | undefined
 
 function updateEvidenceViewport(): void {
@@ -92,13 +135,21 @@ function updateEvidenceViewport(): void {
 onMounted(() => {
   updateEvidenceViewport()
   window.addEventListener('resize', updateEvidenceViewport)
+  window.addEventListener('resize', resizeComposer)
   void nextTick(restoreScroll)
+  void nextTick(resizeComposer)
+  layoutObserver = new ResizeObserver(scheduleLayout)
+  if (conversation.value) layoutObserver.observe(conversation.value)
+  if (messageList.value) layoutObserver.observe(messageList.value)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updateEvidenceViewport)
+  window.removeEventListener('resize', resizeComposer)
   clearTimeout(copyTimer)
   cancelAnimationFrame(restoreFrame)
+  cancelAnimationFrame(layoutFrame)
+  layoutObserver?.disconnect()
   if (!loadingHistory.value && !restoringScroll)
     currentView.value.scrollTop =
       conversation.value?.scrollTop ?? currentView.value.scrollTop
@@ -171,11 +222,73 @@ const modes = [
 watch(
   () => [messages.value.length, messages.value.at(-1)?.content, messages.value.at(-1)?.answerState, messages.value.at(-1)?.previewContent],
   async () => {
-    const follow = nearBottom.value && !restoringScroll && !loadingHistory.value
     await nextTick()
-    if (follow && !restoringScroll) scrollToLatest()
+    scheduleLayout()
   },
 )
+watch(messageList, (element, previous) => {
+  if (previous) layoutObserver?.unobserve(previous)
+  if (element) layoutObserver?.observe(element)
+})
+
+function rememberReadingAnchor(): void {
+  const container = conversation.value
+  if (!container || (nearBottom.value && !navigationPaused.value)) { readingAnchor = null; return }
+  const top = container.getBoundingClientRect().top
+  const candidates = [...container.querySelectorAll<HTMLElement>('.message.user, .message-content > *, .answer-preview .message-content > *')]
+  const node = candidates.find((node) => node.getBoundingClientRect().top >= top && node.getBoundingClientRect().top < top + container.clientHeight)
+    || candidates.find((node) => node.getBoundingClientRect().bottom > top)
+  readingAnchor = node ? { node, offset: node.getBoundingClientRect().top - top } : null
+}
+
+function scheduleLayout(): void {
+  cancelAnimationFrame(layoutFrame)
+  layoutFrame = requestAnimationFrame(() => {
+    const container = conversation.value
+    if (!container || restoringScroll || loadingHistory.value) return
+    // Geometry can create a bottom gap before ResizeObserver runs. Following
+    // depends on user intent, not a gap measured during that reflow.
+    if (!navigationPaused.value) scrollToLatest()
+    else if (readingAnchor?.node.isConnected && container.contains(readingAnchor.node)) {
+      const offset = readingAnchor.node.getBoundingClientRect().top - container.getBoundingClientRect().top
+      if (Math.abs(offset - readingAnchor.offset) > 0.5) container.scrollTop += offset - readingAnchor.offset
+      currentView.value.scrollTop = container.scrollTop
+      lastScrollTop = container.scrollTop
+      updateActiveNavigation()
+    }
+  })
+}
+
+function pauseFollowing(): void {
+  navigationPaused.value = true
+  rememberReadingAnchor()
+}
+function wheelIntent(event: WheelEvent): void {
+  manualScrollIntent = true
+  if (event.deltaY < 0) pauseFollowing()
+}
+function scrollKeyIntent(event: KeyboardEvent): void {
+  if (event.target instanceof HTMLElement && event.target.closest('input, textarea, select')) return
+  // A native End animation keeps its old bottom target when streaming grows
+  // the content. Use the same immediate resume action as the latest button.
+  if (event.key === 'End') {
+    event.preventDefault()
+    scrollToLatest()
+    return
+  }
+  if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(event.key)) manualScrollIntent = true
+  if (['ArrowUp', 'PageUp', 'Home'].includes(event.key) || (event.key === ' ' && event.shiftKey)) pauseFollowing()
+}
+function touchScrollIntent(event: TouchEvent): void {
+  const next = event.touches[0]?.clientY
+  if (next != null && touchY != null && next > touchY) pauseFollowing()
+  touchY = next ?? null
+  manualScrollIntent = true
+}
+function beginTouchScroll(event: TouchEvent): void { touchY = event.touches[0]?.clientY ?? null }
+function pointerScrollIntent(event: PointerEvent): void {
+  if (event.target === conversation.value) { manualScrollIntent = true; pauseFollowing() }
+}
 
 watch(
   loadingHistory,
@@ -191,7 +304,16 @@ watch(
   () => {
     restoringScroll = true
     nearBottom.value = false
+    navigationPaused.value = false
+    readingAnchor = null
+    manualScrollIntent = false
+    lastScrollTop = 0
+    activeNavigationId.value = null
+    expandedAttempts.value = new Set()
     editCandidate.value = null
+    feedbackMessage.value = null
+    feedbackAttempt.value = null
+    feedbackError.value = ''
     evidenceOpen.value = false
     clearEvidence()
     void nextTick(restoreScroll)
@@ -205,10 +327,14 @@ function restoreScroll() {
     element.scrollTop = currentView.value.scrollTop
     nearBottom.value =
       element.scrollHeight - element.scrollTop - element.clientHeight < 80
+    navigationPaused.value = element.scrollHeight - element.scrollTop - element.clientHeight >= 3
+    lastScrollTop = element.scrollTop
   }
   cancelAnimationFrame(restoreFrame)
   restoreFrame = requestAnimationFrame(() => {
     restoringScroll = false
+    rememberReadingAnchor()
+    updateActiveNavigation()
   })
 }
 
@@ -216,17 +342,64 @@ function trackScroll(): void {
   if (restoringScroll || loadingHistory.value) return
   const element = conversation.value
   if (element) {
+    const gap = element.scrollHeight - element.scrollTop - element.clientHeight
+    if (element.scrollTop < lastScrollTop - 0.5 && gap >= 3) navigationPaused.value = true
     nearBottom.value =
-      element.scrollHeight - element.scrollTop - element.clientHeight < 80
+      gap < 80
+    if (manualScrollIntent && gap < 3) navigationPaused.value = false
+    lastScrollTop = element.scrollTop
     currentView.value.scrollTop = element.scrollTop
+    rememberReadingAnchor()
+    updateActiveNavigation()
   }
 }
 
+function updateActiveNavigation(): void {
+  const element = conversation.value
+  if (!element || !navigatorItems.value.length) {
+    activeNavigationId.value = null
+    return
+  }
+  const candidates = [...element.querySelectorAll<HTMLElement>('.message.user')]
+    .filter((item) => item.offsetParent !== null)
+  const threshold = element.getBoundingClientRect().top + 96
+  const current = candidates
+    .filter((item) => item.getBoundingClientRect().top <= threshold)
+    .at(-1) || candidates[0]
+  activeNavigationId.value = navigationIdByMessage.value.get(current?.dataset.messageId || '') || null
+}
+
+async function navigateToQuestion(id: string): Promise<void> {
+  const item = navigatorItems.value.find((item) => item.id === id)
+  if (!item) return
+  const requestedSession = sessionId.value
+  manualScrollIntent = false
+  navigationPaused.value = true
+  nearBottom.value = false
+  await nextTick()
+  const target = [...(conversation.value?.querySelectorAll<HTMLElement>('.message.user') || [])]
+    .find((target) => target.dataset.messageId === item.messageId)
+  if (!target || !conversation.value || sessionId.value !== requestedSession) return
+  const container = conversation.value
+  const top = container.scrollTop + target.getBoundingClientRect().top - container.getBoundingClientRect().top - 24
+  const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+  target.focus({ preventScroll: true })
+  container.scrollTo({ top: Math.max(0, top), behavior })
+  currentView.value.scrollTop = container.scrollTop
+  activeNavigationId.value = id
+}
+
 function scrollToLatest(): void {
+  navigationPaused.value = false
+  manualScrollIntent = false
+  readingAnchor = null
   const element = conversation.value
   if (element)
     element.scrollTop = messages.value.length ? element.scrollHeight : 0
   nearBottom.value = true
+  if (element) currentView.value.scrollTop = element.scrollTop
+  if (element) lastScrollTop = element.scrollTop
+  updateActiveNavigation()
 }
 
 async function copyAnswer(id: string, content: string): Promise<void> {
@@ -243,6 +416,45 @@ async function copyAnswer(id: string, content: string): Promise<void> {
   }
 }
 
+function openFeedback(message: UiMessage, event: Event): void {
+  feedbackTrigger.value = event.currentTarget instanceof HTMLElement ? event.currentTarget : null
+  feedbackMessage.value = message
+  feedbackCategory.value = 'not_helpful'
+  feedbackNote.value = ''
+  feedbackError.value = ''
+  feedbackAttempt.value = null
+}
+
+async function sendFeedback(): Promise<void> {
+  const message = feedbackMessage.value
+  if (!message?.turn_id || !message.message_id || feedbackSubmitting.value) return
+  feedbackSubmitting.value = true
+  feedbackError.value = ''
+  const payload = { session_id: sessionId.value, turn_id: message.turn_id, message_id: message.message_id,
+    category: feedbackCategory.value, note: feedbackNote.value }
+  const key = JSON.stringify(payload)
+  let attempt = feedbackAttempt.value
+  if (!attempt || attempt.key !== key) {
+    feedbackAttempt.value = { key, id: typeof crypto?.randomUUID === 'function' ? crypto.randomUUID()
+      : `feedback-${Date.now()}-${Math.random().toString(36).slice(2)}` }
+    attempt = feedbackAttempt.value
+  }
+  const current = () => feedbackAttempt.value === attempt && feedbackMessage.value === message
+    && sessionId.value === payload.session_id
+  try {
+    await submitFeedback({ feedback_id: attempt.id, ...payload })
+    if (current() && feedbackCategory.value === payload.category && feedbackNote.value === payload.note) {
+      feedbackMessage.value = null
+      feedbackAttempt.value = null
+    }
+  } catch (failure) {
+    if (current()) feedbackError.value = failure instanceof ApiError && failure.status === 409
+      ? '本次反馈与已有记录冲突，请修改反馈内容后重新提交。' : '反馈提交失败，请稍后重试。'
+  } finally {
+    feedbackSubmitting.value = false
+  }
+}
+
 async function usePrompt(prompt: string) {
   draft.value = prompt
   await nextTick()
@@ -250,12 +462,31 @@ async function usePrompt(prompt: string) {
 }
 
 async function submit(event?: KeyboardEvent) {
-  if (event?.isComposing || composing.value || !canSend.value) return
+  if (event?.isComposing || event?.repeat || composing.value || !canSend.value) return
   const content = draft.value
   draft.value = ''
   nearBottom.value = true
+  navigationPaused.value = false
   await sendMessage(content)
 }
+
+function resizeComposer(): void {
+  const field = composer.value
+  if (!field) return
+  field.style.height = 'auto'
+  const maxHeight = Math.min(240, Math.floor(window.innerHeight * 0.3))
+  field.style.height = `${Math.min(Math.max(field.scrollHeight, 52), maxHeight)}px`
+  field.style.overflowY = field.scrollHeight > maxHeight ? 'auto' : 'hidden'
+}
+
+function handleComposerKeydown(event: KeyboardEvent): void {
+  if (event.repeat && (event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+    event.preventDefault()
+  }
+}
+
+watch(() => draft.value, () => void nextTick(resizeComposer))
+watch(() => sessionId.value, () => void nextTick(resizeComposer))
 
 function editQuestion(message: UiMessage) {
   const index = messages.value.findIndex((item) => item.id === message.id)
@@ -291,7 +522,7 @@ function closeEvidence() {
   evidenceOpen.value = false
   clearEvidence()
   void nextTick(() => {
-    if (old?.triggerElement?.isConnected) old.triggerElement.focus()
+    if (old?.triggerElement?.isConnected) old.triggerElement.focus({ preventScroll: true })
     else {
       const message = Array.from(
         document.querySelectorAll<HTMLElement>('[data-message-id]'),
@@ -314,6 +545,15 @@ function selectMode(mode: 'knowledge' | 'general') {
   if (sending.value || modeLocked.value) return
   chatMode.value = mode
 }
+
+function processSteps(message: UiMessage) {
+  return (message.processSummary?.steps ?? []).map((step) => ({
+    node: step.node,
+    content: '',
+    status: step.status,
+    durationMs: step.duration_ms,
+  }))
+}
 </script>
 
 <template>
@@ -333,6 +573,14 @@ function selectMode(mode: 'knowledge' | 'general') {
             chatMode === 'knowledge' ? '企业知识问答' : '通用助手'
           }}</span>
         </div>
+        <ConversationNavigator
+          :key="sessionId"
+          :items="navigatorItems"
+          :active-id="activeNavigationId"
+          :has-older-position="(!nearBottom || navigationPaused) && messages.length > 0"
+          @navigate="navigateToQuestion"
+          @latest="scrollToLatest"
+        />
       </header>
 
       <div
@@ -341,6 +589,11 @@ function selectMode(mode: 'knowledge' | 'general') {
         aria-label="对话内容"
         tabindex="0"
         @scroll="trackScroll"
+        @wheel.passive="wheelIntent"
+        @keydown="scrollKeyIntent"
+        @touchstart.passive="beginTouchScroll"
+        @touchmove.passive="touchScrollIntent"
+        @pointerdown="pointerScrollIntent"
       >
         <div v-if="loadingHistory" class="view-loading" role="status">
           正在加载会话记录…
@@ -353,6 +606,7 @@ function selectMode(mode: 'knowledge' | 'general') {
                 : '从一个问题，打开思路。'
             }}
           </h2>
+          <p class="welcome-description">{{ chatMode === 'knowledge' ? '查制度、找流程，让每个工作问题有据可循。' : '整理想法、梳理计划，从这里开始。' }}</p>
           <div v-if="!backendOnline" class="offline-banner">
             暂时无法连接知识服务。<button
               type="button"
@@ -364,7 +618,7 @@ function selectMode(mode: 'knowledge' | 'general') {
           </div>
         </div>
 
-        <div v-else class="message-list">
+        <div v-else ref="messageList" class="message-list">
           <article
             v-for="message in messages"
             :key="message.id"
@@ -405,7 +659,14 @@ function selectMode(mode: 'knowledge' | 'general') {
               <AgentProgress :steps="agentSteps" :active="true" :started-at="sendingStartedAt" />
               <button type="button" class="text-button" @click="cancelMessage">取消请求</button>
             </div>
-            <div v-else-if="message.answerState === 'cancelled'" class="answer-placeholder">
+            <AgentProgress
+              v-else-if="message.role === 'assistant' && message.processSummary?.steps?.length"
+              :steps="processSteps(message)"
+              :active="false"
+              :final-status="message.processSummary.status"
+              :elapsed-ms="message.processSummary.elapsed_ms"
+            />
+            <div v-if="message.answerState === 'cancelled'" class="answer-placeholder">
               本次回答已取消。
               <div class="answer-actions">
                 <button type="button" class="secondary-button" :disabled="sending" @click="retryMessage(message)">重新生成</button>
@@ -465,6 +726,7 @@ function selectMode(mode: 'knowledge' | 'general') {
                 /></el-icon>
                 {{ copiedMessage === message.id ? '已复制回答' : '复制回答' }}
               </button>
+              <button type="button" class="text-button" @click="openFeedback(message, $event)">反馈回答</button>
             </div>
           </article>
         </div>
@@ -472,7 +734,7 @@ function selectMode(mode: 'knowledge' | 'general') {
 
       <div class="composer-wrap">
         <button
-          v-if="!nearBottom && messages.length"
+          v-if="(!nearBottom || navigationPaused) && messages.length"
           class="jump-latest secondary-button"
           type="button"
           @click="scrollToLatest"
@@ -486,29 +748,6 @@ function selectMode(mode: 'knowledge' | 'general') {
           <button type="button" class="text-button" @click="editCandidate = null">保留草稿</button>
         </div>
         <form class="composer" @submit.prevent="submit()">
-          <div
-            v-if="!modeLocked"
-            class="mode-switcher"
-            role="group"
-            aria-label="对话模式"
-          >
-            <button
-              v-for="mode in modes"
-              :key="mode.id"
-              class="mode-option"
-              :class="{ active: chatMode === mode.id }"
-              type="button"
-              :aria-pressed="chatMode === mode.id"
-              :title="mode.description"
-              :disabled="sending"
-              @click="selectMode(mode.id)"
-            >
-              <el-icon aria-hidden="true"
-                ><component :is="mode.icon"
-              /></el-icon>
-              <span>{{ mode.label }}</span>
-            </button>
-          </div>
           <label for="question" class="sr-only">{{
             chatMode === 'knowledge' ? '向企业知识库提问' : '向通用助手提问'
           }}</label>
@@ -528,11 +767,37 @@ function selectMode(mode: 'knowledge' | 'general') {
             :disabled="loadingHistory"
             @compositionstart="composing = true"
             @compositionend="composing = false"
+            @input="resizeComposer"
+            @keydown="handleComposerKeydown"
             @keydown.ctrl.enter.prevent="submit($event)"
             @keydown.meta.enter.prevent="submit($event)"
           />
           <div class="composer-footer">
             <div class="composer-tools">
+              <div
+                v-if="!modeLocked"
+                class="mode-switcher"
+                role="group"
+                aria-label="对话模式"
+              >
+                <button
+                  v-for="mode in modes"
+                  :key="mode.id"
+                  class="mode-option"
+                  :class="{ active: chatMode === mode.id }"
+                  type="button"
+                  :aria-pressed="chatMode === mode.id"
+                  :title="mode.description"
+                  :disabled="sending"
+                  @click="selectMode(mode.id)"
+                >
+                  <el-icon aria-hidden="true"
+                    ><component :is="mode.icon"
+                  /></el-icon>
+                  <span>{{ mode.label }}</span>
+                </button>
+              </div>
+
               <button
                 v-if="chatMode === 'general'"
                 type="button"
@@ -544,30 +809,37 @@ function selectMode(mode: 'knowledge' | 'general') {
               >
                 <el-icon aria-hidden="true"><Search /></el-icon> 联网搜索
               </button>
-              <span v-else class="composer-scope"
+              <span v-else-if="modeLocked" class="composer-scope"
                 ><el-icon aria-hidden="true"><Collection /></el-icon>
                 企业知识库</span
               >
-              <span class="composer-shortcut">{{ sending ? '可先编辑下一条问题' : 'Ctrl / ⌘ + Enter 发送' }}</span>
             </div>
             <button
               v-if="sending"
-              class="secondary-button"
+              class="composer-submit is-stop"
               type="button"
+              aria-label="停止回答"
+              title="停止回答"
               @click="cancelMessage"
             >
-              停止回答
+              <span class="stop-symbol" aria-hidden="true" />
             </button>
             <button
               v-else
-              class="primary-button"
+              class="composer-submit"
               type="submit"
+              aria-label="发送"
+              title="发送（Ctrl / ⌘ + Enter）"
               :disabled="!canSend"
             >
-              <el-icon aria-hidden="true"><ArrowUp /></el-icon> 发送
+              <el-icon aria-hidden="true"><ArrowUp /></el-icon>
             </button>
           </div>
         </form>
+        <div class="composer-meta">
+          <span class="composer-meta-left"><ContextMeter :usage="contextUsage" :loading="contextUsageLoading" :stale="contextUsageStale" />{{ chatMode === 'knowledge' ? '基于企业知识库 · 附参考来源' : (webSearchEnabled ? '通用助手 · 联网搜索已开启' : '通用助手') }}</span>
+          <span class="composer-shortcut">{{ sending ? '可先编辑下一条问题' : 'Ctrl / ⌘ + Enter 发送' }}</span>
+        </div>
         <div v-if="!messages.length" class="prompt-grid">
           <button
             v-for="prompt in prompts"
@@ -601,11 +873,24 @@ function selectMode(mode: 'knowledge' | 'general') {
 
     <EvidencePanel
       :open="evidenceOpen"
+      :blocked="Boolean(feedbackMessage)"
       :modal="evidenceModal"
       :citations="selection?.citationsSnapshot ?? []"
       :context="evidenceContext"
       :selected-citation-id="selection?.citationId"
+      :session-id="selection?.sessionId"
+      :turn-id="selection?.turnId"
       @close="closeEvidence"
+    />
+    <FeedbackDialog
+      :open="Boolean(feedbackMessage)"
+      v-model:category="feedbackCategory"
+      v-model:note="feedbackNote"
+      :submitting="feedbackSubmitting"
+      :error="feedbackError"
+      :return-focus-to="feedbackTrigger"
+      @close="feedbackMessage = null"
+      @submit="sendFeedback"
     />
   </div>
 </template>

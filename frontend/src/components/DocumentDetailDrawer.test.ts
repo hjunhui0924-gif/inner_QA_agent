@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 const downloadMock = vi.hoisted(() => vi.fn())
 vi.mock('../services/api', () => ({ downloadKnowledge: downloadMock }))
 import DocumentDetailDrawer from './DocumentDetailDrawer.vue'
-import type { KnowledgeRecord } from '../types/api'
+import type { KnowledgeRecord, SourcePreviewResponse } from '../types/api'
 
 const record: KnowledgeRecord = {
   source_id: 'finance-v2',
@@ -25,7 +25,7 @@ const record: KnowledgeRecord = {
 let app: ReturnType<typeof createApp> | null = null
 let host: HTMLDivElement | null = null
 
-function mountDrawer() {
+function mountDrawer(preview?: SourcePreviewResponse) {
   const state = reactive({ open: false })
   const events: string[] = []
   host = document.createElement('div')
@@ -35,6 +35,7 @@ function mountDrawer() {
       return () => h(DocumentDetailDrawer, {
         open: state.open,
         record,
+        preview,
         onClose: () => {
           events.push('close')
           state.open = false
@@ -56,6 +57,22 @@ afterEach(() => {
 })
 
 describe('DocumentDetailDrawer', () => {
+  it('uses backend code-point offsets for source text containing emoji', async () => {
+    const text = '🙂前言，经理审批，结束。'
+    const points = Array.from(text)
+    const start = points.indexOf('经')
+    const preview: SourcePreviewResponse = {
+      source_id: 'finance-v2', title: '制度', version: 'v2', content_checksum: 'checksum',
+      format: 'text', render_mode: 'extracted_text', revision_match: 'same', original_available: false,
+      blocks: [{ id: 'block', text, page: 1, section: null }], previous_cursor: null, next_cursor: null,
+      location: { status: 'exact', block_id: 'block', page: 1, section: null, start, end: start + 4, match_count: 1 },
+    }
+    const { state } = mountDrawer(preview)
+    state.open = true
+    await nextTick()
+    expect(host?.querySelector('.source-preview-block mark')?.textContent).toBe('经理审批')
+    expect(host?.querySelector('.source-preview-block p')?.textContent).toBe(text)
+  })
   it('renders the real record metadata and opens with focus in the drawer', async () => {
     const { state } = mountDrawer()
     state.open = true

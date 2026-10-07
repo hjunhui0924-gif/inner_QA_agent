@@ -1,0 +1,918 @@
+{
+  "description": "Frozen before first live run; official public PDF snapshots alongside original 50 records; not authentic authorized internal policy acceptance.",
+  "corpus_description": "49 synthetic policies + original public legal opinion + 5 official public PDF snapshots (55 records)",
+  "corpus_path": "tests/fixtures/public_business_corpus.json",
+  "corpus_sha256": "2a63df49bbcc15c7e57c3ba4f3bf52ee5b63fee3f1f71ea8d8b6589e9ec246d5",
+  "source_manifest": "tests/fixtures/public_business_sources.json",
+  "reader": {
+    "user_id": "public_business_audit_reader",
+    "roles": "employee,knowledge_reader",
+    "departments": "HR,Finance,Procurement,IT,Legal,Administration,Compliance,Sales",
+    "scopes": "internal"
+  },
+  "fixture_revision": 2,
+  "previous_fixture_sha256": "d3865bcedc69c2504f5dcde966a2251a649de51def3eba1d47f8f978ded795b4",
+  "expectation_corrections": [
+    {
+      "case_id": "PB06",
+      "reason": "题目只问三个月外派的住宿费比例和年上限，首次关键词额外要求了未询问的特殊情况审批。删除该额外关键词，保留60%和10万元要求、原题、原文依据和主来源；首批报告仍保留24/26，PB10漏检不放宽。"
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "PB01",
+      "session": "nju-meals",
+      "domain": "official-public-snapshot",
+      "question": "按南京大学2024年差旅费管理文件，在西藏和广东出差，伙食补助分别是多少元每人每天？按什么天数计算？",
+      "expected_answer": "西藏120元，广东100元，按自然（日历）天数计算。",
+      "allowed_sources": [
+        "nju-travel-2024"
+      ],
+      "required_sources": [
+        "nju-travel-2024"
+      ],
+      "required": [
+        [
+          "120"
+        ],
+        [
+          "100"
+        ],
+        [
+          "自然",
+          "日历"
+        ]
+      ],
+      "evidence": [
+        {
+          "source_id": "nju-travel-2024",
+          "pdf_page": 6,
+          "quote": "发放标准除西藏、青海、新疆为120元/人·天外，其余地区均为100元/人·天。"
+        }
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "PB02",
+      "session": "nju-meals",
+      "domain": "official-public-snapshot",
+      "question": "如果校外单位已经负担了伙食费用，还能再次领取伙食补助吗？",
+      "expected_answer": "不再发放伙食补助，追问仍为南京大学文件。",
+      "allowed_sources": [
+        "nju-travel-2024"
+      ],
+      "required_sources": [
+        "nju-travel-2024"
+      ],
+      "required": [
+        [
+          "不再",
+          "不能",
+          "不得"
+        ]
+      ],
+      "evidence": [
+        {
+          "source_id": "nju-travel-2024",
+          "pdf_page": 6,
+          "quote": "已由校外单位负担伙食费用的，报销差旅费时不再发放伙食补助费。"
+        }
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "PB03",
+      "session": "nju-local",
+      "domain": "official-public-snapshot",
+      "question": "按南京大学2024年文件，市内交通费是否只能按每天80元包干？还有什么报销方式？",
+      "expected_answer": "可选择80元/人/自然天包干或凭发票据实报销。",
+      "allowed_sources": [
+        "nju-travel-2024"
+      ],
+      "required_sources": [
+        "nju-travel-2024"
+      ],
+      "required": [
+        [
+          "80"
+        ],
+        [
+          "据实"
+        ],
+        [
+          "发票"
+        ]
+      ],
+      "evidence": [
+        {
+          "source_id": "nju-travel-2024",
+          "pdf_page": 7,
+          "quote": "每人每天80元包干使用"
+        },
+        {
+          "source_id": "nju-travel-2024",
+          "pdf_page": 7,
+          "quote": "凭出差期间发生的市内交通费发票据实报销。"
+        }
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "PB04",
+      "session": "nju-table",
+      "domain": "official-public-snapshot",
+      "question": "按南京大学2024年文件的住宿费附表，三类人员使用行政事业经费到北京出差，无特殊上浮情形时每天住宿费上限是多少元？",
+      "expected_answer": "三类北京500元/人·天，不能串成二类650。",
+      "allowed_sources": [
+        "nju-travel-2024"
+      ],
+      "required_sources": [
+        "nju-travel-2024"
+      ],
+      "required": [
+        [
+          "500"
+        ]
+      ],
+      "evidence": [
+        {
+          "source_id": "nju-travel-2024",
+          "pdf_page": 14,
+          "quote": "北京1100650500"
+        }
+      ],
+      "refusal": false,
+      "forbidden": [
+        "650元",
+        "1100元"
+      ]
+    },
+    {
+      "case_id": "PB05",
+      "session": "nju-deadline",
+      "domain": "official-public-snapshot",
+      "question": "按南京大学2024年文件，出差结束后应在多长时间内完成报销？与出差无关的费用能报销吗？",
+      "expected_answer": "结束后一个月内，无关费用一律不得报销。",
+      "allowed_sources": [
+        "nju-travel-2024"
+      ],
+      "required_sources": [
+        "nju-travel-2024"
+      ],
+      "required": [
+        [
+          "一个月",
+          "1个月"
+        ],
+        [
+          "不得",
+          "不能",
+          "不予"
+        ]
+      ],
+      "evidence": [
+        {
+          "source_id": "nju-travel-2024",
+          "pdf_page": 10,
+          "quote": "出差人员应在出差结束后一个月内完成报销手续。"
+        },
+        {
+          "source_id": "nju-travel-2024",
+          "pdf_page": 10,
+          "quote": "与出差无关的费用一律不得报销。"
+        }
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "PB06",
+      "session": "swupl-limits",
+      "domain": "official-public-snapshot",
+      "question": "按西南政法大学2024年文件，因公外派出差恰好三个月，住宿费限额如何调整？年住宿费上限是多少？",
+      "expected_answer": "三个月及以上按限额60%，年不超过10万元；特殊情况学校审批。",
+      "allowed_sources": [
+        "swupl-travel-2024"
+      ],
+      "required_sources": [
+        "swupl-travel-2024"
+      ],
+      "required": [
+        [
+          "60%",
+          "百分之六十"
+        ],
+        [
+          "10万元",
+          "十万元",
+          "100000"
+        ]
+      ],
+      "evidence": [
+        {
+          "source_id": "swupl-travel-2024",
+          "pdf_page": 3,
+          "quote": "因公外派出差时长在三个月及以上，住宿费按照住宿费限额标准的60%执行，且年住宿费不超过10万元。"
+        }
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "PB07",
+      "session": "swupl-training",
+      "domain": "official-public-snapshot",
+      "question": "按西南政法大学2024年文件，经同意的校外培训、进修学习（非攻读学位），第365天与第366天的每日补助分别多少？",
+      "expected_answer": "第365天15元，第366天12元，不能把边界串档。",
+      "allowed_sources": [
+        "swupl-travel-2024"
+      ],
+      "required_sources": [
+        "swupl-travel-2024"
+      ],
+      "required": [
+        [
+          "365"
+        ],
+        [
+          "15"
+        ],
+        [
+          "366"
+        ],
+        [
+          "12"
+        ]
+      ],
+      "evidence": [
+        {
+          "source_id": "swupl-travel-2024",
+          "pdf_page": 4,
+          "quote": "第31天至第365天期间，每人每天补助15元；第366天及以后的，每人每天补助12元。"
+        }
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "PB08",
+      "session": "swupl-student",
+      "domain": "official-public-snapshot",
+      "question": "按西南政法大学2024年文件，学生外出参加非体育类学术会议，伙食补助按什么比例执行？出差地交通费怎么报销？",
+      "expected_answer": "伙食按标准1/2；出差地交通费凭票报销，不套用体育赛事200元。",
+      "allowed_sources": [
+        "swupl-travel-2024"
+      ],
+      "required_sources": [
+        "swupl-travel-2024"
+      ],
+      "required": [
+        [
+          "1/2",
+          "一半",
+          "二分之一",
+          "50%"
+        ],
+        [
+          "凭票"
+        ]
+      ],
+      "evidence": [
+        {
+          "source_id": "swupl-travel-2024",
+          "pdf_page": 5,
+          "quote": "依照差旅费的规定标准1/2执行；出差地交通费凭票报销。"
+        }
+      ],
+      "refusal": false,
+      "forbidden": [
+        "200元"
+      ]
+    },
+    {
+      "case_id": "PB09",
+      "session": "swupl-local",
+      "domain": "official-public-snapshot",
+      "question": "只按西南政法大学2024年文件的第十二条，教职工到重庆市外出差，出差地交通费每天多少，采用什么方式？",
+      "expected_answer": "80元/人/天包干，不套用南京大学的自由选择规则。",
+      "allowed_sources": [
+        "swupl-travel-2024"
+      ],
+      "required_sources": [
+        "swupl-travel-2024"
+      ],
+      "required": [
+        [
+          "80"
+        ],
+        [
+          "包干"
+        ]
+      ],
+      "evidence": [
+        {
+          "source_id": "swupl-travel-2024",
+          "pdf_page": 3,
+          "quote": "出差人员到市外的出差地交通费，按照重庆市财政局发布的标准，每人每天80元包干使用"
+        }
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "PB10",
+      "session": "cross-university",
+      "domain": "official-public-snapshot",
+      "question": "只比较南京大学2024年与西南政法大学2024年两份文件：邀请专家来校访问，城市间交通费的报销要求一样吗？分别说明。",
+      "expected_answer": "南大按规定报销；西政一般不报，确需经经费负责人和分管校领导审批；分别引用两份文件。",
+      "allowed_sources": [
+        "nju-travel-2024",
+        "swupl-travel-2024"
+      ],
+      "required_sources": [
+        "nju-travel-2024",
+        "swupl-travel-2024"
+      ],
+      "required": [
+        [
+          "南京大学"
+        ],
+        [
+          "西南政法大学"
+        ],
+        [
+          "经费负责人"
+        ],
+        [
+          "分管校领导"
+        ],
+        [
+          "一般不",
+          "原则上不"
+        ]
+      ],
+      "evidence": [
+        {
+          "source_id": "nju-travel-2024",
+          "pdf_page": 8,
+          "quote": "按规定报销受邀人员的城市间交通费、住宿费"
+        },
+        {
+          "source_id": "swupl-travel-2024",
+          "pdf_page": 7,
+          "quote": "一般不报销城际间交通费，若确需报销，需经经费负责人和分管校领导审批后方可报销。"
+        }
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "PB11",
+      "session": "ecnu-threshold",
+      "domain": "official-public-snapshot",
+      "question": "按华东师范大学2018年设备采购合同文件，国内采购恰好三万元是否必须签合同？只有一万元的进口采购呢？",
+      "expected_answer": "国内达到三万元及以上与所有进口采购均须签合同。",
+      "allowed_sources": [
+        "ecnu-equipment-contract-2018"
+      ],
+      "required_sources": [
+        "ecnu-equipment-contract-2018"
+      ],
+      "required": [
+        [
+          "三万元",
+          "3万元",
+          "30000"
+        ],
+        [
+          "进口"
+        ],
+        [
+          "必须",
+          "须签"
+        ]
+      ],
+      "evidence": [
+        {
+          "source_id": "ecnu-equipment-contract-2018",
+          "pdf_page": 2,
+          "quote": "采购金额达到三万元及以上的国内采购项目和所有进口采购项目，必须签订合同。"
+        }
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "PB12",
+      "session": "ecnu-record",
+      "domain": "official-public-snapshot",
+      "question": "按华东师范大学2018年文件，12万元的国内设备采购合同送现场审核，应随合同提交哪份采购材料？",
+      "expected_answer": "华东师范大学仪器设备采购记录表。",
+      "allowed_sources": [
+        "ecnu-equipment-contract-2018"
+      ],
+      "required_sources": [
+        "ecnu-equipment-contract-2018"
+      ],
+      "required": [
+        [
+          "仪器设备采购记录表"
+        ]
+      ],
+      "evidence": [
+        {
+          "source_id": "ecnu-equipment-contract-2018",
+          "pdf_page": 5,
+          "quote": "合同金额大于十万元（含）且小于三十万元的，需随合同提交《华东师范大学仪器设备采购记录表》"
+        }
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "PB13",
+      "session": "ecnu-payment",
+      "domain": "official-public-snapshot",
+      "question": "按华东师范大学2018年文件，分期付款的预付款一般最高多少？质保金留多少、什么时候支付？",
+      "expected_answer": "预付一般不超过50%，留5%-10%质保金，验收合格一年后支付。",
+      "allowed_sources": [
+        "ecnu-equipment-contract-2018"
+      ],
+      "required_sources": [
+        "ecnu-equipment-contract-2018"
+      ],
+      "required": [
+        [
+          "50%",
+          "百分之五十"
+        ],
+        [
+          "5%",
+          "百分之五"
+        ],
+        [
+          "10%",
+          "百分之十"
+        ],
+        [
+          "一年",
+          "1年"
+        ],
+        [
+          "验收"
+        ]
+      ],
+      "evidence": [
+        {
+          "source_id": "ecnu-equipment-contract-2018",
+          "pdf_page": 4,
+          "quote": "预付款一般最高不超过50%，验收合格后付尾款，并留5%-10%合同金额作为质保金，验收合格一年后支付。"
+        }
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "PB14",
+      "session": "ecnu-change",
+      "domain": "official-public-snapshot",
+      "question": "按华东师范大学2018年文件，合同审批已完成，但需要对合同条款作实质性修改，能沿用原审批直接执行吗？",
+      "expected_answer": "须按流程重新提交审批。",
+      "allowed_sources": [
+        "ecnu-equipment-contract-2018"
+      ],
+      "required_sources": [
+        "ecnu-equipment-contract-2018"
+      ],
+      "required": [
+        [
+          "重新"
+        ],
+        [
+          "审批"
+        ]
+      ],
+      "evidence": [
+        {
+          "source_id": "ecnu-equipment-contract-2018",
+          "pdf_page": 6,
+          "quote": "合同审批程序完成后，如需对合同条款进行实质性修改，须按流程重新提交审批。"
+        }
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "PB15",
+      "session": "ecnu-payment",
+      "domain": "official-public-snapshot",
+      "question": "同一份华东师范大学2018年文件，如果采用一次性付款方式，付款时间和前提是什么？",
+      "expected_answer": "货到交货地点且验收合格后，七个工作日内一次付清。",
+      "allowed_sources": [
+        "ecnu-equipment-contract-2018"
+      ],
+      "required_sources": [
+        "ecnu-equipment-contract-2018"
+      ],
+      "required": [
+        [
+          "七个工作日",
+          "7个工作日"
+        ],
+        [
+          "验收合格"
+        ],
+        [
+          "货到",
+          "到货"
+        ]
+      ],
+      "evidence": [
+        {
+          "source_id": "ecnu-equipment-contract-2018",
+          "pdf_page": 4,
+          "quote": "待货到交货地点且验收合格后，在七个工作日内一次付清。"
+        }
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "PB16",
+      "session": "zju-owner",
+      "domain": "official-public-snapshot",
+      "question": "按浙江大学2018年采购管理文件，家具与文献资源分别由哪个部门归口管理？",
+      "expected_answer": "家具房地产管理处，文献图书馆。",
+      "allowed_sources": [
+        "zju-procurement-2018"
+      ],
+      "required_sources": [
+        "zju-procurement-2018"
+      ],
+      "required": [
+        [
+          "房地产管理处"
+        ],
+        [
+          "图书馆"
+        ]
+      ],
+      "evidence": [
+        {
+          "source_id": "zju-procurement-2018",
+          "pdf_page": 4,
+          "quote": "房地产管理处为家具的业务归口管理部门"
+        },
+        {
+          "source_id": "zju-procurement-2018",
+          "pdf_page": 4,
+          "quote": "图书馆为文献资源的业务归口管理部门"
+        }
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "PB17",
+      "session": "zju-addition",
+      "domain": "official-public-snapshot",
+      "question": "按浙江大学2018年文件，为保证原采购一致性或服务配套，需从原供应商添购；原合同100万元，添购10万元，是否满足单一来源采购的金额比例条件？",
+      "expected_answer": "10/100=10%，满足不超过10%的金额条件；保持一致性/配套和原供应商的既定前提。",
+      "allowed_sources": [
+        "zju-procurement-2018"
+      ],
+      "required_sources": [
+        "zju-procurement-2018"
+      ],
+      "required": [
+        [
+          "10%",
+          "百分之十"
+        ],
+        [
+          "满足",
+          "符合"
+        ],
+        [
+          "原供应商"
+        ]
+      ],
+      "evidence": [
+        {
+          "source_id": "zju-procurement-2018",
+          "pdf_page": 8,
+          "quote": "必须保证原有采购项目一致性或者服务配套的要求，需要继续从原供应商处添购的，且添购资金总额不超过原合同采购金额百分之十的。"
+        }
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "PB18",
+      "session": "zju-split",
+      "domain": "official-public-snapshot",
+      "question": "按浙江大学2018年文件，可以把必须集中采购的项目拆成多个小项目，改为自行采购吗？",
+      "expected_answer": "不得化整为零规避集中采购。",
+      "allowed_sources": [
+        "zju-procurement-2018"
+      ],
+      "required_sources": [
+        "zju-procurement-2018"
+      ],
+      "required": [
+        [
+          "不得",
+          "不能",
+          "不可以"
+        ],
+        [
+          "化整为零",
+          "拆分"
+        ]
+      ],
+      "evidence": [
+        {
+          "source_id": "zju-procurement-2018",
+          "pdf_page": 9,
+          "quote": "任何单位或个人不得将依本办法必须进行集中采购的项目化整为零或者以其他任何方式规避集中采购。"
+        }
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "PB19",
+      "session": "zju-recusal",
+      "domain": "official-public-snapshot",
+      "question": "按浙江大学2018年文件，采购人员与供应商有利害关系应怎么处理？供应商能否申请相关人员回避？",
+      "expected_answer": "必须回避；供应商认为相关人员与其他供应商有利害关系可申请回避。",
+      "allowed_sources": [
+        "zju-procurement-2018"
+      ],
+      "required_sources": [
+        "zju-procurement-2018"
+      ],
+      "required": [
+        [
+          "回避"
+        ],
+        [
+          "可以申请",
+          "可申请",
+          "有权申请"
+        ]
+      ],
+      "evidence": [
+        {
+          "source_id": "zju-procurement-2018",
+          "pdf_page": 12,
+          "quote": "采购人员及相关人员与供应商有利害关系的，必须回避。"
+        },
+        {
+          "source_id": "zju-procurement-2018",
+          "pdf_page": 12,
+          "quote": "供应商认为采购人员及相关人员与其他供应商有利害关系的，可以申请其回避。"
+        }
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "PB20",
+      "session": "zju-contract",
+      "domain": "official-public-snapshot",
+      "question": "按浙江大学2018年文件，集中采购的货物、服务合同与工程合同，分别由谁审核、签订、登记和备案？",
+      "expected_answer": "货物服务采购中心；工程业务归口管理部门。",
+      "allowed_sources": [
+        "zju-procurement-2018"
+      ],
+      "required_sources": [
+        "zju-procurement-2018"
+      ],
+      "required": [
+        [
+          "采购中心"
+        ],
+        [
+          "业务归口管理部门"
+        ]
+      ],
+      "evidence": [
+        {
+          "source_id": "zju-procurement-2018",
+          "pdf_page": 11,
+          "quote": "集中采购货物、服务合同的审核、签订、登记、备案，由采购中心负责"
+        },
+        {
+          "source_id": "zju-procurement-2018",
+          "pdf_page": 12,
+          "quote": "由业务归口管理部门负责。"
+        }
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "PB21",
+      "session": "tenaris-gift",
+      "domain": "official-public-snapshot",
+      "question": "按泰纳瑞斯官网中文《供应商行为准则》文件，供应商送一份不影响采购决定的小额现金礼品是否合规？",
+      "expected_answer": "现金或现金等值物禁止，不能套用其他机构金额阈值。",
+      "allowed_sources": [
+        "tenaris-supplier-code"
+      ],
+      "required_sources": [
+        "tenaris-supplier-code"
+      ],
+      "required": [
+        [
+          "现金"
+        ],
+        [
+          "不得",
+          "禁止",
+          "不能",
+          "不合规"
+        ]
+      ],
+      "evidence": [
+        {
+          "source_id": "tenaris-supplier-code",
+          "pdf_page": 6,
+          "quote": "不得为现金或现金等值物"
+        }
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "PB22",
+      "session": "tenaris-confidential",
+      "domain": "official-public-snapshot",
+      "question": "按泰纳瑞斯官网中文《供应商行为准则》文件，项目或合同终止后，供应商的保密责任是否结束？",
+      "expected_answer": "合同终止后保密责任仍存续。",
+      "allowed_sources": [
+        "tenaris-supplier-code"
+      ],
+      "required_sources": [
+        "tenaris-supplier-code"
+      ],
+      "required": [
+        [
+          "依然",
+          "仍然",
+          "仍需",
+          "仍存续"
+        ]
+      ],
+      "evidence": [
+        {
+          "source_id": "tenaris-supplier-code",
+          "pdf_page": 11,
+          "quote": "即使和泰纳瑞斯的项目或合同终止后，供应商对泰纳瑞斯保密信息予以保密的责任依然存续。"
+        }
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "PB23",
+      "session": "tenaris-report",
+      "domain": "official-public-snapshot",
+      "question": "按泰纳瑞斯官网中文《供应商行为准则》文件，怀疑不当行为应向谁报告、文件写的举报网站是什么？如实报告会影响业务关系吗？",
+      "expected_answer": "报告泰纳瑞斯，www.compliance-line.com；如实报告不影响业务关系；仅复述文件入口，不验证入口当前可用性。",
+      "allowed_sources": [
+        "tenaris-supplier-code"
+      ],
+      "required_sources": [
+        "tenaris-supplier-code"
+      ],
+      "required": [
+        [
+          "泰纳瑞斯"
+        ],
+        [
+          "compliance-line.com"
+        ],
+        [
+          "不会",
+          "不影响"
+        ]
+      ],
+      "evidence": [
+        {
+          "source_id": "tenaris-supplier-code",
+          "pdf_page": 12,
+          "quote": "必须报告泰纳瑞斯。"
+        },
+        {
+          "source_id": "tenaris-supplier-code",
+          "pdf_page": 12,
+          "quote": "www.compliance-line.com"
+        },
+        {
+          "source_id": "tenaris-supplier-code",
+          "pdf_page": 12,
+          "quote": "如实报告不当行为不会影响供应商与泰纳瑞斯的业务关系。"
+        }
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "PB24",
+      "session": "tenaris-labour",
+      "domain": "official-public-snapshot",
+      "question": "按泰纳瑞斯官网中文《供应商行为准则》文件，劳工权要求禁止哪些行为，并承认哪些结社与谈判权利？",
+      "expected_answer": "禁止童工、强迫劳动、歧视，承认自由结社及集体谈判。",
+      "allowed_sources": [
+        "tenaris-supplier-code"
+      ],
+      "required_sources": [
+        "tenaris-supplier-code"
+      ],
+      "required": [
+        [
+          "童工"
+        ],
+        [
+          "强迫劳动",
+          "强制劳动"
+        ],
+        [
+          "歧视"
+        ],
+        [
+          "结社"
+        ],
+        [
+          "集体谈判"
+        ]
+      ],
+      "evidence": [
+        {
+          "source_id": "tenaris-supplier-code",
+          "pdf_page": 15,
+          "quote": "这包括禁止童工、强迫劳动、歧视行为，同时承认劳工自由结社和集体谈判的权利。"
+        }
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "PB25",
+      "session": "tenaris-insider",
+      "domain": "official-public-snapshot",
+      "question": "按泰纳瑞斯官网中文《供应商行为准则》文件，知道公司重大非公开信息后，供应商可以据此买卖相关公司证券吗？",
+      "expected_answer": "不得购买、销售或交易相关证券或利用该信息行动。",
+      "allowed_sources": [
+        "tenaris-supplier-code"
+      ],
+      "required_sources": [
+        "tenaris-supplier-code"
+      ],
+      "required": [
+        [
+          "不得",
+          "不能",
+          "禁止"
+        ],
+        [
+          "证券"
+        ]
+      ],
+      "evidence": [
+        {
+          "source_id": "tenaris-supplier-code",
+          "pdf_page": 11,
+          "quote": "如供应商知晓有关泰纳瑞斯或其业务的重大非公开信息，不得购买、销售或以其它方式交易泰纳瑞斯或任何其它与泰纳瑞斯进行业务往来的公司的证券"
+        }
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "PB26",
+      "session": "tenaris-missing-number",
+      "domain": "official-public-snapshot",
+      "question": "泰纳瑞斯这份中文供应商行为准则允许的非现金礼品，具体金额上限是多少元？必须给我一个数字。",
+      "expected_answer": "文件仅规定适度、不得频繁或高昂，没有具体金额；拒绝编造，不套用合成制度200元。",
+      "allowed_sources": [
+        "tenaris-supplier-code"
+      ],
+      "required_sources": [],
+      "required": [],
+      "evidence": [],
+      "refusal": true,
+      "forbidden": [
+        "200元",
+        "二百元",
+        "500元",
+        "五百元"
+      ]
+    }
+  ]
+}

@@ -17,6 +17,37 @@ from backend.agent.citations import (
 
 
 class CitationStructureTests(unittest.TestCase):
+    def test_repeated_marker_excerpt_covers_payment_rule_and_mismatch_rule(self):
+        document = Document(page_content=(
+            '一、订单控制。采购部应在供应商履约前生成采购订单，订单写明数量、价格、交付地点和验收标准。'
+            '二、无单不付。没有有效采购订单或合同的采购，不得直接提交付款申请；紧急采购须补充说明和审批。'
+            '三、到货验收。使用部门应在到货后三个工作日内完成数量和外观验收，技术类物品还需完成性能验收。'
+            '四、三单匹配。付款前应核对采购订单、验收记录和发票，数量、金额或供应商不一致时暂停付款。'
+            '五、异常关闭。验收不合格的物品应形成问题单，由采购部跟进退换或整改并记录关闭结果。'))
+        other = Document(page_content='发票信息与合同、订单或验收记录不一致时，应退回申请人补正，不得直接入账。')
+        answer = ('不可以。没有有效采购订单或合同的采购，不得直接提交付款申请；紧急采购须补充说明和审批 [C1]。\n\n'
+                  '三单不一致时，应暂停付款 [C1]。发票信息与合同、订单或验收记录不一致的，应退回申请人补正，不得直接入账 [C2]。')
+        quote = build_citations([document, other], answer,
+            query='有发票但没有有效采购订单或合同，可以直接提交付款吗？三单不一致怎么办？')[0]['quote']
+        self.assertIn('不得直接提交付款申请', quote)
+        self.assertIn('不一致时暂停付款', quote)
+        self.assertNotIn('退回申请人补正', quote)
+
+    def test_repeated_marker_excerpt_covers_separated_travel_conditions(self):
+        text = (
+            '一、出差申请。员工出差前应提交出差目的、地点、日期、同行人员和预算，直属主管审批后方可预订。'
+            '二、交通预订。行政部按公司差旅标准协助预订交通和住宿，超出标准的部分须说明原因并取得额外审批。'
+            '三、临时变更。行程因客户或公共交通原因变更时，员工应及时更新申请并保存变更凭证。'
+            '四、费用材料。返程后应提交行程单、交通票据、住宿发票和审批记录，材料不完整的费用申请退回补正。'
+            '五、风险报备。前往高风险地区或参加大型活动时，应向行政部登记紧急联系人和行程信息。')
+        answer = ('交通预订前：员工出差前应提交出差目的、地点、日期、同行人员和预算，直属主管审批后方可预订；'
+                  '行政部协助预订交通和住宿，超出标准须额外审批 [C1]。\n'
+                  '- 风险报备：应向行政部登记紧急联系人和行程信息 [C1]。')
+        quote = build_citations([Document(page_content=text)], answer,
+            query='去高风险地区出差，交通预订前和风险报备分别要做什么？')[0]['quote']
+        self.assertIn('直属主管审批后方可预订', quote)
+        self.assertIn('登记紧急联系人和行程信息', quote)
+
     def test_excerpt_target_preserves_soft_wraps_and_source_boundaries(self):
         for answer in ['Security review is required\nbefore export [C1].',
                        'Security review is required before export\n[C1].']:

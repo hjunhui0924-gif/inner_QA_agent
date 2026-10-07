@@ -1,0 +1,948 @@
+{
+  "schema_version": 1,
+  "description": "Existing-corpus business scenarios, frozen before real Agent calls; not independent enterprise acceptance.",
+  "corpus_description": "49 synthetic enterprise policies plus 1 uploaded public legal opinion; no authentic internal enterprise corpus",
+  "corpus_path": "data/knowledge_base.json",
+  "corpus_sha256": "0568df31708a94dff58628ac89acb766f4b9d8db91e0a322b4f83c9a0c30c34e",
+  "reader": {
+    "user_id": "business_audit_reader",
+    "roles": "employee,knowledge_reader",
+    "departments": "HR,Finance,Procurement,IT,Legal,Administration,Compliance,Sales",
+    "scopes": "internal"
+  },
+  "review_scope": "Codex source-by-source review; business expert review remains pending",
+  "cases": [
+    {
+      "case_id": "BQ01",
+      "domain": "HR",
+      "session": "leave-current",
+      "question": "按当前请假制度，连续请假四天需要抄送哪些人？",
+      "expected_answer": "现行 v2 超过三天须抄送部门负责人和人力资源；不得采用旧版超过五天的门槛。",
+      "allowed_sources": [
+        "hr-leave-v2"
+      ],
+      "required_sources": [],
+      "evidence": [
+        {
+          "source_id": "hr-leave-v2",
+          "quote": "连续请假超过三天需同步抄送部门负责人和人力资源。"
+        }
+      ],
+      "required": [
+        [
+          "部门负责人"
+        ],
+        [
+          "人力资源",
+          "HR"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ02",
+      "domain": "HR",
+      "session": "leave-current",
+      "question": "如果是病假，还需要补充什么？",
+      "expected_answer": "补充医疗证明，追问仍绑定现行请假制度。",
+      "allowed_sources": [
+        "hr-leave-v2"
+      ],
+      "required_sources": [],
+      "evidence": [
+        {
+          "source_id": "hr-leave-v2",
+          "quote": "病假需补充医疗证明"
+        }
+      ],
+      "required": [
+        [
+          "医疗证明"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ03",
+      "domain": "HR",
+      "session": "leave-old",
+      "question": "旧版请假制度中，连续请假多少天才需要抄送？抄送谁？",
+      "expected_answer": "旧版 v1 超过五天抄送部门负责人，不混入现行超过三天并抄送人力资源。",
+      "allowed_sources": [
+        "hr-leave-v1"
+      ],
+      "required_sources": [],
+      "evidence": [
+        {
+          "source_id": "hr-leave-v1",
+          "quote": "连续请假超过五天需同步抄送部门负责人。"
+        }
+      ],
+      "required": [
+        [
+          "五天",
+          "5天",
+          "五个",
+          "5个"
+        ],
+        [
+          "部门负责人"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ04",
+      "domain": "HR",
+      "session": "onboarding",
+      "question": "新员工入职当天申请生产环境权限，要由谁发起，还需要什么额外审批？",
+      "expected_answer": "直属主管在 OA 提交，生产权限额外通过安全审批。",
+      "allowed_sources": [
+        "hr-onboarding-v1"
+      ],
+      "required_sources": [],
+      "evidence": [
+        {
+          "source_id": "hr-onboarding-v1",
+          "quote": "新员工入职当天由直属主管在 OA 系统提交账号开通申请。"
+        },
+        {
+          "source_id": "hr-onboarding-v1",
+          "quote": "涉及生产环境权限的申请需额外通过安全审批。"
+        }
+      ],
+      "required": [
+        [
+          "直属主管"
+        ],
+        [
+          "OA"
+        ],
+        [
+          "安全审批"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ05",
+      "domain": "HR",
+      "session": "offboarding",
+      "question": "员工最后工作日是周五，IT 最迟应在什么时候关闭邮箱、代码仓库和生产系统权限？",
+      "expected_answer": "最后工作日结束前关闭，不推迟到下个工作日。",
+      "allowed_sources": [
+        "hr-offboarding-v1"
+      ],
+      "required_sources": [],
+      "evidence": [
+        {
+          "source_id": "hr-offboarding-v1",
+          "quote": "IT 应在最后工作日结束前关闭邮箱、协作平台、代码仓库和生产系统权限。"
+        }
+      ],
+      "required": [
+        [
+          "最后工作日"
+        ],
+        [
+          "结束前",
+          "结束之前"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ06",
+      "domain": "Finance",
+      "session": "reimbursement-current",
+      "question": "按当前费用报销制度，一笔6000元的报销除了提前申请，还需要谁复核？",
+      "expected_answer": "审批通过后报销；超过5000元需财务负责人复核。",
+      "allowed_sources": [
+        "finance-reimbursement-v2"
+      ],
+      "required_sources": [],
+      "evidence": [
+        {
+          "source_id": "finance-reimbursement-v2",
+          "quote": "单笔超过5000元还需财务负责人复核。"
+        }
+      ],
+      "required": [
+        [
+          "财务负责人"
+        ],
+        [
+          "复核"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ07",
+      "domain": "Finance",
+      "session": "reimbursement-current",
+      "question": "材料齐全后，财务多久完成审核？",
+      "expected_answer": "收到完整材料后五个工作日，连续追问仍为 v2。",
+      "allowed_sources": [
+        "finance-reimbursement-v2"
+      ],
+      "required_sources": [],
+      "evidence": [
+        {
+          "source_id": "finance-reimbursement-v2",
+          "quote": "财务收到完整材料后五个工作日内完成审核。"
+        }
+      ],
+      "required": [
+        [
+          "五个工作日",
+          "5个工作日"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ08",
+      "domain": "Finance",
+      "session": "reimbursement-old",
+      "question": "旧版费用报销制度的财务审核时限是多久？",
+      "expected_answer": "旧版 v1 为收到完整材料后七个工作日。",
+      "allowed_sources": [
+        "finance-reimbursement-v1"
+      ],
+      "required_sources": [],
+      "evidence": [
+        {
+          "source_id": "finance-reimbursement-v1",
+          "quote": "财务在收到完整材料后的七个工作日内完成审核。"
+        }
+      ],
+      "required": [
+        [
+          "七个工作日",
+          "7个工作日"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ09",
+      "domain": "Finance",
+      "session": "reimbursement-old",
+      "question": "那这一版的额外审批金额门槛是多少？",
+      "expected_answer": "旧版单笔超过一万元需财务负责人审批，不能混用现行5000元复核。",
+      "allowed_sources": [
+        "finance-reimbursement-v1"
+      ],
+      "required_sources": [],
+      "evidence": [
+        {
+          "source_id": "finance-reimbursement-v1",
+          "quote": "单笔超过一万元需财务负责人审批。"
+        }
+      ],
+      "required": [
+        [
+          "一万元",
+          "10000元",
+          "10,000元",
+          "1万元"
+        ],
+        [
+          "财务负责人"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ10",
+      "domain": "Finance",
+      "session": "reimbursement-old",
+      "question": "切换到当前生效的报销制度：财务审核时限和额外复核门槛分别是多少？",
+      "expected_answer": "切换为 v2，五个工作日审核，超过5000元需财务负责人复核。",
+      "allowed_sources": [
+        "finance-reimbursement-v2"
+      ],
+      "required_sources": [],
+      "evidence": [
+        {
+          "source_id": "finance-reimbursement-v2",
+          "quote": "财务收到完整材料后五个工作日内完成审核。单笔超过5000元还需财务负责人复核。"
+        }
+      ],
+      "required": [
+        [
+          "五个工作日",
+          "5个工作日"
+        ],
+        [
+          "5000",
+          "5,000",
+          "五千"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ11",
+      "domain": "Finance",
+      "session": "cash-advance",
+      "question": "我申请15000元业务借款，需要哪些人审批或复核？业务完成后多久核销？",
+      "expected_answer": "直属主管、财务复核，超过一万元另需部门负责人；业务完成后十个工作日内核销或退余额。",
+      "allowed_sources": [
+        "finance-cash-advance-v1"
+      ],
+      "required_sources": [],
+      "evidence": [
+        {
+          "source_id": "finance-cash-advance-v1",
+          "quote": "单笔借款不超过一万元由直属主管和财务复核；超过一万元还需部门负责人审批。"
+        },
+        {
+          "source_id": "finance-cash-advance-v1",
+          "quote": "业务完成后十个工作日内，借款人应凭合法票据办理报销或退回余额。"
+        }
+      ],
+      "required": [
+        [
+          "直属主管"
+        ],
+        [
+          "财务"
+        ],
+        [
+          "部门负责人"
+        ],
+        [
+          "十个工作日",
+          "10个工作日"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ12",
+      "domain": "Finance",
+      "session": "budget",
+      "question": "预算余额不够时能否直接提交付款？科目预计偏差达到12%应做什么？",
+      "expected_answer": "不得直接付款；超过10%需提交预算调整说明并经财务复核。",
+      "allowed_sources": [
+        "finance-budget-control-v1"
+      ],
+      "required_sources": [],
+      "evidence": [
+        {
+          "source_id": "finance-budget-control-v1",
+          "quote": "无预算或预算余额不足时，系统不得直接提交付款。"
+        },
+        {
+          "source_id": "finance-budget-control-v1",
+          "quote": "单一科目预计偏差超过百分之十，需提交预算调整说明并经财务部复核。"
+        }
+      ],
+      "required": [
+        [
+          "不得",
+          "不能",
+          "不可以"
+        ],
+        [
+          "预算调整"
+        ],
+        [
+          "财务"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ13",
+      "domain": "Procurement",
+      "session": "bidding-boundary",
+      "question": "预计金额恰好五万元的采购，原则上至少需要几家供应商报价？",
+      "expected_answer": "不超过五万元属于至少三家报价，不能当成超过五万元的评审档。",
+      "allowed_sources": [
+        "procurement-bidding-v1"
+      ],
+      "required_sources": [],
+      "evidence": [
+        {
+          "source_id": "procurement-bidding-v1",
+          "quote": "预计金额不超过五万元的采购，原则上至少获取三家供应商报价并形成比价记录。"
+        }
+      ],
+      "required": [
+        [
+          "三家",
+          "3家"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ14",
+      "domain": "Procurement",
+      "session": "bidding-upgrade",
+      "question": "预计金额21万元的采购，是否一律必须招标？应由谁评估？",
+      "expected_answer": "需提交采购负责人评估是否招标或竞争性方式；不能把评估是否采用写成一律招标。",
+      "allowed_sources": [
+        "procurement-bidding-v1"
+      ],
+      "required_sources": [],
+      "evidence": [
+        {
+          "source_id": "procurement-bidding-v1",
+          "quote": "预计金额超过二十万元或涉及重大风险的采购，应提交采购负责人评估是否采用招标或竞争性方式。"
+        }
+      ],
+      "required": [
+        [
+          "采购负责人"
+        ],
+        [
+          "评估"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ15",
+      "domain": "Procurement",
+      "session": "payment",
+      "question": "供应商有发票但没有有效采购订单或合同，可以直接提交付款申请吗？三单不一致怎么办？",
+      "expected_answer": "不得直接付款；核对订单、验收记录、发票，不一致暂停付款。",
+      "allowed_sources": [
+        "procurement-purchase-order-v1",
+        "finance-invoice-validation-v1"
+      ],
+      "required_sources": [
+        "procurement-purchase-order-v1"
+      ],
+      "evidence": [
+        {
+          "source_id": "procurement-purchase-order-v1",
+          "quote": "没有有效采购订单或合同的采购，不得直接提交付款申请；紧急采购须补充说明和审批。"
+        },
+        {
+          "source_id": "procurement-purchase-order-v1",
+          "quote": "付款前应核对采购订单、验收记录和发票，数量、金额或供应商不一致时暂停付款。"
+        }
+      ],
+      "required": [
+        [
+          "不得",
+          "不能",
+          "不可以"
+        ],
+        [
+          "验收记录"
+        ],
+        [
+          "暂停付款"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": [],
+      "required_quote_phrases": [
+        {
+          "source_id": "procurement-purchase-order-v1",
+          "quote": "不得直接提交付款申请"
+        },
+        {
+          "source_id": "procurement-purchase-order-v1",
+          "quote": "不一致时暂停付款"
+        }
+      ]
+    },
+    {
+      "case_id": "BQ16",
+      "domain": "IT",
+      "session": "mfa",
+      "question": "哪些账号必须启用多因素认证？怀疑密码泄露后我该怎么做？",
+      "expected_answer": "管理员、生产环境、远程访问账号启用 MFA；立即改密码并报告 IT 服务台。",
+      "allowed_sources": [
+        "it-password-mfa-v1"
+      ],
+      "required_sources": [],
+      "evidence": [
+        {
+          "source_id": "it-password-mfa-v1",
+          "quote": "管理员、生产环境和远程访问账号必须启用多因素认证，例外须经安全负责人批准。"
+        },
+        {
+          "source_id": "it-password-mfa-v1",
+          "quote": "怀疑密码泄露或收到异常登录提醒时，员工应立即修改密码并向 IT 服务台报告。"
+        }
+      ],
+      "required": [
+        [
+          "管理员"
+        ],
+        [
+          "生产环境"
+        ],
+        [
+          "远程访问"
+        ],
+        [
+          "修改密码",
+          "更改密码",
+          "改密码"
+        ],
+        [
+          "IT服务台",
+          "IT 服务台"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ17",
+      "domain": "Legal",
+      "session": "contract",
+      "question": "一份60万元的对外合同含非标准条款，除了业务负责人，还要经过哪些复核和联合审批？",
+      "expected_answer": "非标准条款提交法务复核；超过五十万元需财务负责人联合审批。",
+      "allowed_sources": [
+        "legal-contract-review-v2",
+        "procurement-contract-v1"
+      ],
+      "required_sources": [
+        "legal-contract-review-v2"
+      ],
+      "evidence": [
+        {
+          "source_id": "legal-contract-review-v2",
+          "quote": "若涉及非标准条款，必须提交法务复核。合同金额超过五十万元的事项，除业务负责人外，还需财务负责人联合审批。"
+        }
+      ],
+      "required": [
+        [
+          "法务"
+        ],
+        [
+          "财务负责人"
+        ],
+        [
+          "联合审批"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ18",
+      "domain": "Legal",
+      "session": "privacy",
+      "question": "有人通过客服要求查看个人信息，但无法确认身份，可以直接把信息给他吗？",
+      "expected_answer": "先核验身份和请求范围；身份无法确认时不得直接提供个人信息。",
+      "allowed_sources": [
+        "legal-privacy-request-v1"
+      ],
+      "required_sources": [],
+      "evidence": [
+        {
+          "source_id": "legal-privacy-request-v1",
+          "quote": "受理人员应先核验请求人身份和请求范围，无法确认身份时不得直接提供个人信息。"
+        }
+      ],
+      "required": [
+        [
+          "核验",
+          "核实"
+        ],
+        [
+          "身份"
+        ],
+        [
+          "不得",
+          "不能",
+          "不可以"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ19",
+      "domain": "Administration",
+      "session": "meeting",
+      "question": "预约人应该提前多久确认会议室使用？会议取消以后怎么办？",
+      "expected_answer": "会议开始前十分钟确认；取消及时释放资源。",
+      "allowed_sources": [
+        "admin-meeting-room-v1"
+      ],
+      "required_sources": [],
+      "evidence": [
+        {
+          "source_id": "admin-meeting-room-v1",
+          "quote": "预约人应在会议开始前十分钟确认使用。若会议取消，需及时释放会议室资源"
+        }
+      ],
+      "required": [
+        [
+          "十分钟",
+          "10分钟"
+        ],
+        [
+          "释放"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ20",
+      "domain": "Administration",
+      "session": "travel",
+      "question": "去高风险地区出差，交通预订前和风险报备分别要做什么？",
+      "expected_answer": "直属主管审批后预订；向行政登记紧急联系人和行程信息。",
+      "allowed_sources": [
+        "admin-business-travel-v1"
+      ],
+      "required_sources": [],
+      "evidence": [
+        {
+          "source_id": "admin-business-travel-v1",
+          "quote": "直属主管审批后方可预订。"
+        },
+        {
+          "source_id": "admin-business-travel-v1",
+          "quote": "前往高风险地区或参加大型活动时，应向行政部登记紧急联系人和行程信息。"
+        }
+      ],
+      "required": [
+        [
+          "直属主管"
+        ],
+        [
+          "审批"
+        ],
+        [
+          "紧急联系人"
+        ],
+        [
+          "行程"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": [],
+      "required_quote_phrases": [
+        {
+          "source_id": "admin-business-travel-v1",
+          "quote": "直属主管审批后方可预订"
+        },
+        {
+          "source_id": "admin-business-travel-v1",
+          "quote": "登记紧急联系人和行程信息"
+        }
+      ]
+    },
+    {
+      "case_id": "BQ21",
+      "domain": "Compliance",
+      "session": "gift",
+      "question": "收到价值300元且无法当场退回的礼品，应在多久内登记，交给谁处理？",
+      "expected_answer": "超过二百元，五个工作日内登记并交合规部。",
+      "allowed_sources": [
+        "compliance-gift-hospitality-v1"
+      ],
+      "required_sources": [],
+      "evidence": [
+        {
+          "source_id": "compliance-gift-hospitality-v1",
+          "quote": "无法当场退回且单件价值超过二百元的礼品，应在五个工作日内登记并交由合规部处理。"
+        }
+      ],
+      "required": [
+        [
+          "五个工作日",
+          "5个工作日"
+        ],
+        [
+          "合规部"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ22",
+      "domain": "Compliance",
+      "session": "gift-negotiation",
+      "question": "正在评审供应商，对方送的礼品不到200元，是不是就能收？",
+      "expected_answer": "评审、谈判或定标期间不得接受相关供应商礼品，200元登记阈值不产生收礼许可。",
+      "allowed_sources": [
+        "compliance-gift-hospitality-v1"
+      ],
+      "required_sources": [],
+      "evidence": [
+        {
+          "source_id": "compliance-gift-hospitality-v1",
+          "quote": "供应商评审、合同谈判或采购定标期间，不得接受相关供应商提供的礼品和招待。"
+        }
+      ],
+      "required": [
+        [
+          "不得",
+          "不能",
+          "不可以"
+        ],
+        [
+          "供应商"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ23",
+      "domain": "Sales",
+      "session": "complaint",
+      "question": "收到客户投诉后，登记和首次响应分别有什么时限？",
+      "expected_answer": "两个小时内登记；一个工作日内反馈已受理、负责人和下一次更新时间。",
+      "allowed_sources": [
+        "sales-complaint-handling-v1"
+      ],
+      "required_sources": [],
+      "evidence": [
+        {
+          "source_id": "sales-complaint-handling-v1",
+          "quote": "客服收到投诉后，应在两个小时内登记客户、问题、影响范围、联系记录和附件证据。"
+        },
+        {
+          "source_id": "sales-complaint-handling-v1",
+          "quote": "客服应在一个工作日内向客户反馈已受理、负责人和下一次更新时间。"
+        }
+      ],
+      "required": [
+        [
+          "两个小时",
+          "2个小时",
+          "两小时",
+          "2小时"
+        ],
+        [
+          "一个工作日",
+          "1个工作日"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ24",
+      "domain": "Sales",
+      "session": "complaint",
+      "question": "如果涉及隐私问题，应该升级给谁？",
+      "expected_answer": "立即升级给客户成功负责人和法务，不能混为一般投诉慢处理。",
+      "allowed_sources": [
+        "sales-complaint-handling-v1"
+      ],
+      "required_sources": [],
+      "evidence": [
+        {
+          "source_id": "sales-complaint-handling-v1",
+          "quote": "涉及安全、隐私、重大金额或可能引发群体影响的投诉，应立即升级给客户成功负责人和法务。"
+        }
+      ],
+      "required": [
+        [
+          "客户成功负责人"
+        ],
+        [
+          "法务"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ25",
+      "domain": "HR+IT",
+      "session": "multi-source",
+      "question": "新人账号由谁在哪申请、普通权限多久配好？生产权限还要什么审批，申请单还必须写哪些信息？",
+      "expected_answer": "直属主管在 OA 申请，IT 一个工作日配置；生产权限需安全审批，账号申请写业务用途和有效期限；两份资料均有引用。",
+      "allowed_sources": [
+        "hr-onboarding-v1",
+        "it-account-access-v1",
+        "it-production-access-v1"
+      ],
+      "required_sources": [
+        "hr-onboarding-v1",
+        "it-account-access-v1"
+      ],
+      "evidence": [
+        {
+          "source_id": "hr-onboarding-v1",
+          "quote": "IT 在一个工作日内完成邮箱、协作平台和代码仓库权限配置。涉及生产环境权限的申请需额外通过安全审批。"
+        },
+        {
+          "source_id": "it-account-access-v1",
+          "quote": "权限申请必须写明业务用途和有效期限"
+        }
+      ],
+      "required": [
+        [
+          "直属主管"
+        ],
+        [
+          "OA"
+        ],
+        [
+          "一个工作日",
+          "1个工作日"
+        ],
+        [
+          "安全审批",
+          "安全负责人审批"
+        ],
+        [
+          "业务用途"
+        ],
+        [
+          "有效期限"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ26",
+      "domain": "IT",
+      "session": "missing-password",
+      "question": "公司的密码最短必须是多少位？请给出具体数字。",
+      "expected_answer": "资料只要求满足系统长度和复杂度，未给具体位数；拒绝编造数字。",
+      "allowed_sources": [],
+      "required_sources": [],
+      "evidence": [],
+      "required": [],
+      "refusal": true,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ27",
+      "domain": "HR",
+      "session": "missing-benefit",
+      "question": "公司给员工每年宠物寄养补贴是多少元？",
+      "expected_answer": "现有资料未规定宠物寄养补贴；明确缺少依据，不编造金额。",
+      "allowed_sources": [],
+      "required_sources": [],
+      "evidence": [],
+      "required": [],
+      "refusal": true,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ28",
+      "domain": "Finance",
+      "session": "missing-fee",
+      "question": "费用报销逾期每天罚款多少钱？",
+      "expected_answer": "现有制度没有日罚款金额；明确缺少依据，不借其他逾期流程编造罚金。",
+      "allowed_sources": [],
+      "required_sources": [],
+      "evidence": [],
+      "required": [],
+      "refusal": true,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ29",
+      "domain": "Legal-public",
+      "session": "public-opinion",
+      "question": "东山精密2025年度股东会的召集人是谁，会议通知提前多久披露？",
+      "expected_answer": "第六届董事会召集；提前二十日披露，只据上传意见书作答。",
+      "allowed_sources": [
+        "dongshan-2025-shareholders-opinion"
+      ],
+      "required_sources": [],
+      "evidence": [
+        {
+          "source_id": "dongshan-2025-shareholders-opinion",
+          "quote": "本次股东会是由东山精密第六届董事会召集，会议通知已提前二十日刊"
+        }
+      ],
+      "required": [
+        [
+          "第六届董事会"
+        ],
+        [
+          "二十日",
+          "20日",
+          "二十天",
+          "20天"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": []
+    },
+    {
+      "case_id": "BQ30",
+      "domain": "Legal-public",
+      "session": "public-opinion",
+      "question": "参加这次股东会的股东和授权代表有多少名，代表多少有表决权股份？",
+      "expected_answer": "2256名，1032766222股；保留精确数字，追问仍为同一份意见书。",
+      "allowed_sources": [
+        "dongshan-2025-shareholders-opinion"
+      ],
+      "required_sources": [],
+      "evidence": [
+        {
+          "source_id": "dongshan-2025-shareholders-opinion",
+          "quote": "东山精密股东和授权代表共 2,256 名，代表有表决权股份数 1,032,766,222 股"
+        }
+      ],
+      "required": [
+        [
+          "2256",
+          "2,256"
+        ],
+        [
+          "1032766222",
+          "1,032,766,222"
+        ]
+      ],
+      "refusal": false,
+      "forbidden": []
+    }
+  ],
+  "fixture_revision": 3,
+  "previous_revision_sha256": "20e3b86e390d533e0623cd82e5fbb69ba7fe465ca53c4ba3767d6a28d9633844",
+  "previous_fixture_sha256": "c1bc41856eec527b10d9bb59ba07783fc60b04c64154822c5ebd552128906693",
+  "expectation_corrections": [
+    {
+      "case_id": "BQ15",
+      "extra_source": "finance-invoice-validation-v1",
+      "reason": "原文明确规定发票与订单/合同/验收记录不一致须退回补正，属于有效补充来源；采购订单制度仍为必需引用。"
+    },
+    {
+      "case_id": "BQ17",
+      "extra_source": "procurement-contract-v1",
+      "reason": "原文同样规定超过五十万元联合审批及非标准条款法务复核，属于有效补充来源；法务合同制度仍为必需引用。"
+    },
+    {
+      "case_id": "BQ25",
+      "extra_source": "it-production-access-v1",
+      "reason": "原文规定生产权限由直属主管和安全负责人审批，属于有效补充来源；HR入职与IT账号两份主来源仍必需。"
+    },
+    {
+      "case_id": "BQ25",
+      "equivalent_phrase": "安全负责人审批",
+      "reason": "第三版仅增加原文支持的等价表述；保留第二批原始 29/30 预检查结果及完整引用，不更改问题、事实或必需来源。"
+    }
+  ]
+}

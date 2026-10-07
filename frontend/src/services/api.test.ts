@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { downloadKnowledge, fetchKnowledgeRecord, streamChat, uploadKnowledge } from './api'
+import { downloadKnowledge, fetchPdfSource, fetchKnowledgeRecord, streamChat, uploadKnowledge } from './api'
 import type { StreamEvent } from '../types/api'
 
 afterEach(() => {
@@ -16,6 +16,156 @@ it('unwraps the authorized document detail response and encodes source IDs', asy
 })
 
 describe('streamChat', () => {
+  function streamResponse(body: ReadableStream<Uint8Array>) {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(body)))
+  }
+  const payload = { message: 'question', user_id: 'user-1', session_id: 'session-1' }
+  const final = { type: 'result', content: '经理审批🙂', citations: [], trace_id: 'trace', failure_type: 'none' }
+  it('accepts pending steps in the final process summary', async () => {
+    const result = { ...final, process_summary: { status: 'complete', elapsed_ms: 10,
+      steps: [{ node: 'update_memory', status: 'pending', duration_ms: null }] } }
+    streamResponse(new ReadableStream({ start(controller) {
+      controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(result)}\n\n`))
+      controller.close()
+    } }))
+    const events: StreamEvent[] = []
+    await streamChat(payload, (event) => events.push(event))
+    expect(events).toEqual([result])
+  })
+
+  it('requires a complete SSE frame before accepting a result', async () => {
+    streamResponse(new ReadableStream({ start(controller) {
+      controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(final)}`))
+      controller.close()
+    } }))
+    const events: StreamEvent[] = []
+    await expect(streamChat(payload, (event) => events.push(event))).rejects.toThrow('最终结果')
+    expect(events).toEqual([])
+  })
+
+  it('settles a done event without a result as an incomplete request', async () => {
+    const cancel = vi.fn()
+    const body = new ReadableStream<Uint8Array>({ start(controller) {
+      controller.enqueue(new TextEncoder().encode('data: {"type":"done","trace_id":"trace"}\n\n'))
+    }, cancel })
+    streamResponse(body)
+    await expect(streamChat(payload, () => undefined)).rejects.toThrow('最终结果')
+    expect(cancel).toHaveBeenCalledOnce()
+    expect(body.locked).toBe(false)
+  })
+
+  it.each(['\n', '\r\n'])('decodes Chinese bytes, heartbeats and multiline data using %j', async (newline) => {
+    const wire = ': heartbeat' + newline + newline + 'event: message' + newline +
+      'data: {"type":"result",' + newline + 'data: "content":"经理审批🙂","citations":[],"trace_id":"trace","failure_type":"none"}' + newline + newline
+    const bytes = new TextEncoder().encode(wire)
+    streamResponse(new ReadableStream({ start(controller) {
+      for (const byte of bytes) controller.enqueue(new Uint8Array([byte]))
+      controller.close()
+    } }))
+    const events: StreamEvent[] = []
+    await streamChat(payload, (event) => events.push(event))
+    expect(events).toEqual([final])
+  })
+
+  it.each([
+    'invalid JSON', 'null', '[]', '{}',
+    JSON.stringify({ ...final, content: null }),
+    JSON.stringify({ ...final, citations: [null] }),
+    JSON.stringify({ ...final, citations: [{ citation_id: 1, title: 'x', quote: 'y' }] }),
+    JSON.stringify({ ...final, process_summary: { steps: 'bad' } }),
+    JSON.stringify({ ...final, process_summary: { status: ['complete'], elapsed_ms: 0, steps: [] } }),
+    JSON.stringify({ ...final, process_summary: { status: 'complete', elapsed_ms: 0,
+      steps: [{ node: 'generate', status: ['complete'], duration_ms: 0 }] } }),
+    JSON.stringify({ ...final, context_usage: { used_tokens: 'bad' } }),
+    JSON.stringify({ type: 'preview_delta', content: 'draft' }),
+    JSON.stringify({ type: 'status', node: 'generate', content: 'running', node_status: 'invalid' }),
+    JSON.stringify({ type: 'status', node: 'generate', content: 'running', node_status: ['running'] }),
+  ])('rejects an invalid event and cancels the remaining response: %s', async (data) => {
+    const cancel = vi.fn()
+    const body = new ReadableStream<Uint8Array>({ start(controller) {
+      controller.enqueue(new TextEncoder().encode(`data: ${data}\n\n`))
+    }, cancel })
+    streamResponse(body)
+    await expect(streamChat(payload, () => undefined)).rejects.toThrow('SSE')
+    expect(cancel).toHaveBeenCalledOnce()
+    expect(body.locked).toBe(false)
+  })
+
+  it('releases the reader after clean completion', async () => {
+    const body = new ReadableStream<Uint8Array>({ start(controller) {
+      controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(final)}\n\n`))
+      controller.close()
+    } })
+    streamResponse(body)
+    await streamChat(payload, () => undefined)
+    expect(body.locked).toBe(false)
+  })
+
+  it('settles on done and ignores duplicate results and late provisional events', async () => {
+    const cancel = vi.fn()
+    const wire = [final, { ...final, content: 'wrong second result' }, { type: 'token', content: 'late' },
+      { type: 'status', node: 'error', content: 'late' }, { type: 'done', trace_id: 'trace' }]
+      .map((event) => `data: ${JSON.stringify(event)}\n\n`).join('')
+    const body = new ReadableStream<Uint8Array>({ start(controller) { controller.enqueue(new TextEncoder().encode(wire)) }, cancel })
+    streamResponse(body)
+    const events: StreamEvent[] = []
+    const job = streamChat(payload, (event) => events.push(event))
+    await vi.waitFor(() => expect(cancel).toHaveBeenCalledOnce())
+    await job
+    expect(events.map((event) => event.type)).toEqual(['result', 'done'])
+  })
+
+  it('does not hide a consumer exception behind a parse error', async () => {
+    streamResponse(new ReadableStream({ start(controller) {
+      controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(final)}\n\n`)); controller.close()
+    } }))
+    await expect(streamChat(payload, () => { throw new Error('consumer failed') })).rejects.toThrow('consumer failed')
+  })
+
+  it('does not accept a queued result after cancellation', async () => {
+    const controller = new AbortController()
+    const body = new ReadableStream<Uint8Array>({ start(source) {
+      source.enqueue(new TextEncoder().encode('data: {"type":"token","content":"candidate"}\n\n' + `data: ${JSON.stringify(final)}\n\n`))
+      source.close()
+    } })
+    streamResponse(body)
+    const events: StreamEvent[] = []
+    await expect(streamChat(payload, (event) => { events.push(event); controller.abort() }, controller.signal)).rejects.toMatchObject({ name: 'AbortError' })
+    expect(events.map((event) => event.type)).toEqual(['token'])
+    expect(body.locked).toBe(false)
+  })
+
+  it('cancels a pending body read when the caller aborts', async () => {
+    const controller = new AbortController()
+    const cancel = vi.fn()
+    const body = new ReadableStream<Uint8Array>({ cancel })
+    streamResponse(body)
+    const job = streamChat(payload, () => undefined, controller.signal)
+    const rejection = expect(job).rejects.toMatchObject({ name: 'AbortError' })
+    await vi.waitFor(() => expect(body.locked).toBe(true))
+    controller.abort()
+    await rejection
+    expect(cancel).toHaveBeenCalledOnce()
+    expect(body.locked).toBe(false)
+  })
+
+  it.each([false, true])('handles a broken transport (committed result: %s)', async (committed) => {
+    let source!: ReadableStreamDefaultController<Uint8Array>
+    const body = new ReadableStream<Uint8Array>({ start(controller) { source = controller } })
+    streamResponse(body)
+    const events: StreamEvent[] = []
+    const job = streamChat(payload, (event) => events.push(event))
+    const outcome = committed ? expect(job).resolves.toBeUndefined() : expect(job).rejects.toThrow('network failure')
+    if (committed) {
+      source.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(final)}\n\n`))
+      await vi.waitFor(() => expect(events).toHaveLength(1))
+    }
+    source.error(new Error('network failure'))
+    await outcome
+    expect(body.locked).toBe(false)
+    expect(fetch).toHaveBeenCalledOnce()
+  })
+
   it('parses SSE events split across arbitrary network chunks', async () => {
     const encoder = new TextEncoder()
     const chunks = [
@@ -137,5 +287,49 @@ describe('downloadKnowledge', () => {
 
     expect(blob).toBeInstanceOf(Blob)
     expect(fetch).toHaveBeenCalledWith('/api/knowledge/records/finance%20policy/download')
+  })
+})
+
+describe('bounded PDF preview download', () => {
+  it('streams authorized bytes and respects configured limits', async () => {
+    const signal = new AbortController().signal
+    const body = new ReadableStream<Uint8Array>({ start(controller) {
+      controller.enqueue(new Uint8Array([1, 2]))
+      controller.enqueue(new Uint8Array([3, 4]))
+      controller.close()
+    } })
+    const fetchMock = vi.fn().mockResolvedValue(new Response(body, { headers: {
+      'X-Pdf-Preview-Max-Bytes': '4', 'X-Pdf-Preview-Max-Pages': '20',
+    } }))
+    vi.stubGlobal('fetch', fetchMock)
+    await expect(fetchPdfSource('policy/1', signal)).resolves.toEqual({ bytes: new Uint8Array([1, 2, 3, 4]), maxPages: 20 })
+    expect(fetchMock).toHaveBeenCalledWith('/api/knowledge/records/policy%2F1/download?preview=true', { signal })
+  })
+
+  it.each([true, false])('cancels an oversized response (declared length: %s)', async (declared) => {
+    const cancelled = vi.fn()
+    const body = new ReadableStream<Uint8Array>({ start(controller) {
+      controller.enqueue(new Uint8Array(5))
+    }, cancel: cancelled })
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(body, { headers: {
+      'X-Pdf-Preview-Max-Bytes': '4', ...(declared ? { 'Content-Length': '5' } : {}),
+    } })))
+    await expect(fetchPdfSource('policy', new AbortController().signal)).rejects.toMatchObject({ status: 413 })
+    expect(cancelled).toHaveBeenCalledOnce()
+    expect(body.locked).toBe(false)
+  })
+
+  it('uses safe defaults when limit headers are invalid', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('pdf', { headers: {
+      'X-Pdf-Preview-Max-Bytes': '-1', 'X-Pdf-Preview-Max-Pages': 'NaN',
+    } })))
+    expect((await fetchPdfSource('policy', new AbortController().signal)).maxPages).toBe(500)
+  })
+
+  it('preserves authorization errors and transport aborts', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ detail: 'denied' }), { status: 403 })))
+    await expect(fetchPdfSource('policy', new AbortController().signal)).rejects.toMatchObject({ status: 403 })
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new DOMException('cancelled', 'AbortError')))
+    await expect(fetchPdfSource('policy', new AbortController().signal)).rejects.toMatchObject({ name: 'AbortError' })
   })
 })

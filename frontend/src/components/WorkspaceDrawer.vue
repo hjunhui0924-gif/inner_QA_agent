@@ -3,7 +3,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Close } from '@element-plus/icons-vue'
 import { registerOverlay } from '../utils/overlayStack'
 
-const props = defineProps<{ open: boolean; title: string }>()
+const props = defineProps<{ open: boolean; title: string; returnFocusTo?: HTMLElement | null }>()
 const emit = defineEmits<{ close: [] }>()
 const panel = ref<HTMLElement | null>(null)
 const closeButton = ref<HTMLButtonElement | null>(null)
@@ -46,10 +46,10 @@ watch(
   async (open) => {
     overlay?.setOpen(open)
     if (open) {
-      previousFocus =
+      previousFocus = props.returnFocusTo ?? (
         document.activeElement instanceof HTMLElement
           ? document.activeElement
-          : null
+          : null)
       await nextTick()
       closeButton.value?.focus()
     } else {

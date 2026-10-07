@@ -3,6 +3,7 @@ import { computed, ref, reactive, nextTick } from 'vue'
 import {
   deleteSession as deleteSessionRequest,
   fetchHealth,
+  fetchContextUsage,
   fetchHistory,
   fetchKnowledgeRecords,
   fetchSessions,
@@ -20,6 +21,8 @@ import type {
   UploadResponse,
   ChatMode,
   KnowledgeUploadMetadata,
+  ContextUsage,
+  TurnProcessSummary,
 } from '../types/api'
 import {
   beginTurnTiming,
@@ -106,6 +109,10 @@ const chatMode = ref<ChatMode>('knowledge')
 const webSearchEnabled = ref(false)
 const uploading = ref(false)
 const knowledgeError = ref('')
+const contextUsage = ref<ContextUsage | null>(null)
+const contextUsageLoading = ref(false)
+const contextUsageStale = ref(false)
+let contextUsageGeneration = 0
 let knowledgeGeneration = 0
 const uploadForm = reactive({
   title: '',
@@ -218,11 +225,48 @@ function syncAssistantMessage(
   assistant.failureStage = streamState.failureStage
   assistant.failureReason = streamState.failureReason
   assistant.traceId = streamState.traceId
-
+  assistant.processSummary = processSummaryFromStream(streamState)
   if (streamState.resultReceived) {
     assistant.content = streamState.content
     assistant.citations = streamState.citations
     activeCitations.value = streamState.citations
+  }
+}
+
+function processSummaryFromStream(
+  streamState: StreamUiState,
+  forcedStatus?: 'error' | 'cancelled',
+): TurnProcessSummary {
+  const steps = streamState.steps.map((step) => ({
+    node: step.node,
+    status: step.status || 'pending',
+    duration_ms: step.startedAt && step.endedAt
+      ? Math.max(0, step.endedAt - step.startedAt)
+      : null,
+  }))
+  const status: TurnProcessSummary['status'] = forcedStatus || (streamState.answerState === 'fallback' ? 'fallback'
+    : streamState.answerState === 'error' ? 'error'
+      : streamState.answerState === 'cancelled' ? 'cancelled' : 'complete')
+  return {
+    status,
+    elapsed_ms: null,
+    steps,
+  }
+}
+
+async function refreshContextUsage(targetSessionId = sessionId.value): Promise<void> {
+  const generation = ++contextUsageGeneration
+  contextUsageLoading.value = true
+  try {
+    const usage = await fetchContextUsage(userId, targetSessionId)
+    if (generation !== contextUsageGeneration || targetSessionId !== sessionId.value) return
+    contextUsage.value = usage
+    contextUsageStale.value = usage.status === 'unavailable'
+  } catch {
+    if (generation === contextUsageGeneration && targetSessionId === sessionId.value)
+      contextUsageStale.value = true
+  } finally {
+    if (generation === contextUsageGeneration) contextUsageLoading.value = false
   }
 }
 
@@ -292,6 +336,7 @@ async function initialize(
         chatInitialization = null
       })
     await chatInitialization
+    void refreshContextUsage()
   }
   if (target === 'knowledge' && !knowledgeInitialized) {
     if (!knowledgeInitialization)
@@ -318,6 +363,9 @@ function resetConversation(preserveHistoryError = false): void {
   }
   chatMode.value = 'knowledge'
   webSearchEnabled.value = false
+  contextUsage.value = null
+  contextUsageStale.value = false
+  void refreshContextUsage()
 }
 
 function newSession(): void {
@@ -356,11 +404,13 @@ async function openSession(targetSessionId: string): Promise<boolean> {
       failureStage: message.failure_stage ?? null,
       failureReason: message.failure_reason ?? null,
       traceId: message.trace_id ?? null,
+      processSummary: message.process_summary ?? null,
     }))
     activeCitations.value =
       [...messages.value].reverse().find((message) => message.citations?.length)
         ?.citations ?? []
     agentSteps.value = []
+    void refreshContextUsage(targetSessionId)
     return true
   } catch (error) {
     if (requestGeneration !== historyRequestGeneration) return false
@@ -473,6 +523,7 @@ async function sendMessage(rawMessage: string, retryOf?: UiMessage): Promise<voi
     failureStage: null,
     failureReason: null,
     traceId: null,
+    processSummary: null,
   })
   messages.value.push(userMessage, assistant)
   agentSteps.value = []
@@ -481,7 +532,9 @@ async function sendMessage(rawMessage: string, retryOf?: UiMessage): Promise<voi
   sending.value = true
   sessionTitlePending.value = isNewSession
   rememberSessionMode(sessionId.value, chatMode.value)
-  activeController = new AbortController()
+  const controller = new AbortController()
+  activeController = controller
+  let requestFinished = false
   let streamState = createStreamState()
 
   try {
@@ -497,6 +550,7 @@ async function sendMessage(rawMessage: string, retryOf?: UiMessage): Promise<voi
         retry_of_turn_id: retryOf?.turn_id || undefined,
       },
       (event: StreamEvent) => {
+        if (requestFinished || controller.signal.aborted || streamState.resultReceived) return
         if (event.type === 'status' && timing.firstStatusMs === undefined)
           timing.firstStatusMs = performance.now() - timing.started
         if (event.type === 'result') {
@@ -510,10 +564,14 @@ async function sendMessage(rawMessage: string, retryOf?: UiMessage): Promise<voi
         }
         if (event.type === 'preview_delta' && (attempt.mode !== 'general' || attempt.web_search)) return
         streamState = reduceStreamEvent(streamState, event)
+        if (event.type === 'result' && event.context_usage) {
+          contextUsage.value = event.context_usage
+          contextUsageStale.value = event.context_usage.status === 'unavailable'
+        }
         syncAssistantMessage(assistant, streamState)
         agentSteps.value = streamState.steps
       },
-      activeController.signal,
+      controller.signal,
     )
     timing.streamEndedMs = performance.now() - timing.started
     if (!streamState.resultReceived) {
@@ -535,6 +593,7 @@ async function sendMessage(rawMessage: string, retryOf?: UiMessage): Promise<voi
       assistant.failureStage = null
       assistant.failureReason = null
       assistant.traceId = streamState.traceId
+      assistant.processSummary = processSummaryFromStream(streamState, 'cancelled')
       agentSteps.value = []
       notify('info', '已取消本次回答')
     } else {
@@ -545,16 +604,19 @@ async function sendMessage(rawMessage: string, retryOf?: UiMessage): Promise<voi
       assistant.failureStage = null
       assistant.failureReason = '本次请求未收到经过校验的最终回答。'
       assistant.traceId = streamState.traceId
+      assistant.processSummary = processSummaryFromStream(streamState, 'error')
       backendOnline.value = false
       notify('error', '问答请求失败', readableError(error))
     }
   } finally {
-    activeController = null
+    requestFinished = true
+    if (activeController === controller) activeController = null
     sending.value = false
     timing.readyMs = performance.now() - timing.started
     sessionTitlePending.value = false
     if (streamState.resultReceived) {
       void loadSessions()
+      void refreshContextUsage()
       if (isNewSession) refreshTitleLater()
     }
   }
@@ -669,6 +731,9 @@ export function useWorkspace() {
     uploadForm,
     knowledgeError,
     sessionTitlePending,
+    contextUsage,
+    contextUsageLoading,
+    contextUsageStale,
     toasts,
     initialize,
     loadSessions,

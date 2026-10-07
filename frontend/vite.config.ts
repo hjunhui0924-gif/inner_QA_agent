@@ -1,8 +1,9 @@
 import { defineConfig } from 'vitest/config'
 import vue from '@vitejs/plugin-vue'
+import { pdfAssets } from './tooling/pdfAssets'
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [vue(), pdfAssets()],
   test: {
     environment: 'jsdom',
   },

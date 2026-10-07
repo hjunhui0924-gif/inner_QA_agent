@@ -306,6 +306,7 @@ class RetrievalEngine:
             )
 
         rerank_pool = fused[: max(top_k, self._config.rerank_candidate_k)]
+        rerank_pool, rerank_query = _comparison_rerank_scope(query, rerank_pool)
         if self._reranker is None:
             documents = [
                 _candidate_document(candidate, retrieval_stage="fusion_fallback")
@@ -328,7 +329,7 @@ class RetrievalEngine:
         try:
             rerank_top_n = len(rerank_pool) if prefer_current else top_k
             scores = self._reranker.rerank(
-                query,
+                rerank_query,
                 [candidate.document for candidate in rerank_pool],
                 rerank_top_n,
             )
@@ -583,6 +584,53 @@ def tokenize(text: str) -> list[str]:
         if len(run) >= 3:
             tokens.extend(run[index : index + 3] for index in range(len(run) - 2))
     return tokens
+
+
+def _comparison_rerank_scope(
+    query: str, candidates: list[_RankedCandidate],
+) -> tuple[list[_RankedCandidate], str]:
+    """Rank clauses for an explicit two-owner comparison within its scope.
+
+    Names and years remain in dense/lexical search. Only focus the rerank
+    question when both named owners are present in the already filtered pool;
+    unknown or ambiguous ownership keeps the original retrieval behavior.
+    """
+    match = re.fullmatch(
+        r"(?:只)?比较(.+?)(?:两|2)份(?:文件|资料|文档)\s*[：:]\s*(.+)",
+        query.strip(), re.DOTALL,
+    )
+    if match is None:
+        return candidates, query
+    scope, task = match.groups()
+    owners = {
+        str(candidate.document.metadata.get("owner", "")).strip()
+        for candidate in candidates
+    }
+    named = {owner for owner in owners if len(owner) > 1 and owner != "未指定" and owner in scope}
+    if len(named) != 2:
+        return candidates, query
+    # Keep each explicitly named file year in the scope before focusing the
+    # question. More complex version expressions use the original query.
+    if re.search(r"(?<![a-z0-9])v\d+(?![a-z0-9])", scope, re.IGNORECASE):
+        return candidates, query
+    years = {}
+    for owner in named:
+        year = re.search(re.escape(owner) + r"\s*(?:的)?(20\d{2})\s*年", scope)
+        if year:
+            years[owner] = year.group(1)
+    if years and len(years) != len(named):
+        return candidates, query
+    scoped = [candidate for candidate in candidates
+              if str(candidate.document.metadata.get("owner", "")).strip() in named]
+    if years:
+        scoped = [candidate for candidate in scoped if re.search(
+            r"(?<!\d)" + years[str(candidate.document.metadata["owner"]).strip()] + r"(?!\d)",
+            str(candidate.document.metadata.get("version", "")) + " "
+            + str(candidate.document.metadata.get("title", "")),
+        )]
+        if {str(candidate.document.metadata["owner"]).strip() for candidate in scoped} != named:
+            return candidates, query
+    return scoped, task.strip()
 
 
 def _document_search_text(document: Document) -> str:

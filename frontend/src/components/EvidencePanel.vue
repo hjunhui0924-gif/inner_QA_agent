@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref, useId, watch } from 'vue'
 import DocumentDetailDrawer from './DocumentDetailDrawer.vue'
-import { fetchKnowledgeRecord } from '../services/api'
+import { fetchKnowledgeRecord, fetchSourcePreview } from '../services/api'
 import type { KnowledgeRecord } from '../types/api'
-import type { Citation } from '../types/api'
+import type { Citation, SourcePreviewResponse } from '../types/api'
 import { copyText } from '../utils/clipboard'
 import { registerOverlay } from '../utils/overlayStack'
 
 const props = defineProps<{
   context?: string
   open: boolean
+  blocked?: boolean
   modal?: boolean
   citations: Citation[]
   selectedCitationId?: string | null
+  sessionId?: string | null
+  turnId?: string | null
 }>()
 
 const emit = defineEmits<{ close: [] }>()
@@ -20,16 +23,33 @@ const sourceRecord = ref<KnowledgeRecord | null>(null)
 const sourceOpen = ref(false)
 const sourceLoading = ref(false)
 const sourceError = ref('')
+const sourcePreview = ref<SourcePreviewResponse | null>(null)
+const sourcePreviewLoading = ref(false)
+const sourcePreviewError = ref('')
+const sourceCitation = ref<Citation | null>(null)
 let sourceGeneration = 0
 let sourceTrigger: HTMLElement | null = null
 let sourceId = ''
-async function openSource(id: string, event?: Event) {
+let sourceCitationId = ''
+let sourceAbort: AbortController | null = null
+async function openSource(id: string, event?: Event, citationTarget?: string) {
+  sourceAbort?.abort()
+  const controller = new AbortController()
+  sourceAbort = controller
+  const sessionId = props.sessionId
+  const turnId = props.turnId
   sourceId = id
   if (event) sourceTrigger = event.currentTarget as HTMLElement
   const generation = ++sourceGeneration
   sourceOpen.value = true
   sourceLoading.value = true
   sourceError.value = ''
+  sourcePreview.value = null
+  sourcePreviewError.value = ''
+  const targetCitationId = citationTarget || props.selectedCitationId
+  sourceCitationId = targetCitationId || ''
+  sourceCitation.value = props.citations.find((citation) => citation.citation_id === targetCitationId && citation.source_id === id) || null
+  sourcePreviewLoading.value = Boolean(sessionId && turnId && targetCitationId)
   sourceRecord.value = {
     source_id: id,
     title: '文档信息',
@@ -37,8 +57,28 @@ async function openSource(id: string, event?: Event) {
     original_filename: '',
   }
   try {
-    const record = await fetchKnowledgeRecord(id)
-    if (generation === sourceGeneration) sourceRecord.value = record
+    const recordResult = await fetchKnowledgeRecord(id, controller.signal)
+    if (generation !== sourceGeneration) return
+    sourceRecord.value = recordResult
+    if (sessionId && turnId && targetCitationId) {
+      try {
+        const preview = await fetchSourcePreview(id, {
+          sessionId,
+          turnId,
+          citationId: targetCitationId,
+        }, controller.signal)
+        if (generation === sourceGeneration) sourcePreview.value = preview
+      } catch (error) {
+        if (generation === sourceGeneration) {
+          const status = error && typeof error === 'object' && 'status' in error ? error.status : 0
+          if (status === 401 || status === 403 || status === 404) {
+            sourceRecord.value = null
+            sourcePreview.value = null
+            sourceError.value = '来源不存在或不可访问，请重新打开后重试。'
+          } else sourcePreviewError.value = '引用原文定位暂时失败，可先查看文档内容。'
+        }
+      }
+    }
   } catch (error) {
     const status =
       error && typeof error === 'object' && 'status' in error ? error.status : 0
@@ -51,11 +91,46 @@ async function openSource(id: string, event?: Event) {
             : '来源加载失败，请重试。'
   } finally {
     if (generation === sourceGeneration) sourceLoading.value = false
+    if (generation === sourceGeneration) sourcePreviewLoading.value = false
+  }
+}
+async function loadPreviewPage(cursor: string): Promise<void> {
+  if (!sourceId || !props.sessionId || !props.turnId || !sourceCitationId) return
+  sourceAbort?.abort()
+  const controller = new AbortController()
+  sourceAbort = controller
+  const generation = ++sourceGeneration
+  sourcePreviewLoading.value = true
+  sourcePreviewError.value = ''
+  try {
+    const preview = await fetchSourcePreview(sourceId, {
+      sessionId: props.sessionId,
+      turnId: props.turnId,
+      citationId: sourceCitationId,
+      cursor,
+    }, controller.signal)
+    if (generation === sourceGeneration) sourcePreview.value = preview
+  } catch (error) {
+    if (generation === sourceGeneration) {
+      const status = error && typeof error === 'object' && 'status' in error ? error.status : 0
+      if (status === 401 || status === 403 || status === 404) {
+        sourceRecord.value = null
+        sourcePreview.value = null
+        sourceError.value = '来源不存在或不可访问，请重新打开后重试。'
+      } else sourcePreviewError.value = '原文窗口加载失败，请重试。'
+    }
+  } finally {
+    if (generation === sourceGeneration) sourcePreviewLoading.value = false
   }
 }
 function closeSource() {
   ++sourceGeneration
+  sourceAbort?.abort()
+  sourceAbort = null
   sourceOpen.value = false
+  sourceRecord.value = null
+  sourcePreview.value = null
+  sourceCitation.value = null
   void nextTick(() => {
     if (sourceTrigger?.isConnected) sourceTrigger.focus()
   })
@@ -65,10 +140,22 @@ watch(
   (open) => {
     if (!open) {
       ++sourceGeneration
+      sourceAbort?.abort()
       sourceOpen.value = false
+      sourceRecord.value = null
+      sourcePreview.value = null
+      sourceCitation.value = null
     }
   },
 )
+watch(() => [props.sessionId, props.turnId], () => {
+  ++sourceGeneration
+  sourceAbort?.abort()
+  sourceOpen.value = false
+  sourceRecord.value = null
+  sourcePreview.value = null
+  sourceCitation.value = null
+})
 const panel = ref<HTMLElement | null>(null)
 const evidenceList = ref<HTMLElement | null>(null)
 const evidenceClose = ref<HTMLButtonElement | null>(null)
@@ -183,6 +270,7 @@ onMounted(() => {
 })
 onBeforeUnmount(() => {
   ++sourceGeneration
+  sourceAbort?.abort()
   timers.forEach(clearTimeout)
   overlay?.unregister()
   overlay = null
@@ -236,8 +324,8 @@ async function copyQuote(citation: Citation, event: Event): Promise<void> {
     :aria-modal="modal ? 'true' : undefined"
     :aria-labelledby="titleId"
     aria-label="引用证据"
-    :aria-hidden="!open ? 'true' : undefined"
-    :inert="!open || sourceOpen ? true : undefined"
+    :aria-hidden="!open || blocked ? 'true' : undefined"
+    :inert="!open || sourceOpen || blocked ? true : undefined"
     tabindex="-1"
   >
     <div class="evidence-header">
@@ -296,7 +384,7 @@ async function copyQuote(citation: Citation, event: Event): Promise<void> {
           v-if="citation.source_id"
           type="button"
           class="text-button"
-          @click="openSource(citation.source_id, $event)"
+          @click="openSource(citation.source_id, $event, citation.citation_id)"
         >
           查看文档信息与下载
         </button>
@@ -332,7 +420,14 @@ async function copyQuote(citation: Citation, event: Event): Promise<void> {
     :record="sourceRecord"
     :loading="sourceLoading"
     :error="sourceError"
+    :preview="sourcePreview"
+    :preview-loading="sourcePreviewLoading"
+    :preview-error="sourcePreviewError"
+    :citation-page="sourceCitation?.page"
+    :citation-quote="sourceCitation?.quote"
+    @preview-page="loadPreviewPage"
+    @preview-return="openSource(sourceId, undefined, sourceCitationId)"
     @close="closeSource"
-    @retry="openSource(sourceId)"
+    @retry="openSource(sourceId, undefined, sourceCitationId)"
   />
 </template>

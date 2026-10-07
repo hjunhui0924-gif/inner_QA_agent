@@ -98,7 +98,7 @@ def check_touch(browser, motion):
     context = browser.new_context(
         viewport={"width": 390, "height": 844},
         has_touch=True,
-        is_mobile=True,
+        is_mobile=browser.browser_type.name != "firefox",
         reduced_motion=motion,
     )
     try:
@@ -265,7 +265,9 @@ def check_failures(browser, width, motion):
         assert not diagnostics["page_errors"], diagnostics
         assert not diagnostics["unexpected_console"], diagnostics
         assert all(
-            "ERR_ABORTED" in item["reason"] and item["url"].endswith("/api/chat/stream")
+            any(reason in item["reason"] for reason in (
+                "ERR_ABORTED", "NS_BINDING_ABORTED", "Load request cancelled",
+            )) and item["url"].endswith("/api/chat/stream")
             for item in diagnostics["request_failures"]
         ), diagnostics
         return diagnostics

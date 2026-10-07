@@ -21,6 +21,7 @@ src/
   components/
     AppSidebar.vue
     EvidencePanel.vue
+    FeedbackDialog.vue
     WorkspaceDrawer.vue
   layouts/
     LandingLayout.vue
@@ -135,4 +136,12 @@ python tests/e2e_paper_citations.py
 
 普通通用非联网回答允许增量预览，正式结果仍以 result 为准；知识库与联网回答校验后交付。等待阶段可编辑下一条草稿，取消或失败支持重新生成/编辑，重试按问题折叠。联网由用户显式开启，关闭时不会自动触发。
 
-前端回归数量和构建状态以 `npm run test`、`npm run build` 的实际输出为准。论文式引用已在 Chrome 桌面/手机尺寸和 API fixtures 下检查，不能替代真机软键盘、Firefox/WebKit 或真实模型质量验收。阶段验收记录见 [收尾报告](../docs/product_experience_final_acceptance.md)，M6 下一步见 [优化方案](../docs/product_experience_optimization_plan.md)。
+前端回归数量和构建状态以 `npm run test`、`npm run build` 的实际输出为准。2026-10-02 已执行 Chrome、Edge、Firefox、WebKit 核心交互矩阵并修复 WebKit 上传抽屉焦点恢复问题；API fixtures 与触控模拟不能替代真机软键盘或真实模型质量验收。新矩阵入口为 `python tests/e2e_browser_matrix.py --output-dir work/browser-new`（先启动 5173）。具体结果见 [M6 记录](../docs/m6_acceptance_2026-10-02.md)，有效待办见 [当前状态](../docs/current_status.md)。
+
+2026-10-07 DSH M6 SSE/滚动专项已完成：前端 140 项与生产构建通过，四浏览器单批 56/56。新增 `src/utils/streamEvent.ts` 校验流事件，取消和迟到结果隔离、阅读锚点、布局跟随与 End 恢复均经回归。先启动 5173，再在仓库根目录运行 `python tests/e2e_stream_scroll.py --browsers chrome msedge firefox webkit`；范围及失败修复记录见 [DSH M6 验收](../docs/dsh_m6_acceptance_2026-10-07.md)。
+
+同日补齐 PDF 四浏览器 64/64、生产构建 16/16，以及反馈重试四浏览器 20/20。`tooling/pdfAssets.ts` 配合 Vite 提供并打包 pdf.js 的本地字符映射、标准字体、WASM 和许可证，修复部分中文 PDF 文本缺失；原页仍按需加载。反馈同内容失败重试复用 ID，修改内容生成新 ID，旧请求不影响新弹窗。命令为 `python tests/e2e_pdf_source_preview.py --browsers chrome msedge firefox webkit` 与 `python tests/e2e_feedback_retry.py --browsers chrome msedge firefox webkit`；详见 [本轮验收](../docs/dsh_pdf_browser_acceptance_2026-10-07.md)。
+
+M4 反馈弹层的键盘与焦点另通过四浏览器 32/32：`FeedbackDialog.vue` 复用弹层栈处理打开焦点、单选组、Tab/Shift+Tab、顶层 Escape、背景隔离及关闭后的阅读位置保持；请求与重试状态仍由 ChatView 管理。运行 `python tests/e2e_feedback_accessibility.py --browsers chrome msedge firefox webkit`；本轮反馈重试另 20/20、前端 140 项与构建、既有页面回归通过。详见 [M4 键盘与焦点验收](../docs/dsh_m4_accessibility_acceptance_2026-10-07.md)，真机软键盘仍待验收。
+
+2026-10-07 的后端业务场景复测补充了 PDF 软换行下的引用上下文：PB01/PB06 差旅题和 PB09/CX01 跨页规则题均完成隔离真实 Agent 复测。前端 API fixture 和模拟视口不能替代真机输入法、真实内部权限或独立业务审核，统一以 [项目当前状态](../docs/current_status.md) 的范围说明为准。

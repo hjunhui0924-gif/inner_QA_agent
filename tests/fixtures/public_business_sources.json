@@ -1,0 +1,74 @@
+{
+  "downloaded_at": "2026-10-07T02:24:18.524321+08:00",
+  "base_corpus_sha256": "0568df31708a94dff58628ac89acb766f4b9d8db91e0a322b4f83c9a0c30c34e",
+  "source_review": "Codex checked official PDFs and relevant rendered pages; not independent business review",
+  "extraction": "PyMuPDF get_text(), full pages in original order; horizontal whitespace collapsed; source text is not summarized",
+  "lifecycle_note": "active means indexed for this isolated test, not verified institutional current validity. effective_from=1970-01-01 is the schema sentinel, not a claimed policy start date. Questions name the file snapshot.",
+  "sources": [
+    {
+      "source_id": "nju-travel-2024",
+      "title": "南京大学差旅费管理办法（2024年文件快照）",
+      "publisher": "南京大学",
+      "signed_date": "2024-11-19",
+      "document_number": "南字发〔2024〕157号",
+      "official_url": "https://life.nju.edu.cn/_upload/article/files/3b/25/7dd11c0e442faa2b528bb3441be0/440a46b2-dfa6-4bad-8139-7853d51a806b.pdf",
+      "raw_pdf_path": "work/public-business-sources/20261007/nju-travel-2024.pdf",
+      "pdf_sha256": "b4969b32e912ca4d19861f7885565d9a7503d2ccb45962724e21b775c8c31b12",
+      "extracted_text_sha256": "ea2ab5ca945157fb14174e1dfc6f8117a603e396cf0882cef7239a1272e4e32f",
+      "page_count": 16,
+      "year_note": "Signed date; current institutional validity not verified"
+    },
+    {
+      "source_id": "swupl-travel-2024",
+      "title": "西南政法大学差旅费管理办法（2024年文件快照）",
+      "publisher": "西南政法大学",
+      "signed_date": "2024-01-22",
+      "document_number": "西政校发〔2024〕9号",
+      "official_url": "https://ccls.swupl.edu.cn/docs//2024-01/88ee5528d8004327a2dd02968c17c225.pdf",
+      "raw_pdf_path": "work/public-business-sources/20261007/swupl-travel-2024.pdf",
+      "pdf_sha256": "240ddbc5c269ffb4e627c0b303fa1fa2640d067b8fd5fb2a5169593dccbfdf4d",
+      "extracted_text_sha256": "3be751db374834030f24e861ff8273c15fe1d8ea523f61d0524d1d2206f462a5",
+      "page_count": 16,
+      "year_note": "Signed date; current institutional validity not verified"
+    },
+    {
+      "source_id": "ecnu-equipment-contract-2018",
+      "title": "华东师范大学设备采购合同管理实施细则（2018年修订文件快照）",
+      "publisher": "华东师范大学",
+      "signed_date": "2018-11-26",
+      "document_number": "华师实设〔2018〕4号",
+      "official_url": "https://mpi.ecnu.edu.cn/_upload/article/files/00/9e/acda6e134ed0ad078b8ac2e5d6c8/55083af7-a42b-4128-9dcb-d17713b2c11e.pdf",
+      "raw_pdf_path": "work/public-business-sources/20261007/ecnu-equipment-contract-2018.pdf",
+      "pdf_sha256": "72bf51bf5d83f09f97f3f1d5b2d89363f5bd019defd5ddb543c4cd564023e3b2",
+      "extracted_text_sha256": "b8d12581707dd4d333f106f1d2498e32050d392372e80df1a2e1c023cd27e0ec",
+      "page_count": 8,
+      "year_note": "Signed date; current institutional validity not verified"
+    },
+    {
+      "source_id": "zju-procurement-2018",
+      "title": "浙江大学采购管理办法（2018年文件快照）",
+      "publisher": "浙江大学",
+      "signed_date": "2018-01-22",
+      "document_number": "浙大发采购〔2018〕1号",
+      "official_url": "https://rwsk.zju.edu.cn/_upload/article/files/a5/e5/11c5092d45feae552546d521a9f7/8950a6f3-1e55-419f-9372-15b676612be0.pdf",
+      "raw_pdf_path": "work/public-business-sources/20261007/zju-procurement-2018.pdf",
+      "pdf_sha256": "201696dc37d9645f9038777f91efcecd1551287b708e0261849dfb33adb3bc12",
+      "extracted_text_sha256": "569ffbd2a1c7464cac998754ddaefb7a4d1e497b194759eab646d52f18baddce",
+      "page_count": 15,
+      "year_note": "Signed date; current institutional validity not verified"
+    },
+    {
+      "source_id": "tenaris-supplier-code",
+      "title": "泰纳瑞斯供应商行为准则（官网中文文件快照，年份未注明）",
+      "publisher": "Tenaris 泰纳瑞斯",
+      "signed_date": null,
+      "document_number": null,
+      "official_url": "https://www.tenaris.com/media/y2zestkl/coc_suppliers_chi.pdf",
+      "raw_pdf_path": "work/public-business-sources/20261007/tenaris-supplier-code.pdf",
+      "pdf_sha256": "3a53341b4b614c38e0cd75e1e2607e8fb4e9414478bd2f3d18cd6f0b61a0b1a5",
+      "extracted_text_sha256": "653c2aa81d5ac94a8d139e64eb1f81d34af6d92d9e21892f937ee4253845193b",
+      "page_count": 18,
+      "year_note": "Year not stated in PDF"
+    }
+  ]
+}
