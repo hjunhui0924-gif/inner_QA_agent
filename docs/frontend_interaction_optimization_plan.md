@@ -482,5 +482,7 @@ npm --prefix frontend run build
 
 2026-10-08 最新验证：前端 148 项测试、类型检查和生产构建通过；DSH SSE/滚动专项 56/56；Chrome、Edge、Firefox、WebKit 的交互矩阵中，输入法、长会话、复制、反馈、抽屉、失败重试和低高度布局场景均通过。浏览器验证使用确定性 API fixture，不代表真机软键盘或真实模型质量。
 
+轻量 before/after 对照见 [frontend_interaction_performance_comparison_20261008.md](frontend_interaction_performance_comparison_20261008.md)。结果保持同一量级，不宣称百分比性能提升。
+
 以下事项仍属于外部验收或条件性增强，不标记为代码已完成：真机触屏/软键盘、同配置 before/after 性能收益、真实授权企业资料与独立业务质量、虚拟列表（需再次证明当前 DOM 触发阈值且采用变量高度锚点方案）、请求缓存（需出现重复请求证据）。
 

@@ -1,12 +1,6 @@
 import { computed, ref, reactive, nextTick } from 'vue'
 
-import {
-  deleteSession as deleteSessionRequest,
-  fetchHealth,
-  fetchHistory,
-  fetchSessions,
-  streamChat,
-} from '../services/api'
+import { fetchHealth, streamChat } from '../services/api'
 import type {
   AgentStep,
   Citation,
@@ -23,7 +17,6 @@ import {
   recordFirstToken,
   recordStreamUpdate,
 } from '../utils/performance'
-import { nextSessionAfterDelete } from '../utils/sessions'
 import { createNotificationState } from '../state/notificationState'
 import { createSessionState } from '../state/sessionState'
 import { createChatState } from '../state/chatState'
@@ -31,6 +24,7 @@ import { createKnowledgeState } from '../state/knowledgeState'
 import { createContextUsageState } from '../state/contextUsageState'
 import { createContextActions } from '../state/contextActions'
 import { createKnowledgeActions } from '../state/knowledgeActions'
+import { createSessionActions } from '../state/sessionActions'
 import {
   createStreamState,
   reduceStreamEvent,
@@ -70,50 +64,10 @@ const {
   contextUsage, contextUsageLoading, contextUsageStale,
 } = contextState
 const initialized = ref(false)
-let sessionsGeneration = 0
 let initialization: Promise<void> | null = null
-let chatInitialized = false
 let chatInitialization: Promise<void> | null = null
 let knowledgeInitialization: Promise<void> | null = null
-let titleTimers: ReturnType<typeof setTimeout>[] = []
-function cancelTitleRefresh() {
-  titleTimers.forEach(clearTimeout)
-  titleTimers = []
-}
-function setChatVisible(visible: boolean) {
-  chatVisible.value = visible
-  if (!visible) cancelTitleRefresh()
-  else if (chatInitialized) void loadSessions()
-}
-function refreshTitleLater() {
-  cancelTitleRefresh()
-  if (chatVisible.value)
-    titleTimers = [2000, 5000, 10000].map((delay) =>
-      setTimeout(() => {
-        if (chatVisible.value) void loadSessions()
-      }, delay),
-    )
-}
 let activeController: AbortController | null = null
-let historyRequestGeneration = 0
-const sessionModeStorageKey = 'enterprise-assistant-session-modes'
-
-function readSessionModes(): Record<string, ChatMode> {
-  try {
-    return JSON.parse(
-      localStorage.getItem(sessionModeStorageKey) || '{}',
-    ) as Record<string, ChatMode>
-  } catch {
-    return {}
-  }
-}
-
-function rememberSessionMode(targetSessionId: string, mode: ChatMode): void {
-  localStorage.setItem(
-    sessionModeStorageKey,
-    JSON.stringify({ ...readSessionModes(), [targetSessionId]: mode }),
-  )
-}
 
 const activeSession = computed(
   () =>
@@ -165,6 +119,30 @@ const knowledgeActions = createKnowledgeActions({
 })
 const { refreshContextUsage } = contextActions
 const { initialized: knowledgeInitialized, loadKnowledge, uploadKnowledge } = knowledgeActions
+const sessionActions = createSessionActions({
+  userId,
+  state: sessionState,
+  chat: chatState,
+  context: contextState,
+  generateId: generateUuid,
+  notify,
+  refreshContextUsage,
+  sessionOperationFailureDetail,
+  sending,
+})
+const {
+  initialized: chatInitialized,
+  setChatVisible,
+  loadSessions,
+  refreshTitleLater,
+  cancelTitleRefresh,
+  invalidateSessions,
+  newSession,
+  openSession,
+  retryOpenSession,
+  removeSession,
+  rememberSessionMode,
+} = sessionActions
 
 function uiStateForAnswer(
   answerState: UiMessage['answerState'],
@@ -216,26 +194,6 @@ function processSummaryFromStream(
   }
 }
 
-async function loadSessions(): Promise<void> {
-  const started = performance.now()
-  const generation = ++sessionsGeneration
-  loadingSessions.value = true
-  sessionsError.value = null
-  try {
-    const result = await fetchSessions(userId)
-    if (generation === sessionsGeneration) {
-      sessions.value = result
-      chatInitialized = true
-    }
-  } catch {
-    if (generation === sessionsGeneration)
-      sessionsError.value = '会话列表暂时无法加载，请重试。'
-  } finally {
-    recordRefresh(performance.now() - started)
-    if (generation === sessionsGeneration) loadingSessions.value = false
-  }
-}
-
 async function checkHealth(): Promise<void> {
   if (initialized.value && backendOnline.value) return
   if (!initialization)
@@ -258,7 +216,7 @@ async function initialize(
   target: 'chat' | 'knowledge' = 'chat',
 ): Promise<void> {
   const health = checkHealth()
-  if (target === 'chat' && !chatInitialized) {
+  if (target === 'chat' && !chatInitialized.value) {
     if (!chatInitialization)
       chatInitialization = loadSessions().finally(() => {
         chatInitialization = null
@@ -276,130 +234,6 @@ async function initialize(
   await health
 }
 
-function resetConversation(preserveHistoryError = false): void {
-  cancelTitleRefresh()
-  historyRequestGeneration += 1
-  loadingHistory.value = false
-  sessionId.value = generateUuid()
-  messages.value = []
-  agentSteps.value = []
-  activeCitations.value = []
-  sessionTitlePending.value = false
-  if (!preserveHistoryError) {
-    historyError.value = null
-    historyErrorSessionId.value = null
-  }
-  chatMode.value = 'knowledge'
-  webSearchEnabled.value = false
-  contextUsage.value = null
-  contextUsageStale.value = false
-  void refreshContextUsage()
-}
-
-function newSession(): void {
-  if (sending.value) return
-  resetConversation()
-}
-
-async function openSession(targetSessionId: string): Promise<boolean> {
-  if (sending.value || loadingHistory.value) return false
-  if (targetSessionId === sessionId.value) {
-    historyError.value = null
-    historyErrorSessionId.value = null
-    return true
-  }
-  cancelTitleRefresh()
-  const requestGeneration = ++historyRequestGeneration
-  loadingHistory.value = true
-  historyError.value = null
-  historyErrorSessionId.value = null
-  try {
-    const history = await fetchHistory(userId, targetSessionId)
-    if (requestGeneration !== historyRequestGeneration) return false
-    sessionId.value = targetSessionId
-    chatMode.value = history.find((message) => message.mode)?.mode ?? readSessionModes()[targetSessionId] ?? 'knowledge'
-    webSearchEnabled.value = false
-    messages.value = history.map((message) => ({
-      ...message,
-      id: message.message_id || createId(message.role),
-      citations: message.citations ?? [],
-      state: 'complete',
-      answerState:
-        message.failure_type && message.failure_type !== 'none'
-          ? 'fallback'
-          : 'complete',
-      failureType: message.failure_type ?? null,
-      failureStage: message.failure_stage ?? null,
-      failureReason: message.failure_reason ?? null,
-      traceId: message.trace_id ?? null,
-      processSummary: message.process_summary ?? null,
-    }))
-    activeCitations.value =
-      [...messages.value].reverse().find((message) => message.citations?.length)
-        ?.citations ?? []
-    agentSteps.value = []
-    void refreshContextUsage(targetSessionId)
-    return true
-  } catch (error) {
-    if (requestGeneration !== historyRequestGeneration) return false
-    historyError.value = '会话内容暂时无法加载，请重试。'
-    historyErrorSessionId.value = targetSessionId
-    notify('error', '会话加载失败', historyError.value)
-    return false
-  } finally {
-    if (requestGeneration === historyRequestGeneration)
-      loadingHistory.value = false
-  }
-}
-
-async function retryOpenSession(): Promise<boolean> {
-  if (!historyErrorSessionId.value) return false
-  return openSession(historyErrorSessionId.value)
-}
-
-async function removeSession(targetSessionId: string): Promise<void> {
-  if (sending.value) return
-  cancelTitleRefresh()
-  ++sessionsGeneration
-  const sessionsBeforeDelete = [...sessions.value]
-  const wasActive = sessionId.value === targetSessionId
-  historyRequestGeneration += 1
-  loadingHistory.value = false
-  historyError.value = null
-  historyErrorSessionId.value = null
-  try {
-    await deleteSessionRequest(userId, targetSessionId)
-    ++sessionsGeneration
-    loadingSessions.value = false
-    delete viewCache[targetSessionId]
-    sessions.value = sessions.value.filter(
-      (item) => item.session_id !== targetSessionId,
-    )
-    if (wasActive) {
-      const nextSessionId = nextSessionAfterDelete(
-        sessionsBeforeDelete,
-        targetSessionId,
-      )
-      if (nextSessionId) {
-        const opened = await openSession(nextSessionId)
-        if (!opened) {
-          const failedSessionId = historyErrorSessionId.value
-          const failedHistoryError = historyError.value
-          resetConversation(true)
-          historyErrorSessionId.value = failedSessionId
-          historyError.value = failedHistoryError
-        }
-      } else {
-        newSession()
-      }
-    }
-    notify('success', '会话已删除', '聊天记录与 Agent 状态已同步清除。')
-  } catch (error) {
-    notify('error', '删除会话失败', sessionOperationFailureDetail())
-    throw error
-  }
-}
-
 async function sendMessage(rawMessage: string, retryOf?: UiMessage): Promise<void> {
   const content = rawMessage.trim()
   if (
@@ -410,7 +244,7 @@ async function sendMessage(rawMessage: string, retryOf?: UiMessage): Promise<voi
   )
     return
   cancelTitleRefresh()
-  ++sessionsGeneration
+  invalidateSessions()
   loadingSessions.value = false
 
   const turnId = generateUuid()
