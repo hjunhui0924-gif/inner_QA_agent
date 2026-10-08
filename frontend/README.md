@@ -11,8 +11,7 @@
 - Element Plus 组件与图标；
 - 原生 CSS 设计 Token 与响应式布局。
 
-当前没有引入 Pinia 或 Tailwind。Element Plus 仅按需注册 `ElIcon`，图标从直接依赖 `@element-plus/icons-vue` 导入。按钮、表单与响应式布局由原生 HTML/CSS 实现；三个页面及布局采用动态导入。共享状态集中在 Composition API 工作区组合
-函数中；现有页面规模不需要额外状态库。
+当前没有引入 Pinia 或 Tailwind。Element Plus 仅按需注册 `ElIcon`，图标从直接依赖 `@element-plus/icons-vue` 导入。按钮、表单与响应式布局由原生 HTML/CSS 实现；三个页面及布局采用动态导入。共享状态由 Composition API 工作区组合函数和 `src/state/` 下的轻量状态/动作模块组织；现有页面规模不需要额外状态库。
 
 ## 页面结构
 
@@ -20,9 +19,27 @@
 src/
   components/
     AppSidebar.vue
+    Composer.vue
+    ConversationNavigator.vue
     EvidencePanel.vue
     FeedbackDialog.vue
+    MessageItem.vue
+    PdfSourcePreview.vue
     WorkspaceDrawer.vue
+  composables/
+    useConversationScroll.ts
+    useEvidenceSelection.ts
+    useWorkspace.ts
+  state/
+    sessionState.ts
+    chatState.ts
+    knowledgeState.ts
+    contextUsageState.ts
+    sessionActions.ts
+    chatActions.ts
+    knowledgeActions.ts
+    contextActions.ts
+    chatPresentation.ts
   layouts/
     LandingLayout.vue
     ChatLayout.vue
@@ -47,6 +64,8 @@ src/
 - `/knowledge`：文档列表、搜索与筛选优先；点击“添加文档”打开上传抽屉，元数据按需展开；
 - 760px 以下使用移动端侧栏；
 - 1280px 以下引用面板使用模态抽屉；更宽屏幕保留至少 600px 主阅读区。
+
+`Composer.vue` 负责输入边界、快捷键、模式切换、停止和示例问题；会话、聊天、知识库和上下文用量分别由 `src/state/` 下的状态与动作模块管理，`ChatView.vue` 只负责页面编排。
 
 ## 视觉系统
 
@@ -145,3 +164,5 @@ python tests/e2e_paper_citations.py
 M4 反馈弹层的键盘与焦点另通过四浏览器 32/32：`FeedbackDialog.vue` 复用弹层栈处理打开焦点、单选组、Tab/Shift+Tab、顶层 Escape、背景隔离及关闭后的阅读位置保持；请求与重试状态仍由 ChatView 管理。运行 `python tests/e2e_feedback_accessibility.py --browsers chrome msedge firefox webkit`；本轮反馈重试另 20/20、前端 140 项与构建、既有页面回归通过。详见 [M4 键盘与焦点验收](../docs/dsh_m4_accessibility_acceptance_2026-10-07.md)，真机软键盘仍待验收。
 
 2026-10-07 的后端业务场景复测补充了 PDF 软换行下的引用上下文：PB01/PB06 差旅题和 PB09/CX01 跨页规则题均完成隔离真实 Agent 复测。前端 API fixture 和模拟视口不能替代真机输入法、真实内部权限或独立业务审核，统一以 [项目当前状态](../docs/current_status.md) 的范围说明为准。
+
+2026-10-08 new-api 交互优化 Demo 已完成：`Composer.vue` 输入边界拆分、session/chat/knowledge/context 状态与动作模块、聊天状态展示规则、会话和知识列表 Skeleton、复制/反馈/重试局部反馈及滚动意图修正均已落地。最终前端 150/150、类型检查和生产构建通过；MVP、产品体验路径、DSH M6 SSE/滚动 56/56、反馈重试 20/20、反馈键盘与焦点 32/32，以及 Chrome/Edge/Firefox/WebKit 核心交互矩阵通过。浏览器使用确定性 API fixture，不代表真机软键盘或真实模型质量；虚拟列表和请求缓存按性能证据条件暂缓。

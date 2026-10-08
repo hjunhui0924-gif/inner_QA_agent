@@ -17,6 +17,7 @@
 - 有界多轮会话、自动摘要、首问会话标题生成与完整会话删除
 - SSE 状态与正式答案交付；普通通用非联网回答支持增量预览
 - Vue 3 产品首页、问答工作台与独立知识管理（FastAPI 接口集成）
+- new-api 交互优化 Demo：输入边界拆分、会话/聊天/知识/上下文动作模块、列表 Skeleton、复制/反馈/重试局部反馈和阅读位置保持
 - 知识库两层去重
   - 精确去重：内容指纹
   - 近似去重：文本相似度阈值
@@ -221,20 +222,37 @@ frontend/                             # Vue 3 + TypeScript 前端
     ├── components/
     │   ├── AppSidebar.vue            # 会话搜索、切换、新建与删除
     │   ├── AgentProgress.vue         # 展示当前处理阶段与耗时
+    │   ├── Composer.vue              # 输入、快捷键、模式切换、停止和示例问题
+    │   ├── ConversationNavigator.vue # 长会话问题目录、重试分组与定位
     │   ├── EvidencePanel.vue         # 展示引用摘录，定位所选证据卡片
     │   ├── DocumentDetailDrawer.vue  # 查看当前文档信息、文本预览与下载
     │   ├── FailureNotice.vue         # 区分失败与回退，提供恢复操作
+    │   ├── FeedbackDialog.vue        # 回答反馈、键盘焦点和提交状态
+    │   ├── MessageItem.vue           # 消息正文、复制、反馈和重试入口
+    │   ├── PdfSourcePreview.vue      # PDF 原页预览与文本层定位
     │   ├── WorkspaceDrawer.vue       # 通用抽屉，管理键盘焦点与关闭
     │   └── ToastStack.vue            # 集中展示操作成功和失败提示
     ├── composables/
     │   ├── useWorkspace.ts           # 管理会话、草稿、发送、取消与上传状态
+    │   ├── useConversationScroll.ts   # 管理阅读位置、跟随意图与布局变化
     │   └── useEvidenceSelection.ts   # 绑定回答与引用快照，记录焦点入口
+    ├── state/
+    │   ├── sessionState.ts            # 会话列表、草稿和阅读位置状态
+    │   ├── chatState.ts               # 聊天消息、发送和流式状态
+    │   ├── knowledgeState.ts          # 知识库列表、筛选和上传状态
+    │   ├── contextUsageState.ts       # 上下文用量展示状态
+    │   ├── sessionActions.ts          # 会话加载、切换与删除动作
+    │   ├── chatActions.ts             # SSE、发送、取消、重试和反馈动作
+    │   ├── knowledgeActions.ts        # 知识库加载、筛选与上传动作
+    │   ├── contextActions.ts          # 上下文用量加载动作
+    │   └── chatPresentation.ts        # 回答状态映射和过程摘要规则
     ├── services/
     │   └── api.ts                    # 封装 HTTP 请求、SSE 解析与文件传输
     ├── types/
     │   └── api.ts                    # 定义接口、流事件和前端消息类型
     ├── utils/
     │   ├── streamState.ts            # 将流事件转换为预览、正式或失败状态
+    │   ├── streamEvent.ts             # 校验 SSE 事件字段和终态边界
     │   ├── markdown.ts               # 渲染 Markdown，清洗 HTML 并生成引用按钮
     │   ├── attempts.ts               # 合并同一问题的重试记录
     │   ├── sessions.ts               # 搜索会话，选择删除后的接续会话
@@ -388,7 +406,7 @@ python scripts/run_enterprise_rag_benchmark.py --split regression --top-k 5
 - 已有服务端 ACL，覆盖检索、来源查看与下载、会话操作和知识管理。多用户部署仍需接入可信身份、迁移历史文档 ACL 并验收权限；请求中的 `user_id` 不作为身份凭据。
 - 当前知识管理未提供文档编辑、删除及版本回滚；PDF 表格解析仍可改进。
 - 标题生成使用单进程后台队列，不是持久化任务系统。跨进程协调和规模化部署需另行设计。
-- 2026-10-07 已完成 DSH P1/M4/M5/M6 前端专项及现有资料、官方公开资料的业务场景检查；新增跨页引用上下文修复已用 PB01/PB06/PB09/CX01 做隔离真实 Agent 复测。真机软键盘、同配置前后性能收益、账单成本、真实授权企业制度和独立业务审核仍待验收。详见 [当前状态](docs/current_status.md) 与 [业务场景验收](docs/business_quality_acceptance_2026-10-07.md)。网页来源校验不等于独立事实审核。
+- 2026-10-08 已完成 DSH P1/M4/M5/M6 前端专项、new-api 交互优化 Demo 代码、MVP/产品体验用户路径及现有资料和官方公开资料的业务场景检查；前端 150 项测试、类型检查、生产构建、四浏览器核心交互矩阵和轻量性能对照均已记录。真机软键盘、真实模型质量、长期稳定性、账单成本、真实授权企业制度和独立业务审核仍待验收。详见 [当前状态](docs/current_status.md)、[前端交互优化方案](docs/frontend_interaction_optimization_plan.md) 与 [业务场景验收](docs/business_quality_acceptance_2026-10-07.md)。网页来源校验不等于独立事实审核。
 
 ## 进一步阅读
 
@@ -397,6 +415,7 @@ python scripts/run_enterprise_rag_benchmark.py --split regression --top-k 5
 - [统一 RAG 评测](docs/unified_rag_evaluation.md) / [企业知识库扩充记录](docs/knowledge_base_expansion.md)：题集、来源和门禁。
 - [引用校验分工](docs/citation_validation_split_report.md) / [稳定证据标识](docs/stable_evidence_identity_fix.md)：引用协议与语义校验。
 - [产品体验验收记录](docs/product_experience_final_acceptance.md) / [交互修复记录](docs/interaction_recovery_implementation.md)：对应阶段的验收结果与限制，历史测试数字不代表当前测试总数。
+- [前端交互优化方案](docs/frontend_interaction_optimization_plan.md) / [DSH 前端开发计划](docs/dsh_frontend_development_plan.md)：交互模块拆分、验收门禁和 Demo 范围。
 - [GitHub 提交边界](docs/repository_submission_guide.md)：运行产物、凭据和可复现资料的管理。
 
 ## License
