@@ -50,4 +50,4 @@ git diff --check
 
 公开仓库中的文档可能引用本地 `work/` 证据路径；它们用于说明当时的验证来源，不代表克隆仓库后自带这些报告。复现需按 [优化方案 M6 执行清单](product_experience_optimization_plan.md) 运行测试；真实链路依赖各供应商凭据，使用隔离数据且消耗配额。
 
-GitHub 源码同步与部署、DSH 前端专项完成、历史产品/性能 M6 完整验收是不同状态。2026-10-07 已完成 DSH P1/M4/M5/M6 前端专项和现有/公开资料业务场景复测；可比性能基线、账单、真机、真实授权企业制度和独立业务质量仍待验收。具体以 [项目当前状态](current_status.md)、[业务场景验收](business_quality_acceptance_2026-10-07.md) 和 [历史业务与性能记录](m6_acceptance_2026-10-02.md) 为准。不能因为提交或推送成功，就将未验证项标为通过。
+GitHub 源码同步与部署、DSH 前端专项完成、历史产品/性能 M6 完整验收是不同状态。2026-10-08 已完成 DSH P1/M4/M5/M6 前端专项、new-api 交互优化 Demo 代码、MVP/产品体验用户路径以及现有/公开资料业务场景复测；长期稳定性、账单、真机、真实授权企业制度和独立业务质量仍待验收。具体以 [项目当前状态](current_status.md)、[业务场景验收](business_quality_acceptance_2026-10-07.md)、[前端交互优化方案](frontend_interaction_optimization_plan.md) 和 [历史业务与性能记录](m6_acceptance_2026-10-02.md) 为准。不能因为提交或推送成功，就将未验证项标为通过。

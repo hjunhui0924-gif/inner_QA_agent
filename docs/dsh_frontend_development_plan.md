@@ -549,3 +549,9 @@ python tests/e2e_browser_matrix.py --output-dir $matrixRunDir --browsers msedge
 - 补齐打开焦点、单选组方向键及单一 Tab 停靠点、正反向焦点循环、提交中禁用按钮、输入法组合事件、顶层 Escape 关闭、取消/遮罩/成功关闭后的原入口焦点恢复。关闭使用 preventScroll，旧回答的阅读位置不变。
 - 新增 `tests/e2e_feedback_accessibility.py`，Chrome/Edge/Firefox/WebKit 各 8 项，最终完整批次 32/32。既有反馈重试专项 20/20、前端 140 项与生产构建、MVP/产品体验回归通过；已查看 Chrome 320px 和 WebKit 390px 截图。
 - 实际缺陷复现与测试定位器修正的批次分别保留；最终报告记录页面错误、意外控制台错误及失败请求为 0，故意返回的反馈 502 单列。证据和范围见 [M4 键盘与焦点验收](dsh_m4_accessibility_acceptance_2026-10-07.md)。模拟视口与组合事件不能替代真机软键盘和输入法验收；有效剩余任务见 [当前状态](current_status.md)。
+
+### 13.10 2026-10-08 Demo 最终验收
+
+- new-api 交互优化 Demo 代码已完成：`Composer.vue` 输入边界拆分，session/chat/knowledge/context 状态与动作模块，聊天状态展示规则模块，会话和知识列表 Skeleton，复制/反馈/重试的局部状态反馈，以及滚动意图回归修正。
+- 最终前端测试 150/150、类型检查和生产构建通过；DSH M6 SSE/滚动专项 56/56，反馈重试 20/20，反馈键盘与焦点 32/32；MVP、产品体验用户路径和 Chrome/Edge/Firefox/WebKit 核心交互矩阵通过。
+- 本轮浏览器验收使用确定性 API fixture，证明当前 Demo 交互和状态路径；不替代真机触屏/软键盘、真实模型回答质量、长期稳定性、账单成本或真实授权企业制度审核。虚拟列表和请求缓存仍按性能证据条件暂缓。
