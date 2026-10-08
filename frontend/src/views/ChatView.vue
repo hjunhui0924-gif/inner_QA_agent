@@ -14,7 +14,8 @@ import MessageItem from '../components/MessageItem.vue'
 import EvidencePanel from '../components/EvidencePanel.vue'
 import ConversationNavigator from '../components/ConversationNavigator.vue'
 import type { ConversationNavItem } from '../components/ConversationNavigator.vue'
-import ContextMeter from '../components/ContextMeter.vue'
+import Composer from '../components/Composer.vue'
+import type { ComposerMode, ComposerPrompt } from '../components/Composer.vue'
 import FeedbackDialog from '../components/FeedbackDialog.vue'
 import { useWorkspace } from '../composables/useWorkspace'
 import { useEvidenceSelection } from '../composables/useEvidenceSelection'
@@ -106,7 +107,7 @@ const evidenceContext = computed(() => {
   })
   return `对应回答：${summary.replace(/\s+/g, ' ').slice(0, 72)}`
 })
-const composer = ref<HTMLTextAreaElement | null>(null)
+const composer = ref<InstanceType<typeof Composer> | null>(null)
 const conversation = ref<HTMLElement | null>(null)
 const messageList = ref<HTMLElement | null>(null)
 const copyStates = ref<Record<string, ActionState>>({})
@@ -156,14 +157,11 @@ function updateEvidenceViewport(): void {
 onMounted(() => {
   updateEvidenceViewport()
   window.addEventListener('resize', updateEvidenceViewport)
-  window.addEventListener('resize', resizeComposer)
-  void nextTick(resizeComposer)
 })
 
 onBeforeUnmount(() => {
   copyGeneration += 1
   window.removeEventListener('resize', updateEvidenceViewport)
-  window.removeEventListener('resize', resizeComposer)
   copyTimers.forEach((timer) => clearTimeout(timer))
   copyTimers.clear()
   retryTimers.forEach((timer) => clearTimeout(timer))
@@ -171,7 +169,7 @@ onBeforeUnmount(() => {
   clearEvidence()
 })
 
-const prompts = computed(() =>
+const prompts = computed<ComposerPrompt[]>(() =>
   chatMode.value === 'knowledge'
     ? [
         {
@@ -219,7 +217,7 @@ const canSend = computed(
 const modeLocked = computed(
   () => messages.value.length > 0 || loadingHistory.value,
 )
-const modes = [
+const modes: ComposerMode[] = [
   {
     id: 'knowledge' as const,
     label: '知识库',
@@ -356,24 +354,6 @@ async function submit(event?: KeyboardEvent) {
   navigationPaused.value = false
   await sendMessage(content)
 }
-
-function resizeComposer(): void {
-  const field = composer.value
-  if (!field) return
-  field.style.height = 'auto'
-  const maxHeight = Math.min(240, Math.floor(window.innerHeight * 0.3))
-  field.style.height = `${Math.min(Math.max(field.scrollHeight, 52), maxHeight)}px`
-  field.style.overflowY = field.scrollHeight > maxHeight ? 'auto' : 'hidden'
-}
-
-function handleComposerKeydown(event: KeyboardEvent): void {
-  if (event.repeat && (event.ctrlKey || event.metaKey) && event.key === 'Enter') {
-    event.preventDefault()
-  }
-}
-
-watch(() => draft.value, () => void nextTick(resizeComposer))
-watch(() => sessionId.value, () => void nextTick(resizeComposer))
 
 function editQuestion(message: UiMessage) {
   const index = messages.value.findIndex((item) => item.id === message.id)
@@ -524,143 +504,36 @@ function selectMode(mode: 'knowledge' | 'general') {
         </div>
       </div>
 
-      <div class="composer-wrap">
-        <button
-          v-if="(!nearBottom || navigationPaused) && messages.length"
-          class="jump-latest secondary-button"
-          type="button"
-          @click="scrollToLatest"
-        >
-          <el-icon aria-hidden="true"><ArrowDown /></el-icon> 回到最新回答
-        </button>
-        <p v-if="copyError" class="field-error" role="alert">{{ copyError }}</p>
-        <div v-if="editCandidate !== null" class="draft-confirm" role="status">
-          输入框已有草稿，是否替换为原问题？
-          <button type="button" class="text-button" @click="replaceDraft">替换草稿</button>
-          <button type="button" class="text-button" @click="editCandidate = null">保留草稿</button>
-        </div>
-        <form class="composer" @submit.prevent="submit()">
-          <label for="question" class="sr-only">{{
-            chatMode === 'knowledge' ? '向企业知识库提问' : '向通用助手提问'
-          }}</label>
-          <textarea
-            id="question"
-            ref="composer"
-            name="question"
-            autocomplete="off"
-            v-model="draft"
-            rows="2"
-            maxlength="12000"
-            :placeholder="
-              chatMode === 'knowledge'
-                ? '例如：差旅报销超过 5000 元需要谁审批？'
-                : '例如：帮我整理一份产品发布会清单。'
-            "
-            :disabled="loadingHistory"
-            @compositionstart="composing = true"
-            @compositionend="composing = false"
-            @input="resizeComposer"
-            @keydown="handleComposerKeydown"
-            @keydown.ctrl.enter.prevent="submit($event)"
-            @keydown.meta.enter.prevent="submit($event)"
-          />
-          <div class="composer-footer">
-            <div class="composer-tools">
-              <div
-                v-if="!modeLocked"
-                class="mode-switcher"
-                role="group"
-                aria-label="对话模式"
-              >
-                <button
-                  v-for="mode in modes"
-                  :key="mode.id"
-                  class="mode-option"
-                  :class="{ active: chatMode === mode.id }"
-                  type="button"
-                  :aria-pressed="chatMode === mode.id"
-                  :title="mode.description"
-                  :disabled="sending"
-                  @click="selectMode(mode.id)"
-                >
-                  <el-icon aria-hidden="true"
-                    ><component :is="mode.icon"
-                  /></el-icon>
-                  <span>{{ mode.label }}</span>
-                </button>
-              </div>
-
-              <button
-                v-if="chatMode === 'general'"
-                type="button"
-                class="search-toggle"
-                :class="{ active: webSearchEnabled }"
-                :disabled="sending"
-                @click="webSearchEnabled = !webSearchEnabled"
-                :aria-pressed="webSearchEnabled"
-              >
-                <el-icon aria-hidden="true"><Search /></el-icon> 联网搜索
-              </button>
-              <span v-else-if="modeLocked" class="composer-scope"
-                ><el-icon aria-hidden="true"><Collection /></el-icon>
-                企业知识库</span
-              >
-            </div>
-            <button
-              v-if="sending"
-              class="composer-submit is-stop"
-              type="button"
-              aria-label="停止回答"
-              title="停止回答"
-              @click="cancelMessage"
-            >
-              <span class="stop-symbol" aria-hidden="true" />
-            </button>
-            <button
-              v-else
-              class="composer-submit"
-              type="submit"
-              aria-label="发送"
-              title="发送（Ctrl / ⌘ + Enter）"
-              :disabled="!canSend"
-            >
-              <el-icon aria-hidden="true"><ArrowUp /></el-icon>
-            </button>
-          </div>
-        </form>
-        <div class="composer-meta">
-          <span class="composer-meta-left"><ContextMeter :usage="contextUsage" :loading="contextUsageLoading" :stale="contextUsageStale" />{{ chatMode === 'knowledge' ? '基于企业知识库 · 附参考来源' : (webSearchEnabled ? '通用助手 · 联网搜索已开启' : '通用助手') }}</span>
-          <span class="composer-shortcut">{{ sending ? '可先编辑下一条问题' : 'Ctrl / ⌘ + Enter 发送' }}</span>
-        </div>
-        <div v-if="!messages.length" class="prompt-grid">
-          <button
-            v-for="prompt in prompts"
-            :key="prompt.title"
-            type="button"
-            :disabled="sending"
-            @click="usePrompt(prompt.text)"
-          >
-            <el-icon class="prompt-icon" aria-hidden="true"
-              ><component :is="prompt.icon"
-            /></el-icon>
-            <strong>{{ prompt.title }}</strong>
-            <span>{{ prompt.text }}</span>
-            <el-icon class="prompt-action" aria-hidden="true"
-              ><Right
-            /></el-icon>
-          </button>
-        </div>
-        <p v-if="draft.length >= 12000" class="field-error">
-          已达到 12000 字上限，请缩短问题。
-        </p>
-        <p class="composer-note">
-          {{
-            chatMode === 'knowledge'
-              ? '回答基于可访问的企业文档，重要事项请核对原文。'
-              : '通用回答可能存在偏差，重要信息请进一步核实。'
-          }}
-        </p>
-      </div>
+      <Composer
+        ref="composer"
+        v-model:draft="draft"
+        v-model:chat-mode="chatMode"
+        v-model:web-search-enabled="webSearchEnabled"
+        :loading-history="loadingHistory"
+        :sending="sending"
+        :composing="composing"
+        :can-send="canSend"
+        :mode-locked="modeLocked"
+        :messages-length="messages.length"
+        :near-bottom="nearBottom"
+        :navigation-paused="navigationPaused"
+        :edit-candidate="editCandidate"
+        :copy-error="copyError"
+        :context-usage="contextUsage"
+        :context-usage-loading="contextUsageLoading"
+        :context-usage-stale="contextUsageStale"
+        :modes="modes"
+        :prompts="prompts"
+        @submit="submit"
+        @cancel="cancelMessage"
+        @latest="scrollToLatest"
+        @composition-start="composing = true"
+        @composition-end="composing = false"
+        @replace-draft="replaceDraft"
+        @keep-draft="editCandidate = null"
+        @use-prompt="usePrompt"
+        @select-mode="selectMode"
+      />
     </section>
 
     <EvidencePanel

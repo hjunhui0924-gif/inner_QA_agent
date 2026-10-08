@@ -33,6 +33,10 @@ import {
 import { readableKnowledgeUploadError } from '../utils/knowledge'
 import { nextSessionAfterDelete } from '../utils/sessions'
 import { createNotificationState } from '../state/notificationState'
+import { createSessionState } from '../state/sessionState'
+import { createChatState } from '../state/chatState'
+import { createKnowledgeState } from '../state/knowledgeState'
+import { createContextUsageState } from '../state/contextUsageState'
 import {
   createStreamState,
   reduceStreamEvent,
@@ -51,29 +55,27 @@ function generateUuid(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`
 }
 
-const sessionId = ref<string>(generateUuid())
-const sessions = ref<SessionSummary[]>([])
-const messages = ref<UiMessage[]>([])
-const knowledgeRecords = ref<KnowledgeRecord[]>([])
-const agentSteps = ref<AgentStep[]>([])
-const activeCitations = ref<Citation[]>([])
-const backendOnline = ref(false)
+const sessionState = createSessionState(generateUuid)
+const chatState = createChatState()
+const knowledgeState = createKnowledgeState()
+const contextState = createContextUsageState()
+const {
+  sessionId, sessions, viewCache, currentView, draft, loadingSessions,
+  sessionsError, loadingHistory, historyError, historyErrorSessionId,
+  sessionTitlePending, chatVisible,
+} = sessionState
+const {
+  messages, agentSteps, activeCitations, backendOnline, sending,
+  sendingStartedAt, chatMode, webSearchEnabled,
+} = chatState
+const {
+  knowledgeRecords, loadingKnowledge, knowledgeError, uploading,
+  uploadForm, uploadTask,
+} = knowledgeState
+const {
+  contextUsage, contextUsageLoading, contextUsageStale,
+} = contextState
 const initialized = ref(false)
-const chatVisible = ref(false)
-const viewCache = reactive<
-  Record<string, { draft: string; scrollTop: number }>
->({})
-const currentView = computed(() => {
-  if (!viewCache[sessionId.value])
-    viewCache[sessionId.value] = { draft: '', scrollTop: 0 }
-  return viewCache[sessionId.value]!
-})
-const draft = computed({
-  get: () => currentView.value.draft,
-  set: (value: string) => {
-    currentView.value.draft = value
-  },
-})
 let sessionsGeneration = 0
 let initialization: Promise<void> | null = null
 let chatInitialized = false
@@ -99,45 +101,8 @@ function refreshTitleLater() {
       }, delay),
     )
 }
-const loadingSessions = ref(false)
-const sessionsError = ref<string | null>(null)
-const loadingHistory = ref(false)
-const historyError = ref<string | null>(null)
-const historyErrorSessionId = ref<string | null>(null)
-const loadingKnowledge = ref(false)
-const sending = ref(false)
-const sendingStartedAt = ref(0)
-const chatMode = ref<ChatMode>('knowledge')
-const webSearchEnabled = ref(false)
-const uploading = ref(false)
-const knowledgeError = ref('')
-const contextUsage = ref<ContextUsage | null>(null)
-const contextUsageLoading = ref(false)
-const contextUsageStale = ref(false)
 let contextUsageGeneration = 0
 let knowledgeGeneration = 0
-const uploadForm = reactive({
-  title: '',
-  source: 'internal_upload',
-  department: 'unknown',
-  version: 'v1',
-  status: 'active',
-  effectiveFrom: '',
-  effectiveTo: '',
-  owner: '',
-  selectedFile: null as File | null,
-  uploadError: '',
-  lastUpload: null as UploadResponse | null,
-})
-const uploadTask = reactive({
-  file: null as File | null,
-  metadata: {} as KnowledgeUploadMetadata,
-  result: null as UploadResponse | null,
-  error: '',
-  title: '',
-  source: '',
-})
-const sessionTitlePending = ref(false)
 let activeController: AbortController | null = null
 let historyRequestGeneration = 0
 const sessionModeStorageKey = 'enterprise-assistant-session-modes'
