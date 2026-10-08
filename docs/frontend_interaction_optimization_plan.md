@@ -476,6 +476,7 @@ npm --prefix frontend run build
 - `Composer.vue` 已从 `ChatView.vue` 拆出，输入法、快捷键、自动增高、模式切换、停止和示例问题保持原有行为。
 - `useWorkspace.ts` 已按 session/chat/knowledge/context 领域拆出状态工厂，保留原兼容门面；通知状态继续由独立模块管理。
 - 上下文统计与知识库加载/上传动作已进一步移到 `contextActions.ts`、`knowledgeActions.ts`；`useWorkspace.ts` 只保留兼容编排和聊天/SSE 逻辑。
+- 聊天发送、取消、重试与 SSE 生命周期已移到 `chatActions.ts`；回答状态映射和过程摘要已移到 `chatPresentation.ts`，`useWorkspace.ts` 作为兼容门面保留旧字段和方法。
 - 复制、反馈、上传、重试、停止等局部反馈已统一；重试按钮增加就地 loading/success/error 状态。
 - 会话列表和知识库列表增加保留结构的 Skeleton，并尊重 `prefers-reduced-motion`。
 - 性能指标与 2/20/100/300 轮、1000 条消息的合成基线已记录；简单窗口化原型因滚动帧率下降而删除。
