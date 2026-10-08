@@ -3,24 +3,17 @@ import { computed, ref, reactive, nextTick } from 'vue'
 import {
   deleteSession as deleteSessionRequest,
   fetchHealth,
-  fetchContextUsage,
   fetchHistory,
-  fetchKnowledgeRecords,
   fetchSessions,
   streamChat,
-  uploadKnowledge as uploadKnowledgeRequest,
 } from '../services/api'
 import type {
   AgentStep,
   Citation,
-  KnowledgeRecord,
   SessionSummary,
   StreamEvent,
   UiMessage,
-  UploadResponse,
   ChatMode,
-  KnowledgeUploadMetadata,
-  ContextUsage,
   TurnProcessSummary,
 } from '../types/api'
 import {
@@ -30,13 +23,14 @@ import {
   recordFirstToken,
   recordStreamUpdate,
 } from '../utils/performance'
-import { readableKnowledgeUploadError } from '../utils/knowledge'
 import { nextSessionAfterDelete } from '../utils/sessions'
 import { createNotificationState } from '../state/notificationState'
 import { createSessionState } from '../state/sessionState'
 import { createChatState } from '../state/chatState'
 import { createKnowledgeState } from '../state/knowledgeState'
 import { createContextUsageState } from '../state/contextUsageState'
+import { createContextActions } from '../state/contextActions'
+import { createKnowledgeActions } from '../state/knowledgeActions'
 import {
   createStreamState,
   reduceStreamEvent,
@@ -79,7 +73,6 @@ const initialized = ref(false)
 let sessionsGeneration = 0
 let initialization: Promise<void> | null = null
 let chatInitialized = false
-let knowledgeInitialized = false
 let chatInitialization: Promise<void> | null = null
 let knowledgeInitialization: Promise<void> | null = null
 let titleTimers: ReturnType<typeof setTimeout>[] = []
@@ -101,8 +94,6 @@ function refreshTitleLater() {
       }, delay),
     )
 }
-let contextUsageGeneration = 0
-let knowledgeGeneration = 0
 let activeController: AbortController | null = null
 let historyRequestGeneration = 0
 const sessionModeStorageKey = 'enterprise-assistant-session-modes'
@@ -162,6 +153,19 @@ function isAbortError(error: unknown): boolean {
   return error instanceof DOMException && error.name === 'AbortError'
 }
 
+const contextActions = createContextActions({
+  userId,
+  sessionId,
+  state: contextState,
+})
+const knowledgeActions = createKnowledgeActions({
+  state: knowledgeState,
+  readableError,
+  notify,
+})
+const { refreshContextUsage } = contextActions
+const { initialized: knowledgeInitialized, loadKnowledge, uploadKnowledge } = knowledgeActions
+
 function uiStateForAnswer(
   answerState: UiMessage['answerState'],
 ): UiMessage['state'] {
@@ -212,22 +216,6 @@ function processSummaryFromStream(
   }
 }
 
-async function refreshContextUsage(targetSessionId = sessionId.value): Promise<void> {
-  const generation = ++contextUsageGeneration
-  contextUsageLoading.value = true
-  try {
-    const usage = await fetchContextUsage(userId, targetSessionId)
-    if (generation !== contextUsageGeneration || targetSessionId !== sessionId.value) return
-    contextUsage.value = usage
-    contextUsageStale.value = usage.status === 'unavailable'
-  } catch {
-    if (generation === contextUsageGeneration && targetSessionId === sessionId.value)
-      contextUsageStale.value = true
-  } finally {
-    if (generation === contextUsageGeneration) contextUsageLoading.value = false
-  }
-}
-
 async function loadSessions(): Promise<void> {
   const started = performance.now()
   const generation = ++sessionsGeneration
@@ -245,24 +233,6 @@ async function loadSessions(): Promise<void> {
   } finally {
     recordRefresh(performance.now() - started)
     if (generation === sessionsGeneration) loadingSessions.value = false
-  }
-}
-
-async function loadKnowledge(): Promise<void> {
-  const generation = ++knowledgeGeneration
-  loadingKnowledge.value = true
-  knowledgeError.value = ''
-  try {
-    const records = await fetchKnowledgeRecords()
-    if (generation === knowledgeGeneration) {
-      knowledgeRecords.value = records
-      knowledgeInitialized = true
-    }
-  } catch (error) {
-    if (generation === knowledgeGeneration)
-      knowledgeError.value = `知识列表加载失败。${readableError(error)}`
-  } finally {
-    if (generation === knowledgeGeneration) loadingKnowledge.value = false
   }
 }
 
@@ -296,7 +266,7 @@ async function initialize(
     await chatInitialization
     void refreshContextUsage()
   }
-  if (target === 'knowledge' && !knowledgeInitialized) {
+  if (target === 'knowledge' && !knowledgeInitialized.value) {
     if (!knowledgeInitialization)
       knowledgeInitialization = loadKnowledge().finally(() => {
         knowledgeInitialization = null
@@ -618,47 +588,6 @@ async function retryMessage(message: UiMessage, options: { withoutWeb?: boolean 
 
 function showCitations(citations: Citation[]): void {
   activeCitations.value = citations
-}
-
-async function uploadKnowledge(
-  file: File,
-  title: string,
-  source: string,
-  metadata: KnowledgeUploadMetadata = {},
-): Promise<UploadResponse> {
-  if (uploading.value) throw new Error('已有文档正在上传并处理。')
-  uploading.value = true
-  Object.assign(uploadTask, {
-    file,
-    title,
-    source,
-    metadata: { ...metadata },
-    result: null,
-    error: '',
-  })
-  uploadForm.uploadError = ''
-  try {
-    const response = await uploadKnowledgeRequest(file, title, source, metadata)
-    uploadTask.result = response
-    uploadForm.lastUpload = response
-    uploadForm.selectedFile = null
-    uploadForm.title = ''
-    await loadKnowledge()
-    if (response.record.deduplicated) {
-      notify('warning', '检测到重复文件', response.message)
-    } else {
-      notify('success', '文件已完成入库', response.message)
-    }
-    return response
-  } catch (error) {
-    uploadTask.error = readableKnowledgeUploadError(error)
-    uploadForm.uploadError = uploadTask.error
-    notify('error', '文件上传失败', uploadTask.error)
-    throw error
-  } finally {
-    uploadTask.file = null
-    uploading.value = false
-  }
 }
 
 export function useWorkspace() {
