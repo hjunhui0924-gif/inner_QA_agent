@@ -15,7 +15,7 @@ import EvidencePanel from '../components/EvidencePanel.vue'
 import ConversationNavigator from '../components/ConversationNavigator.vue'
 import type { ConversationNavItem } from '../components/ConversationNavigator.vue'
 import Composer from '../components/Composer.vue'
-import type { ComposerMode, ComposerPrompt } from '../components/Composer.vue'
+import type { ComposerMode, ComposerModel, ComposerPrompt } from '../components/Composer.vue'
 import FeedbackDialog from '../components/FeedbackDialog.vue'
 import { useWorkspace } from '../composables/useWorkspace'
 import { useEvidenceSelection } from '../composables/useEvidenceSelection'
@@ -43,6 +43,7 @@ const {
   sendMessage,
   chatMode,
   webSearchEnabled,
+  modelProvider,
   cancelMessage,
   retryMessage,
   contextUsage,
@@ -230,6 +231,10 @@ const modes: ComposerMode[] = [
     description: '开放问答，可连接互联网',
     icon: Connection,
   },
+]
+const models: ComposerModel[] = [
+  { id: 'qwen', label: 'Qwen', description: '通义千问 · 中文与知识库问答' },
+  { id: 'deepseek', label: 'DeepSeek', description: 'DeepSeek · 深度推理与分析' },
 ]
 
 watch(
@@ -509,6 +514,7 @@ function selectMode(mode: 'knowledge' | 'general') {
         v-model:draft="draft"
         v-model:chat-mode="chatMode"
         v-model:web-search-enabled="webSearchEnabled"
+        v-model:model-provider="modelProvider"
         :loading-history="loadingHistory"
         :sending="sending"
         :composing="composing"
@@ -524,6 +530,7 @@ function selectMode(mode: 'knowledge' | 'general') {
         :context-usage-stale="contextUsageStale"
         :modes="modes"
         :prompts="prompts"
+        :models="models"
         @submit="submit"
         @cancel="cancelMessage"
         @latest="scrollToLatest"

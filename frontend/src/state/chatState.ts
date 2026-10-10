@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 
-import type { AgentStep, Citation, ChatMode, UiMessage } from '../types/api'
+import type { AgentStep, Citation, ChatMode, ModelProvider, UiMessage } from '../types/api'
 
 export function createChatState() {
   return {
@@ -12,5 +12,6 @@ export function createChatState() {
     sendingStartedAt: ref(0),
     chatMode: ref<ChatMode>('knowledge'),
     webSearchEnabled: ref(false),
+    modelProvider: ref<ModelProvider>('deepseek'),
   }
 }

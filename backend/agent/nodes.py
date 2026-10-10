@@ -208,10 +208,13 @@ async def manage_conversation_context(
     model_call_reserved = False
     try:
         model_call_reserved = _reserve_model_call(runtime, "manage_conversation_context")
-        model = _build_model(
-            temperature=0,
-            max_tokens=settings.conversation_summary_target_tokens,
-        )
+        summary_options: dict[str, Any] = {
+            "temperature": 0,
+            "max_tokens": settings.conversation_summary_target_tokens,
+        }
+        if state.get("model_provider"):
+            summary_options["provider"] = state["model_provider"]
+        model = _build_model(**summary_options)
         async with budget_deadline(_budget_for(runtime), "manage_conversation_context"):
             response = await model.ainvoke([SystemMessage(content=prompt)])
         _finish_model_call(runtime, response)
@@ -258,27 +261,30 @@ async def manage_conversation_context(
 def _build_model(
     temperature: float = 0.2,
     *,
+    provider: str | None = None,
     model_name: str | None = None,
     max_tokens: int | None = None,
 ) -> ChatOpenAI:
     """Create the configured text model."""
 
-    if not settings.text_api_key:
+    active_provider = provider or settings.model_provider
+    api_key = settings.text_api_key_for(active_provider)
+    if not api_key:
         raise RuntimeError(
-            f"{settings.model_provider.upper()}_API_KEY is not set. Configure it in .env before running the model."
+            f"{active_provider.upper()}_API_KEY is not set. Configure it in .env before running the model."
         )
-    selected_model = settings.model_name if model_name is None else model_name.strip()
+    selected_model = settings.model_name_for(active_provider) if model_name is None else model_name.strip()
     if not selected_model:
         raise RuntimeError("Configured model name must not be empty.")
     model_options: dict[str, Any] = {
         "model": selected_model,
-        "api_key": settings.text_api_key,
-        "base_url": settings.text_base_url,
+        "api_key": api_key,
+        "base_url": settings.text_base_url_for(active_provider),
         "temperature": temperature,
         "streaming": True,
         "stream_usage": True,
         "max_retries": 0,
-        "extra_body": settings.text_extra_body(),
+        "extra_body": settings.text_extra_body_for(active_provider),
     }
     if max_tokens is not None:
         if max_tokens <= 0:
@@ -659,7 +665,7 @@ async def route_query(
     model_call_reserved = False
     try:
         model_call_reserved = _reserve_model_call(runtime, "route_query")
-        model = _build_model(temperature=0)
+        model = _build_model(temperature=0, provider=state.get("model_provider"))
         async with budget_deadline(_budget_for(runtime), "route_query"):
             response = await model.ainvoke([SystemMessage(content=prompt)])
         _finish_model_call(runtime, response)
@@ -801,7 +807,7 @@ async def grade_documents(
     model_call_reserved = False
     try:
         model_call_reserved = _reserve_model_call(runtime, "grade_documents")
-        model = _build_model(temperature=0)
+        model = _build_model(temperature=0, provider=state.get("model_provider"))
         async with budget_deadline(_budget_for(runtime), "grade_documents"):
             response = await model.ainvoke([SystemMessage(content=prompt)])
         _finish_model_call(runtime, response)
@@ -878,7 +884,7 @@ async def rewrite_query(
     model_call_reserved = False
     try:
         model_call_reserved = _reserve_model_call(runtime, "rewrite_query")
-        model = _build_model(temperature=0)
+        model = _build_model(temperature=0, provider=state.get("model_provider"))
         async with budget_deadline(_budget_for(runtime), "rewrite_query"):
             response = await model.ainvoke([SystemMessage(content=prompt)])
         _finish_model_call(runtime, response)
@@ -1251,7 +1257,10 @@ async def generate(
     stream_usage: tuple[int, int, float | None] | None = None
     try:
         model_call_reserved = _reserve_model_call(runtime, "generate")
-        model = _build_model(temperature=0 if route == "rag" else 0.2)
+        model = _build_model(
+            temperature=0 if route == "rag" else 0.2,
+            provider=state.get("model_provider"),
+        )
         async with budget_deadline(_budget_for(runtime), "generate"):
             async for chunk in model.astream(prompt_messages):
                 delta = _as_text(chunk)
@@ -1489,10 +1498,13 @@ async def check_hallucination(
     model_call_reserved = False
     try:
         model_call_reserved = _reserve_model_call(runtime, "check_hallucination")
-        model = _build_model(
-            temperature=0,
-            model_name=settings.judge_model_name,
-        )
+        judge_options: dict[str, Any] = {
+            "temperature": 0,
+            "model_name": settings.model_name_for(state.get("model_provider"), judge=True),
+        }
+        if state.get("model_provider"):
+            judge_options["provider"] = state["model_provider"]
+        model = _build_model(**judge_options)
         async with budget_deadline(_budget_for(runtime), "check_hallucination"):
             response = await model.ainvoke(judge_messages)
         _finish_model_call(runtime, response)

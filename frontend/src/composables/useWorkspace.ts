@@ -40,7 +40,7 @@ const {
 } = sessionState
 const {
   messages, agentSteps, activeCitations, backendOnline, sending,
-  sendingStartedAt, chatMode, webSearchEnabled,
+  sendingStartedAt, chatMode, webSearchEnabled, modelProvider,
 } = chatState
 const {
   knowledgeRecords, loadingKnowledge, knowledgeError, uploading,
@@ -137,6 +137,7 @@ const chatActions = createChatActions({
   sendingStartedAt,
   chatMode,
   webSearchEnabled,
+  modelProvider,
   sessionTitlePending,
   chatVisible,
   notify,
@@ -156,7 +157,10 @@ async function checkHealth(): Promise<void> {
   if (!initialization)
     initialization = (async () => {
       try {
-        await fetchHealth()
+        const health = await fetchHealth()
+        if (health.model_provider === 'qwen' || health.model_provider === 'deepseek') {
+          modelProvider.value = health.model_provider
+        }
         backendOnline.value = true
         initialized.value = true
       } catch (error) {
@@ -220,6 +224,7 @@ export function useWorkspace() {
     sendingStartedAt,
     chatMode,
     webSearchEnabled,
+    modelProvider,
     uploading,
     uploadTask,
     uploadForm,

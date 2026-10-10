@@ -24,6 +24,7 @@ export interface SessionSummary {
 }
 
 export type ChatMode = 'knowledge' | 'general'
+export type ModelProvider = 'qwen' | 'deepseek'
 
 export interface ContextUsage {
   scope: 'conversation_history'
@@ -73,6 +74,7 @@ export interface ChatHistoryItem {
   retry_of_turn_id?: string | null
   mode?: ChatMode
   web_search?: boolean
+  model_provider?: ModelProvider
   role: 'user' | 'assistant'
   content: string
   citations?: Citation[]
@@ -172,6 +174,8 @@ export interface UploadResponse {
 export interface HealthResponse {
   status: 'ok'
   model: string
+  model_provider?: ModelProvider
+  available_models?: ModelProvider[]
   retrieval_strategy: string
 }
 
@@ -190,6 +194,7 @@ export type StreamEvent =
       retry_of_turn_id?: string | null
       mode?: ChatMode
       web_search?: boolean
+      model_provider?: ModelProvider
       content: string
       citations: Citation[]
       trace_id: string

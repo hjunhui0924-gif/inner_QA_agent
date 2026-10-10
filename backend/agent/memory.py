@@ -604,7 +604,7 @@ def _turn_metadata(raw: str) -> dict[str, Any]:
         value = json.loads(raw or "{}")
     except (TypeError, ValueError):
         return {}
-    keys = {"attempt_group_id", "retry_of_turn_id", "mode", "web_search",
+    keys = {"attempt_group_id", "retry_of_turn_id", "mode", "web_search", "model_provider",
             "failure_type", "failure_stage", "failure_reason", "trace_id"}
     result = {key: item for key, item in value.items() if key in keys} if isinstance(value, dict) else {}
     process = value.get("process_summary") if isinstance(value, dict) else None
@@ -650,7 +650,7 @@ async def load_chat_messages(user_id: str, session_id: str) -> list[dict[str, An
     for role, content, citations_json, turn_id, message_id, metadata_json in rows:
         metadata = _turn_metadata(metadata_json)
         if role != "assistant":
-            metadata = {key: value for key, value in metadata.items() if key in {"attempt_group_id", "retry_of_turn_id", "mode", "web_search"}}
+            metadata = {key: value for key, value in metadata.items() if key in {"attempt_group_id", "retry_of_turn_id", "mode", "web_search", "model_provider"}}
         try:
             citations = json.loads(citations_json or "[]")
         except (json.JSONDecodeError, TypeError):

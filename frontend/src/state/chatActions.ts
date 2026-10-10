@@ -1,7 +1,7 @@
 import { nextTick, reactive, type Ref } from 'vue'
 
 import { streamChat } from '../services/api'
-import type { AgentStep, Citation, ChatMode, SessionSummary, UiMessage } from '../types/api'
+import type { AgentStep, Citation, ChatMode, ModelProvider, SessionSummary, UiMessage } from '../types/api'
 import { beginTurnTiming, afterPaint, recordFirstToken, recordStreamUpdate } from '../utils/performance'
 import { createStreamState, reduceStreamEvent, type StreamUiState } from '../utils/streamState'
 import { processSummaryFromStream, uiStateForAnswer } from './chatPresentation'
@@ -19,6 +19,7 @@ interface ChatActionOptions {
   sendingStartedAt: Ref<number>
   chatMode: Ref<ChatMode>
   webSearchEnabled: Ref<boolean>
+  modelProvider: Ref<ModelProvider>
   sessionTitlePending: Ref<boolean>
   chatVisible: Ref<boolean>
   notify: (tone: 'success' | 'warning' | 'error' | 'info', title: string, detail?: string) => void
@@ -63,6 +64,7 @@ export function createChatActions(options: ChatActionOptions) {
       retry_of_turn_id: retryOf?.turn_id,
       mode: options.chatMode.value,
       web_search: options.webSearchEnabled.value,
+      model_provider: options.modelProvider.value,
     }
     const timing = beginTurnTiming(turnId)
     void nextTick(() => afterPaint(() => {
@@ -93,6 +95,7 @@ export function createChatActions(options: ChatActionOptions) {
       await streamChat({
         message: content, user_id: options.userId, session_id: options.sessionId.value,
         mode: options.chatMode.value, web_search: options.webSearchEnabled.value,
+        model_provider: options.modelProvider.value,
         turn_id: turnId, attempt_group_id: groupId, retry_of_turn_id: retryOf?.turn_id || undefined,
       }, (event) => {
         if (requestFinished || controller.signal.aborted || streamState.resultReceived) return
@@ -161,6 +164,7 @@ export function createChatActions(options: ChatActionOptions) {
     }
     if (message.mode) options.chatMode.value = message.mode
     if (message.web_search !== undefined) options.webSearchEnabled.value = message.web_search
+    if (message.model_provider) options.modelProvider.value = message.model_provider
     if (['search_error', 'search_answer_error', 'search_no_results'].includes(message.failureType || '')) {
       options.chatMode.value = 'general'
       options.webSearchEnabled.value = !retryOptions.withoutWeb

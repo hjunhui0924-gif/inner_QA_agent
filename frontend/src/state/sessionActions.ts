@@ -109,6 +109,7 @@ export function createSessionActions(options: SessionActionOptions) {
       options.state.sessionId.value = targetSessionId
       options.chat.chatMode.value = history.find((message) => message.mode)?.mode ?? readSessionModes()[targetSessionId] ?? 'knowledge'
       options.chat.webSearchEnabled.value = false
+      options.chat.modelProvider.value = history.find((message) => message.model_provider)?.model_provider ?? options.chat.modelProvider.value
       options.chat.messages.value = history.map((message) => ({
         ...message,
         id: message.message_id || options.generateId(),

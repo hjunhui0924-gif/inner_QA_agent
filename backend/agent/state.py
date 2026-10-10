@@ -20,6 +20,7 @@ class AgentState(TypedDict, total=False):
     trace_id: str
     mode: Literal["knowledge", "general"]
     web_search: bool
+    model_provider: Literal["qwen", "deepseek"]
     query: str
     conversation_summary: str
     rewritten_query: str

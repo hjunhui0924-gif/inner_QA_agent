@@ -91,6 +91,7 @@ class ChatRequest(BaseModel):
     session_id: str = Field(default="session_default")
     mode: Literal["knowledge", "general"] = "knowledge"
     web_search: bool = False
+    model_provider: Literal["qwen", "deepseek"] | None = None
     turn_id: str | None = Field(default=None, max_length=128)
 
     attempt_group_id: str | None = Field(default=None, max_length=128)
@@ -159,12 +160,20 @@ def _request_turn_id(request: Request, payload: ChatRequest) -> str | None:
 
 
 @router.get("/health")
-def health() -> dict[str, str]:
+def health() -> dict[str, object]:
     """Expose a minimal frontend readiness contract."""
 
+    default_provider = "deepseek" if settings.model_provider == "deepseek" else "qwen"
+    available_models = []
+    if settings.dashscope_api_key:
+        available_models.append("qwen")
+    if settings.deepseek_api_key:
+        available_models.append("deepseek")
     return {
         "status": "ok",
         "model": settings.model_name,
+        "model_provider": default_provider,
+        "available_models": available_models,
         "retrieval_strategy": settings.retrieval_strategy,
     }
 
@@ -447,7 +456,12 @@ async def _stream_graph(
 
     resolved_access_context = _request_access_context(request, access_context)
     effective_payload = payload.model_copy(
-        update={"user_id": resolved_access_context.user_id}
+        update={
+            "user_id": resolved_access_context.user_id,
+            "model_provider": payload.model_provider or (
+                "deepseek" if settings.model_provider == "deepseek" else "qwen"
+            ),
+        }
     )
     budget = _request_budget()
     try:
@@ -607,6 +621,7 @@ async def _stream_graph_unlocked_core(
                     "retry_of_turn_id": completed_turn.get("retry_of_turn_id"),
                     "mode": completed_turn.get("mode", payload.mode),
                     "web_search": completed_turn.get("web_search", payload.web_search),
+                    "model_provider": completed_turn.get("model_provider", payload.model_provider),
                     "context_usage": _finalize_context_usage(
                         await _context_usage_for_request(
                             request, payload.user_id, payload.session_id, locked=True
@@ -628,6 +643,9 @@ async def _stream_graph_unlocked_core(
         trace_id=trace_id,
         mode=payload.mode,
         web_search=payload.web_search,
+        model_provider=payload.model_provider or (
+            "deepseek" if settings.model_provider == "deepseek" else "qwen"
+        ),
         turn_id=turn_id,
     )
     config = {"configurable": {"thread_id": thread_id}}
@@ -732,6 +750,7 @@ async def _stream_graph_unlocked_core(
             "attempt_group_id": payload.attempt_group_id or str(graph_input["turn_id"]),
             "retry_of_turn_id": payload.retry_of_turn_id,
             "mode": payload.mode, "web_search": payload.web_search,
+            "model_provider": payload.model_provider,
             "failure_type": outcome["failure_type"],
             "failure_stage": outcome.get("failure_stage"),
             "failure_reason": outcome.get("failure_reason"), "trace_id": trace_id,
@@ -806,6 +825,7 @@ async def _stream_graph_unlocked_core(
                 "attempt_group_id": completed_turn.get("attempt_group_id"),
                 "retry_of_turn_id": completed_turn.get("retry_of_turn_id"),
                 "mode": payload.mode, "web_search": payload.web_search,
+                "model_provider": payload.model_provider,
                 "context_usage": _finalize_context_usage(context_usage),
                 "process_summary": completed_turn.get("process_summary"),
             }

@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     model_provider: Literal["dashscope", "deepseek"] = "dashscope"
     deepseek_api_key: str = Field(default="", validation_alias="DEEPSEEK_API_KEY")
     deepseek_base_url: str = "https://api.deepseek.com"
+    qwen_model_name: str = Field(default="qwen3.8-flash", validation_alias="QWEN_MODEL_NAME")
+    deepseek_model_name: str = Field(default="deepseek-v4-pro", validation_alias="DEEPSEEK_MODEL_NAME")
     model_name: str = "qwen3.8-flash"
     judge_model_name: str = "qwen3.8-flash"
     # Keep legacy for unvalidated deployments; locally validated providers can opt into judge.
@@ -122,6 +124,49 @@ class Settings(BaseSettings):
         if self.model_provider == "deepseek":
             return {"thinking": {"type": "disabled"}}
         return {"enable_thinking": False if title else self.qwen_enable_thinking}
+
+    def model_name_for(self, provider: str | None = None, *, judge: bool = False) -> str:
+        """Return the model name for a selected provider without mutating settings."""
+
+        raw_provider = (provider or self.model_provider).strip().lower()
+        active_provider = "qwen" if raw_provider == "dashscope" else raw_provider
+        if provider is None or raw_provider == self.model_provider:
+            return self.judge_model_name if judge else self.model_name
+        if active_provider == "deepseek":
+            return self.deepseek_model_name
+        if active_provider == "qwen":
+            return self.qwen_model_name
+        raise ValueError("Unsupported model provider.")
+
+    def text_api_key_for(self, provider: str | None = None) -> str:
+        active_provider = (provider or self.model_provider).strip().lower()
+        if active_provider == "dashscope":
+            active_provider = "qwen"
+        if active_provider == "deepseek":
+            return self.deepseek_api_key
+        if active_provider == "qwen":
+            return self.dashscope_api_key
+        raise ValueError("Unsupported model provider.")
+
+    def text_base_url_for(self, provider: str | None = None) -> str:
+        active_provider = (provider or self.model_provider).strip().lower()
+        if active_provider == "dashscope":
+            active_provider = "qwen"
+        if active_provider == "deepseek":
+            return self.deepseek_base_url
+        if active_provider == "qwen":
+            return self.dashscope_base_url
+        raise ValueError("Unsupported model provider.")
+
+    def text_extra_body_for(self, provider: str | None = None, *, title: bool = False) -> dict:
+        active_provider = (provider or self.model_provider).strip().lower()
+        if active_provider == "dashscope":
+            active_provider = "qwen"
+        if active_provider == "deepseek":
+            return {"thinking": {"type": "disabled"}}
+        if active_provider == "qwen":
+            return {"enable_thinking": False if title else self.qwen_enable_thinking}
+        raise ValueError("Unsupported model provider.")
 
     @field_validator("embedding_provider")
     @classmethod

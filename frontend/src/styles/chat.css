@@ -358,6 +358,72 @@
   border-radius: 12px;
   background: transparent;
 }
+.model-picker {
+  position: relative;
+  flex: 0 0 auto;
+}
+.model-picker-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  max-width: 180px;
+  padding: 0 9px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.model-picker-trigger:hover:not(:disabled),
+.model-picker-trigger[aria-expanded="true"] {
+  background: var(--surface-muted);
+  color: var(--ink);
+}
+.model-picker-trigger:disabled { opacity: .58; cursor: not-allowed; }
+.model-picker-trigger > .el-icon:first-child { color: var(--ink-faint); font-size: 15px; }
+.model-picker-chevron { color: var(--ink-faint); font-size: 13px; transition: transform var(--transition-fast); }
+.model-picker-trigger[aria-expanded="true"] .model-picker-chevron { transform: rotate(180deg); }
+.model-picker-menu {
+  position: absolute;
+  z-index: 10;
+  right: 0;
+  bottom: calc(100% + 8px);
+  width: min(280px, calc(100vw - 32px));
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-raised);
+}
+.model-picker-heading {
+  margin: 2px 8px 6px;
+  color: var(--ink-faint);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.model-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+}
+.model-option:hover,
+.model-option.active { background: var(--surface-muted); }
+.model-option.active { border-color: var(--line); }
+.model-option-copy { display: grid; gap: 2px; min-width: 0; }
+.model-option-copy strong { font-size: 13px; font-weight: 600; }
+.model-option-copy small { color: var(--ink-faint); font-size: 11px; line-height: 1.35; }
+.model-option > .el-icon { flex: 0 0 auto; color: var(--accent-strong); font-size: 16px; }
 .mode-option {
   display: flex;
   align-items: center;
@@ -405,6 +471,12 @@
   justify-content: space-between;
   align-items: center;
   gap: 8px;
+}
+.composer-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
 }
 .composer-tools {
   display: flex;
@@ -925,6 +997,7 @@
   .composer-meta { margin-inline: 8px; font-size: 10px; }
   .composer-tools { gap: 4px; }
   .mode-option { padding-inline: 8px; gap: 4px; }
+  .model-picker-trigger { max-width: 142px; padding-inline: 6px; }
   .composer .search-toggle { padding-inline: 6px; }
   .message.user { max-width: 90%; padding: 12px 16px; }
   .is-empty .chat-empty .welcome-description { font-size: 12px; }
